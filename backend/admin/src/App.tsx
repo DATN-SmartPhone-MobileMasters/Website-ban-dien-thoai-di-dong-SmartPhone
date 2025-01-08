@@ -18,13 +18,14 @@ function App() {
           path: "/products",
           element: <Products />,
         },
+        // Quản lý thương hiệu
         {
           path: "/brands",
-          element: <BrandList />,
+          element: <BrandList />,//danh sách thương hiệu
         },
         {
           path: "/brands/add",
-          element: <BrandAdd />,
+          element: <BrandAdd />,//thêm thương hiệu
         },
       ],
     },
