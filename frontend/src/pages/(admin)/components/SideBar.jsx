@@ -157,6 +157,56 @@ const SideBar = () => {
             </div>
           </div>
         </li>
+        <li className="nav-item">
+          <Link
+            className="nav-link collapsed"
+            to="#"
+            data-toggle="collapse"
+            data-target="#collapseBinhluan"
+            aria-expanded="true"
+            aria-controls="collapseBinhluan"
+          >
+            <i className="fas fa-fw fa-wrench" />
+            <span>Quản lý bình luận</span>
+          </Link>
+          <div
+            id="collapseBinhluan"
+            className="collapse"
+            aria-labelledby="headingBinhluan"
+            data-parent="#accordionSidebar"
+          >
+            <div className="bg-white py-2 collapse-inner rounded">
+              <Link className="collapse-item" to="#">
+                Danh sách bình luận
+              </Link>
+            </div>
+          </div>
+        </li>
+        <li className="nav-item">
+          <Link
+            className="nav-link collapsed"
+            to="#"
+            data-toggle="collapse"
+            data-target="#collapseTaikhoan"
+            aria-expanded="true"
+            aria-controls="collapseTaikhoan"
+          >
+            <i className="fas fa-fw fa-wrench" />
+            <span>Quản lý tài khoản</span>
+          </Link>
+          <div
+            id="collapseTaikhoan"
+            className="collapse"
+            aria-labelledby="headingTaikhoan"
+            data-parent="#accordionSidebar"
+          >
+            <div className="bg-white py-2 collapse-inner rounded">
+              <Link className="collapse-item" to="#">
+                Danh sách tài khoản
+              </Link>
+            </div>
+          </div>
+        </li>
 
         {/* Sidebar Toggler */}
         <div className="text-center d-none d-md-inline">
