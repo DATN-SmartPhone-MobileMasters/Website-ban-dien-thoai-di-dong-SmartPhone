@@ -10,7 +10,7 @@ function App() {
       children: [
         // dashboard admin
         {
-          path: "/dashboard",
+          path: "/",
           element: <DashBoard />,
         },
       ],
