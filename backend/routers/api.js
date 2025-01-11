@@ -1,12 +1,12 @@
 import { Router } from "express";
-import SanPhamController from "../controllers/SanPhamController";
+import SanPhamController from "../controllers/SanPhamController.js";
 // tạo router
 const apiRouter = Router();
-
+const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
-apiRouter.get("/sanphams", SanPhamController.apiList); //lấy danh sách bản ghi
-apiRouter.get("/sanphams/:id", SanPhamController.apiDetail); //lấy chi tiết
-apiRouter.delete("/sanphams/:id", SanPhamController.apiDelete);
-apiRouter.post("/sanphams", SanPhamController.apiCreate);
-apiRouter.put("/sanphams/:id", SanPhamController.apiUpdate);
+apiRouter.get("/sanphams", SanPhamControl.apiList); //lấy danh sách bản ghi
+apiRouter.get("/sanphams/:id", SanPhamControl.apiDetail); //lấy chi tiết
+apiRouter.delete("/sanphams/:id", SanPhamControl.apiDelete);
+apiRouter.post("/sanphams", SanPhamControl.apiCreate);
+apiRouter.put("/sanphams/:id", SanPhamControl.apiUpdate);
 export default apiRouter;
