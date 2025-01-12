@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 const danhMucSchema = new mongoose.Schema({
   MaDM: {
     // type: mongoose.Schema.Types.ObjectId,
-    type: Number,
+    type: String,
     ref: "sanpham", // Tham chiếu đến bảng sanpham
     required: true,
   },
