@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from 'axios';// npm i axios
 import { useNavigate } from 'react-router-dom';
+import { confirmAlert } from "react-confirm-alert"; //npm i react-confirm-alert
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -32,15 +34,30 @@ const UserList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc muốn xoá tài khoản này ?')) {
-      try {
-        await axios.delete(`http://localhost:3000/users/${id}`);
-        setUsers(users.filter(user => user.id !== id));
-      } catch (e) {
-        console.error(e);
-        setError('Lỗi, mời thử lại.');
-      }
-    }
+    confirmAlert({
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc muốn xoá tài khoản này ?",
+      buttons: [
+        {
+          label: "Có",
+          onClick: async () => {
+            try {
+              await axios.delete(`http://localhost:3000/users/${id}`);
+              setUsers(users.filter(user => user.id !== id));
+            } catch (e) {
+              console.error(e);
+              setError('Lỗi, mời thử lại.');
+            }
+          },
+        },
+        {
+          label: "Không",
+          onClick: () => {},
+        },
+      ],
+      closeOnEscape: true,
+      closeOnClickOutside: true,
+    });
   };
 
   const handleViewDetails = (id) => {
