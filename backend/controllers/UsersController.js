@@ -1,7 +1,7 @@
 import Users from "../models/Users.js";
 
 class UsersController {
-  async apiList(req, res) {
+  async userList(req, res) {
     try {
       const users = await Users.find();
       res.json(users);
@@ -10,7 +10,7 @@ class UsersController {
     }
   }
 
-  async apiDetail(req, res) {
+  async userDetail(req, res) {
     try {
       const user = await Users.findById(req.params.id);
       if (user) {
@@ -23,7 +23,7 @@ class UsersController {
     }
   }
 
-  async apiDelete(req, res) {
+  async userDelete(req, res) {
     try {
       const user = await Users.findByIdAndDelete(req.params.id);
       if (user) {
@@ -36,7 +36,7 @@ class UsersController {
     }
   }
 
-  async apiCreate(req, res) {
+  async userCreate(req, res) {
     const user = new Users(req.body);
     try {
       const newUser = await user.save();
@@ -46,7 +46,7 @@ class UsersController {
     }
   }
 
-  async apiUpdate(req, res) {
+  async userUpdate(req, res) {
     try {
       const user = await Users.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (user) {

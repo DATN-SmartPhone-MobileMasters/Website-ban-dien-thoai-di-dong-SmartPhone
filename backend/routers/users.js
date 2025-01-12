@@ -3,11 +3,11 @@ import UsersController from "../controllers/UsersController.js";
 
 const usersRouter = Router();
 
-usersRouter.get("/users", UsersController.apiList);
-usersRouter.get("/users/:id", UsersController.apiDetail);
-usersRouter.delete("/users/:id", UsersController.apiDelete);
-usersRouter.post("/users", UsersController.apiCreate);
-usersRouter.put("/users/:id", UsersController.apiUpdate);
+usersRouter.get("/users", UsersController.userList);
+usersRouter.get("/users/:id", UsersController.userDetail);
+usersRouter.delete("/users/:id", UsersController.userDelete);
+usersRouter.post("/users", UsersController.userCreate);
+usersRouter.put("/users/:id", UsersController.userUpdate);
 
 export default usersRouter;
 
