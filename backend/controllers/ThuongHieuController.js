@@ -28,7 +28,7 @@ class ThuongHieuController {
       });
     } catch (error) {
       res.status(500).json({
-        message: "Lỗi khi lấy chi tiết sách",
+        message: "Lỗi khi lấy chi tiết",
         error: error.message,
       });
     }
@@ -44,7 +44,7 @@ class ThuongHieuController {
       });
     } catch (error) {
       res.status(500).json({
-        message: "Lỗi khi xóa sách",
+        message: "Lỗi khi xóa",
         error: error.message,
       });
     }
@@ -52,18 +52,6 @@ class ThuongHieuController {
 
   async apiCreate(req, res) {
     try {
-      const { error } = thuongHieuValidator.validate(req.body, {
-        abortEarly: false,
-      });
-
-      // Nếu có lỗi validation
-      if (error) {
-        // Lấy tất cả các lỗi và trả về cho người dùng
-        const listErrors = error.details.map((item) => item.message);
-        return res.status(400).json({
-          message: listErrors,
-        });
-      }
       const data = req.body;
       const newThuongHieu = await ThuongHieu.create(data);
       res.status(200).json({
@@ -72,7 +60,7 @@ class ThuongHieuController {
       });
     } catch (error) {
       res.status(500).json({
-        message: "Lỗi khi tạo sách",
+        message: "Lỗi khi tạo",
         error: error.message,
       });
     }
@@ -80,18 +68,6 @@ class ThuongHieuController {
 
   async apiUpdate(req, res) {
     try {
-      const { error } = thuongHieuValidator.validate(req.body, {
-        abortEarly: false,
-      });
-
-      // Nếu có lỗi validation
-      if (error) {
-        // Lấy tất cả các lỗi và trả về cho người dùng
-        const listErrors = error.details.map((item) => item.message);
-        return res.status(400).json({
-          message: listErrors,
-        });
-      }
       const id = req.params.id;
       const data = req.body;
       const thuongHieu = await ThuongHieu.findByIdAndUpdate(id, data);
@@ -101,7 +77,7 @@ class ThuongHieuController {
       });
     } catch (error) {
       res.status(500).json({
-        message: "Lỗi khi cập nhật sách",
+        message: "Lỗi khi cập nhật",
         error: error.message,
       });
     }
