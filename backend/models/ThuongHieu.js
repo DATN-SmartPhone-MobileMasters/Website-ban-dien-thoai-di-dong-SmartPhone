@@ -6,7 +6,7 @@ const thuongHieuSchema = new mongoose.Schema({
   TenTH: { type: String, required: true },
   HinhAnh: { type: String },
   Mota: { type: String },
-  MaDM: { type: mongoose.Schema.Types.ObjectId, ref: "danhmuc" }, // tham chiếu đúng tên bảng
+  MaDM: { type: String, ref: "danhmuc" }, // tham chiếu đúng tên bảng
   created_at: { type: Date, default: Date.now },
 });
 
