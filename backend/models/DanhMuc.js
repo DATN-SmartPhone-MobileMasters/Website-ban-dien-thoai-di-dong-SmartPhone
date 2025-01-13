@@ -9,6 +9,10 @@ const danhMucSchema = new mongoose.Schema({
     ref: "sanpham", // Tham chiếu đến bảng sanpham
     required: true,
   },
+  MaSP: {
+    type: String,
+    ref: "sanpham", // Tham chiếu đến bảng sanpham
+  },
   TenDM: {
     type: String,
     required: true,
