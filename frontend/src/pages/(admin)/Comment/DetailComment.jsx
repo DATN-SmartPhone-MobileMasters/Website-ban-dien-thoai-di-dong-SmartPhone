@@ -10,21 +10,16 @@ const AdminDetailComment = () => {
   const [comment, setComment] = useState(null);
 
   useEffect(() => {
-    console.log(API_URL);
-
     (async () => {
       try {
         const response = await axios.get(API_URL);
-        // console.log(response.data);
-        setComment(response.data.data); //lấy dl  từ object
+        setComment(response.data.data);
       } catch (error) {
         console.log(error);
         message.error("Lỗi khi lấy dữ liệu");
       }
     })();
   }, [id]);
-
-  //   console.log(comment);
 
   if (!comment) return <div>Loading...</div>;
 
@@ -38,35 +33,34 @@ const AdminDetailComment = () => {
           </h6>
         </div>
         <div className="card-body">
-          <div className="table-responsive">
-            <table className="table hover table-bordered dataTable no-footer">
-              <thead>
-                <tr>
-                  <th>Mã bình luận</th>
-                  <th>Mã người dùng</th>
-                  <th>Mã sản phẩm</th>
-                  <th>Nội dung</th>
-                  <th>Ngày bình luận</th>
-                  <th style={{ width: "300px" }}>Hình ảnh sản phẩm</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{comment.MaBL}</td>
-                  <td>{comment.MaND}</td>
-                  <td>{comment.MaSP}</td>
-                  <td>{comment.NoiDung}</td>
-                  <td>{comment.NgayBL}</td>
-                  <td>
-                    <img
-                      src={comment.HinhAnhSP}
-                      alt="Hình ảnh sản phẩm"
-                      style={{ width: "100px", height: "100px" }}
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div
+            className="details-container"
+            style={{ display: "flex", flexDirection: "column" }}
+          >
+            <div className="details-item" style={{ marginBottom: "10px" }}>
+              <strong>Mã bình luận:</strong> {comment.MaBL}
+            </div>
+            <div className="details-item" style={{ marginBottom: "10px" }}>
+              <strong>Mã người dùng:</strong> {comment.MaND}
+            </div>
+            <div className="details-item" style={{ marginBottom: "10px" }}>
+              <strong>Mã sản phẩm:</strong> {comment.MaSP}
+            </div>
+            <div className="details-item" style={{ marginBottom: "10px" }}>
+              <strong>Nội dung:</strong> {comment.NoiDung}
+            </div>
+            <div className="details-item" style={{ marginBottom: "10px" }}>
+              <strong>Ngày bình luận:</strong> {comment.NgayBL}
+            </div>
+            <div className="details-item" style={{ marginBottom: "10px" }}>
+              <strong>Hình ảnh sản phẩm:</strong>
+              <br />
+              <img
+                src={comment.HinhAnhSP}
+                alt="Hình ảnh sản phẩm"
+                style={{ width: "100px", height: "100px", marginTop: "5px" }}
+              />
+            </div>
           </div>
         </div>
       </div>
