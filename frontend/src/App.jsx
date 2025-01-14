@@ -7,6 +7,9 @@ import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
 import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
+import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
+import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
+import Promotion from "../../backend/models/Promotion";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -75,6 +78,18 @@ function App() {
         {
           path: "/comments/:id",
           element: <AdminDetailComment />,
+        },
+        {
+          path: "/promotions",
+          element: <Promotion />,
+        },
+        {
+          path: "/add/promotion",
+          element: <AddPromotion />,
+        },
+        {
+          path: "/edit/promotion/:id",
+          element: <UpdatePromotion />,
         },
 
       ],
