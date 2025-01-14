@@ -176,7 +176,7 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/comments">
                 Danh sách bình luận
               </Link>
             </div>

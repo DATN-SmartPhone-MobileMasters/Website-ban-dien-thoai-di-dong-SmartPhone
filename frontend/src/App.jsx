@@ -6,6 +6,8 @@ import BrandList from "./pages/(admin)/Brands/BrandList";
 import BrandAdd from "./pages/(admin)/Brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/Brands/BrandEdit";
 import BrandDetail from "./pages/(admin)/Brands/BrandDetail";
+import AdminListComment from "./pages/(admin)/Comment/ListComments";
+import AdminDetailComment from "./pages/(admin)/Comment/DetailComment";
 function App() {
   const configRouter = createBrowserRouter([
     // Layout Admin
@@ -32,6 +34,14 @@ function App() {
         {
           path: "/brands/detail/:id",
           element: <BrandDetail />,
+        },
+        {
+          path: "/comments",
+          element: <AdminListComment />,
+        },
+        {
+          path: "/comments/:id",
+          element: <AdminDetailComment />,
         },
       ],
     },
