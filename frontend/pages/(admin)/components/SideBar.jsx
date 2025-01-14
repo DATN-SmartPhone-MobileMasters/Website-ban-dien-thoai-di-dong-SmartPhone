@@ -191,7 +191,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseTaikhoan"
           >
-            <i className="fas fa-fw fa-wrench" />
+            <i className="fas fa-fw fa-user" />
             <span>Quản lý tài khoản</span>
           </Link>
           <div
