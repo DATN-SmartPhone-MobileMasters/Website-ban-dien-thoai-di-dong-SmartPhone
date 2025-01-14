@@ -83,7 +83,14 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="/products">
+              <Link className="collapse-item" to="/ProductsList">
+                Danh sách sản phẩm
+              </Link>
+              <Link className="collapse-item" to="/ProductsAdd">
+                Thêm mới sản phẩm
+              </Link>
+
+              <Link className="collapse-item" to="#">
                 Danh sách sản phẩm
               </Link>
               <Link className="collapse-item" to="#">
@@ -112,6 +119,7 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+              <Link className="collapse-item" to="#">
               <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
@@ -176,7 +184,14 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+
+=======
+
               <Link className="collapse-item" to="#">
+
+              <Link className="collapse-item" to="/comments">
+
+
                 Danh sách bình luận
               </Link>
             </div>
@@ -191,7 +206,9 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseTaikhoan"
           >
+
             <i className="fas fa-fw fa-user" />
+
             <span>Quản lý tài khoản</span>
           </Link>
           <div
@@ -201,6 +218,7 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+
               <Link className="collapse-item" to="/accounts">
                 Danh sách tài khoản
               </Link>
