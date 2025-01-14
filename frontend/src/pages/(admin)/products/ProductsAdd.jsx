@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 const ProductsAdd = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -30,7 +30,14 @@ const ProductsAdd = () => {
 
   return (
     <div>
-      <h2>Thêm sản phẩm mới</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Thêm sản phẩm mới</h2>
+        <Link to="/ProductsList">
+          <button className="btn btn-secondary">
+            <i ></i> Quay lại
+          </button>
+        </Link>
+      </div>
       <form onSubmit={handleSubmit(onSubmit)}>
       <div className="form-group">
           <label>MaSP</label>

@@ -97,7 +97,7 @@ const ProductsList = () => {
                 </button> <span> </span>
                 <Link to={`/ProductsEdit/${item._id}`}>
                   <button className="btn btn-primary">Sửa</button>
-                </Link>
+                </Link> <span> </span>
                 <Link to={`/ProductsDetail/${item._id}`}>
                   <button className="btn btn-primary">Chi tiết</button>
                 </Link>

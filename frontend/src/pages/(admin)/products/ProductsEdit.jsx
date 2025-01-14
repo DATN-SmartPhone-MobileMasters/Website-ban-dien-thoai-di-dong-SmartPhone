@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { Link } from "react-router-dom";
 const ProductsEdit = () => {
   const { id } = useParams(); // Lấy id từ URL
   const navigate = useNavigate(); // Dùng để điều hướng trang sau khi cập nhật thành công
@@ -188,8 +188,10 @@ const ProductsEdit = () => {
               )}
             </button>
           </form>
+          
         </div>
       </div>
+    
     </div>
   );
 };
