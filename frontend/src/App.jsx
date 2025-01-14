@@ -5,6 +5,7 @@ import DashBoard from "./pages/(admin)/DashBoard";
 import BrandList from "./pages/(admin)/Brands/BrandList";
 import BrandAdd from "./pages/(admin)/Brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/Brands/BrandEdit";
+import BrandDetail from "./pages/(admin)/Brands/BrandDetail";
 function App() {
   const configRouter = createBrowserRouter([
     // Layout Admin
@@ -27,6 +28,10 @@ function App() {
         {
           path: "/brands/edit/:id",
           element: <BrandEdit />,
+        },
+        {
+          path: "/brands/detail/:id",
+          element: <BrandDetail />,
         },
       ],
     },
