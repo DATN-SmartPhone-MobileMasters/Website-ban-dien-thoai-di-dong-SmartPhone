@@ -17,11 +17,9 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get('http://localhost:3000/users');
-      if (Array.isArray(res.data.users)) {
-        setUsers(res.data.users);
-      } else if (Array.isArray(res.data)) {
-        setUsers(res.data);
+      const res = await axios.get('http://localhost:5000/api/users');
+      if (Array.isArray(res.data.data)) {
+        setUsers(res.data.data);
       } else {
         throw new Error('Lỗi API');
       }
@@ -42,8 +40,8 @@ const UserList = () => {
           label: "Có",
           onClick: async () => {
             try {
-              await axios.delete(`http://localhost:3000/users/${id}`);
-              setUsers(users.filter(user => user.id !== id));
+              await axios.delete(`http://localhost:5000/api/users/${id}`);
+              setUsers(users.filter(user => user._id !== id));
             } catch (e) {
               console.error(e);
               setError('Lỗi, mời thử lại.');
@@ -95,7 +93,7 @@ const UserList = () => {
               </thead>
               <tbody>
                 {users.map((user) => (
-                  <tr key={user.id}>
+                  <tr key={user._id}>
                     <td>{user.MaND}</td>
                     <td>{user.HoVaTen}</td>
                     <td>{user.TaiKhoan}</td>
@@ -104,13 +102,13 @@ const UserList = () => {
                     <td>{user.MaQuyen === 1 ? 'Admin' : 'User'}</td>
                     <td className="space-x-2">
                       <button 
-                        onClick={() => handleViewDetails(user.id)}
+                        onClick={() => handleViewDetails(user._id)}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg mr-2"
                       >
                         Chi Tiết 
                       </button>
                       <button 
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => handleDelete(user._id)}
                         className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                       >
                         Xoá
@@ -128,4 +126,3 @@ const UserList = () => {
 };
 
 export default UserList;
-

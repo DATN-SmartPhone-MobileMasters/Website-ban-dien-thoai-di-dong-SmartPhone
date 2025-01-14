@@ -10,8 +10,8 @@ const UserDetails = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/users/${id}`);
-        setUser(res.data); 
+        const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+        setUser(res.data.data);
       } catch (e) {
         console.error(e);
       }
