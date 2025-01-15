@@ -34,7 +34,7 @@ const SideBar = () => {
         <hr className="sidebar-divider" />
         {/* Heading */}
         <div className="sidebar-heading">Chức năng</div>
-        {/* Nav Item - Pages Collapse Menu */}
+        {/* Quản lý danh mục */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -54,23 +54,16 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-<<<<<<< HEAD
               <Link className="collapse-item" to="/categorys">
                 Danh sách danh mục
               </Link>
-              <Link className="collapse-item" to="categorys/addcategory">
-=======
-              <Link className="collapse-item" to="#">
-                Danh sách danh mục
-              </Link>
-              <Link className="collapse-item" to="#">
->>>>>>> dao-duy-khanh
+              <Link className="collapse-item" to="/categorys/addcategory">
                 Thêm mới danh mục
               </Link>
             </div>
           </div>
         </li>
-        {/* Nav Item - Utilities Collapse Menu */}
+        {/* Quản lý sản phẩm */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -90,30 +83,16 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-<<<<<<< HEAD
               <Link className="collapse-item" to="/ProductsList">
                 Danh sách sản phẩm
               </Link>
               <Link className="collapse-item" to="/ProductsAdd">
                 Thêm mới sản phẩm
               </Link>
-
-              <Link className="collapse-item" to="#">
-                Danh sách sản phẩm
-              </Link>
-              <Link className="collapse-item" to="categorys/addcategory">
-=======
-              <Link className="collapse-item" to="/products">
-                Danh sách sản phẩm
-              </Link>
-              <Link className="collapse-item" to="#">
->>>>>>> dao-duy-khanh
-                Thêm mới sản phẩm
-              </Link>
             </div>
           </div>
         </li>
-        {/* Nav Item - Quản lý thương hiệu */}
+        {/* Quản lý thương hiệu */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -133,31 +112,23 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-<<<<<<< HEAD
-              <Link className="collapse-item" to="#">
-=======
->>>>>>> dao-duy-khanh
               <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/brands/addbrand">
                 Thêm mới thương hiệu
               </Link>
             </div>
           </div>
         </li>
-        {/* Other Items */}
+        {/* Quản lý đơn hàng */}
         <li className="nav-item">
-<<<<<<< HEAD
-          <Link className="nav-link collapsed" to="#">
-=======
-          <Link className="nav-link collapsed" to="/listorder">
->>>>>>> dao-duy-khanh
+          <Link className="nav-link" to="/listorder">
             <i className="fas fa-fw fa-wrench" />
             <span>Quản lý đơn hàng</span>
           </Link>
         </li>
-        {/* Nav Item - Quản lý voucher */}
+        {/* Quản lý voucher */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -177,15 +148,16 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/vouchers">
                 Danh sách voucher
               </Link>
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/vouchers/addvoucher">
                 Thêm mới voucher
               </Link>
             </div>
           </div>
         </li>
+        {/* Quản lý bình luận */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -195,7 +167,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseBinhluan"
           >
-            <i className="fas fa-fw fa-wrench" />
+            <i className="fas fa-fw fa-comments" />
             <span>Quản lý bình luận</span>
           </Link>
           <div
@@ -205,23 +177,13 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-<<<<<<< HEAD
-
-=======
-
-              <Link className="collapse-item" to="#">
-
               <Link className="collapse-item" to="/comments">
-
-
-=======
-              <Link className="collapse-item" to="#">
->>>>>>> dao-duy-khanh
                 Danh sách bình luận
               </Link>
             </div>
           </div>
         </li>
+        {/* Quản lý tài khoản */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -231,13 +193,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseTaikhoan"
           >
-<<<<<<< HEAD
-
             <i className="fas fa-fw fa-user" />
-
-=======
-            <i className="fas fa-fw fa-wrench" />
->>>>>>> dao-duy-khanh
             <span>Quản lý tài khoản</span>
           </Link>
           <div
@@ -247,18 +203,12 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-<<<<<<< HEAD
-
               <Link className="collapse-item" to="/accounts">
-=======
-              <Link className="collapse-item" to="#">
->>>>>>> dao-duy-khanh
                 Danh sách tài khoản
               </Link>
             </div>
           </div>
         </li>
-
         {/* Sidebar Toggler */}
         <div className="text-center d-none d-md-inline">
           <button className="rounded-circle border-0" id="sidebarToggle" />
