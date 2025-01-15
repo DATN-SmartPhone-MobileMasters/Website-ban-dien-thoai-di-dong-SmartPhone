@@ -5,11 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-<<<<<<< HEAD
 
 
-=======
->>>>>>> dao-duy-khanh
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -17,12 +14,9 @@
   "dependencies": {
     "antd": "^5.23.0",
     "axios": "^1.7.9",
-<<<<<<< HEAD
 
     "bootstrap": "^5.3.3",
 
-=======
->>>>>>> dao-duy-khanh
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
