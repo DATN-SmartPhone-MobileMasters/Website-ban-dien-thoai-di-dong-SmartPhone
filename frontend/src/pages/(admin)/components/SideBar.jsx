@@ -54,10 +54,17 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+<<<<<<< HEAD
+              <Link className="collapse-item" to="/categorys">
+                Danh sách danh mục
+              </Link>
+              <Link className="collapse-item" to="categorys/addcategory">
+=======
               <Link className="collapse-item" to="#">
                 Danh sách danh mục
               </Link>
               <Link className="collapse-item" to="#">
+>>>>>>> dao-duy-khanh
                 Thêm mới danh mục
               </Link>
             </div>
@@ -83,6 +90,7 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+<<<<<<< HEAD
               <Link className="collapse-item" to="/ProductsList">
                 Danh sách sản phẩm
               </Link>
@@ -93,7 +101,13 @@ const SideBar = () => {
               <Link className="collapse-item" to="#">
                 Danh sách sản phẩm
               </Link>
+              <Link className="collapse-item" to="categorys/addcategory">
+=======
+              <Link className="collapse-item" to="/products">
+                Danh sách sản phẩm
+              </Link>
               <Link className="collapse-item" to="#">
+>>>>>>> dao-duy-khanh
                 Thêm mới sản phẩm
               </Link>
             </div>
@@ -119,7 +133,10 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+<<<<<<< HEAD
               <Link className="collapse-item" to="#">
+=======
+>>>>>>> dao-duy-khanh
               <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
@@ -131,7 +148,11 @@ const SideBar = () => {
         </li>
         {/* Other Items */}
         <li className="nav-item">
+<<<<<<< HEAD
           <Link className="nav-link collapsed" to="#">
+=======
+          <Link className="nav-link collapsed" to="/listorder">
+>>>>>>> dao-duy-khanh
             <i className="fas fa-fw fa-wrench" />
             <span>Quản lý đơn hàng</span>
           </Link>
@@ -184,6 +205,7 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+<<<<<<< HEAD
 
 =======
 
@@ -192,6 +214,9 @@ const SideBar = () => {
               <Link className="collapse-item" to="/comments">
 
 
+=======
+              <Link className="collapse-item" to="#">
+>>>>>>> dao-duy-khanh
                 Danh sách bình luận
               </Link>
             </div>
@@ -206,9 +231,13 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseTaikhoan"
           >
+<<<<<<< HEAD
 
             <i className="fas fa-fw fa-user" />
 
+=======
+            <i className="fas fa-fw fa-wrench" />
+>>>>>>> dao-duy-khanh
             <span>Quản lý tài khoản</span>
           </Link>
           <div
@@ -218,8 +247,12 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
+<<<<<<< HEAD
 
               <Link className="collapse-item" to="/accounts">
+=======
+              <Link className="collapse-item" to="#">
+>>>>>>> dao-duy-khanh
                 Danh sách tài khoản
               </Link>
             </div>
