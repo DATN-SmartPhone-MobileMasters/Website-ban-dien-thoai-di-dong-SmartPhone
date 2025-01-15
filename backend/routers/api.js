@@ -1,8 +1,16 @@
 import { Router } from "express";
+import DanhMucController from "../controllers/DanhMucController.js";
+
+const apiRouter = Router();
+
+apiRouter.get("/danhmucs", DanhMucController.apiList);
+apiRouter.get("/danhmucs/:id", DanhMucController.apiDetail);
+apiRouter.post("/danhmucs", DanhMucController.apiCreate);
+apiRouter.put("/danhmucs/:id", DanhMucController.apiUpdate);
+apiRouter.delete("/danhmucs/:id", DanhMucController.apiDelete);
 
 import SanPhamController from "../controllers/SanPhamController.js";
 
-const apiRouter = Router();
 const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
 apiRouter.get("/sanphams", SanPhamControl.apiList); //lấy danh sách bản ghi
@@ -12,9 +20,6 @@ apiRouter.post("/sanphams", SanPhamControl.apiCreate);
 apiRouter.put("/sanphams/:id", SanPhamControl.apiUpdate);
 
 import ThuongHieuController from "../controllers/ThuongHieuController.js";
-
-const apiRouter = Router();
-
 
 const ThuongHieuControl = new ThuongHieuController();
 apiRouter.get("/thuonghieus", ThuongHieuControl.apiList); //lấy danh sách bản ghi

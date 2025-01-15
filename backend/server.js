@@ -3,17 +3,18 @@ import express from "express"; //express dùng để khởi tạo node server
 import ejs from "ejs"; //template engine để xây dựng giao diện
 import mongoose from "mongoose"; //kết nối CSDL MongoDB
 import router from "./routers/index.js";
-import cors from "cors"
+import cors from "cors";
 
 const app = new express();
 const port = 5000; //khai báo cổng sẽ chạy
 app.use(express.json());
-app.use(cors())
+app.use(cors());
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
+app.use(cors());
 
 //cấu hình template engine
 app.set("engine", "ejs");

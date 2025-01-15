@@ -2,6 +2,9 @@ import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
+import CategoryList from "./pages/(admin)/categorys/CategoryList";
+import AddCategory from "./pages/(admin)/categorys/AddCategory";
+import UpdateCategory from "./pages/(admin)/categorys/UpdateCategory";
 
 import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
@@ -10,11 +13,6 @@ import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
 import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
 import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
 import Promotion from "../../backend/models/Promotion";
-function App() {
-  const configRouter = createBrowserRouter([
-    {
-      element: <LayoutAdmin />,
-      children: [
 
 import BrandList from "./pages/(admin)/Brands/BrandList";
 import BrandAdd from "./pages/(admin)/Brands/BrandAdd";
@@ -24,7 +22,6 @@ import AdminListComment from "./pages/(admin)/Comment/ListComments";
 import AdminDetailComment from "./pages/(admin)/Comment/DetailComment";
 function App() {
   const configRouter = createBrowserRouter([
-
     {
       element: <LayoutAdmin />,
       children: [
@@ -34,8 +31,20 @@ function App() {
           path: "/",
           element: <DashBoard />,
         },
-        {
 
+        {
+          path: "/categorys",
+          element: <CategoryList />,
+        },
+        {
+          path: "/categorys/addcategory",
+          element: <AddCategory />,
+        },
+        {
+          path: "/categorys/updatecategory/:id",
+          element: <UpdateCategory />,
+        },
+        {
           path: "/ProductsList",
           element: <ProductsList />,
         },
@@ -43,19 +52,17 @@ function App() {
           path: "/ProductsEdit/:id",
           element: <ProductsEdit />,
         },
-        
+
         {
           path: "/ProductsAdd",
           element: <ProductsAdd />,
-        }
-        ,
+        },
         {
           path: "/ProductsDetail/:id",
           element: <ProductsDetail />,
-        }
-        
-    
+        },
 
+        {
           path: "/brands",
           element: <BrandList />,
         },
@@ -91,7 +98,6 @@ function App() {
           path: "/edit/promotion/:id",
           element: <UpdatePromotion />,
         },
-
       ],
     },
   ]);
