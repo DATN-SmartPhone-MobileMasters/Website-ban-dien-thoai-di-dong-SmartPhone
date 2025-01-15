@@ -1,12 +1,12 @@
-import express from "express";
+import { Router } from "express";
 import DanhMucController from "../controllers/DanhMucController.js";
 
-const router = express.Router();
+const apiRouter = Router();
 
-router.get("/danhmucs", DanhMucController.apiList);
-router.get("/danhmucs/:id", DanhMucController.apiDetail);
-router.post("/danhmucs", DanhMucController.apiCreate);
-router.put("/danhmucs/:id", DanhMucController.apiUpdate);
-router.delete("/danhmucs/:id", DanhMucController.apiDelete);
+apiRouter.get("/danhmucs", DanhMucController.apiList);
+apiRouter.get("/danhmucs/:id", DanhMucController.apiDetail);
+apiRouter.post("/danhmucs", DanhMucController.apiCreate);
+apiRouter.put("/danhmucs/:id", DanhMucController.apiUpdate);
+apiRouter.delete("/danhmucs/:id", DanhMucController.apiDelete);
 
-export default router;
+export default apiRouter;
