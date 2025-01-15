@@ -128,7 +128,7 @@ const SideBar = () => {
             <span>Quản lý đơn hàng</span>
           </Link>
         </li>
-        {/* Quản lý voucher */}
+        {/* Quản lý voucher Admin */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
