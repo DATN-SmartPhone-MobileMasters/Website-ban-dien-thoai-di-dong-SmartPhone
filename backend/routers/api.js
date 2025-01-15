@@ -1,5 +1,4 @@
 import { Router } from "express";
-<<<<<<< HEAD
 import DanhMucController from "../controllers/DanhMucController.js";
 
 const apiRouter = Router();
@@ -28,17 +27,15 @@ apiRouter.get("/thuonghieus/:id", ThuongHieuControl.apiDetail); //lấy chi ti�
 apiRouter.delete("/thuonghieus/:id", ThuongHieuControl.apiDelete);
 apiRouter.post("/thuonghieus", ThuongHieuControl.apiCreate);
 apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
-=======
 import HoaDonController from "../controllers/HoaDonController.js";
 
 // Tạo router
-const apiRouter = Router();
+
 
 // API thực hiện các chức năng hóa đơn
 apiRouter.get("/hoadons", HoaDonController.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonController.apiDetail); // Lấy chi tiết hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonController.apiDelete); // Xóa hóa đơn
 apiRouter.put("/hoadons/:id", HoaDonController.apiUpdate_hoadon); // Cập nhật hóa đơn
->>>>>>> dao-duy-khanh
 
 export default apiRouter;
