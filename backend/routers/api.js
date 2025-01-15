@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { apiList, apiDetail, apiDelete, apiUpdate_hoadon } from "../controllers/HoaDonController.js";
-// tạo router
+import HoaDonController from "../controllers/HoaDonController.js";
+
+// Tạo router
 const apiRouter = Router();
 
-//api thực hiện các chức năng sản phẩm
-apiRouter.get("/hoadons", apiList); //lấy danh sách bản ghi
-apiRouter.get("/hoadons/:id", apiDetail); //lấy chi tiết
-apiRouter.delete("/hoadons/:id", apiDelete);
-apiRouter.put("/hoadons/:id", apiUpdate_hoadon);
+// API thực hiện các chức năng hóa đơn
+apiRouter.get("/hoadons", HoaDonController.apiList); // Lấy danh sách bản ghi
+apiRouter.get("/hoadons/:id", HoaDonController.apiDetail); // Lấy chi tiết hóa đơn
+apiRouter.delete("/hoadons/:id", HoaDonController.apiDelete); // Xóa hóa đơn
+apiRouter.put("/hoadons/:id", HoaDonController.apiUpdate_hoadon); // Cập nhật hóa đơn
+
 export default apiRouter;
