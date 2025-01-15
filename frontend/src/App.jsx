@@ -63,7 +63,6 @@ function App() {
           path: "/ProductsDetail/:id",
           element: <ProductsDetail />,
         },
-
         {
           path: "/brands",
           element: <BrandList />,
