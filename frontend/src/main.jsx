@@ -3,10 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
+<<<<<<< HEAD
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 
 
+=======
+>>>>>>> dao-duy-khanh
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
+<<<<<<< HEAD
 import CategoryList from "./pages/(admin)/categorys/CategoryList";
 import AddCategory from "./pages/(admin)/categorys/AddCategory";
 import UpdateCategory from "./pages/(admin)/categorys/UpdateCategory";
@@ -22,10 +23,18 @@ import AdminListComment from "./pages/(admin)/Comment/ListComments";
 import AdminDetailComment from "./pages/(admin)/Comment/DetailComment";
 function App() {
   const configRouter = createBrowserRouter([
+=======
+import ListOrder from "./pages/(admin)/order/ListOrder";
+import UpdateOrderStatus from "./pages/(admin)/order/UpdateOrderStatus";
+function App() {
+  const configRouter = createBrowserRouter([
+    // Layout Admin
+>>>>>>> dao-duy-khanh
     {
       element: <LayoutAdmin />,
       children: [
         // dashboard admin
+<<<<<<< HEAD
 
         {
           path: "/",
@@ -97,6 +106,19 @@ function App() {
         {
           path: "/edit/promotion/:id",
           element: <UpdatePromotion />,
+=======
+        {
+          path: "/dashboard",
+          element: <DashBoard />,
+        },
+        {
+          path: "/listorder",
+          element: <ListOrder />,
+        },
+        {
+          path: "/orders/updateStatus/:id",
+          element: <UpdateOrderStatus />,
+>>>>>>> dao-duy-khanh
         },
       ],
     },
