@@ -8,6 +8,7 @@ import cors from "cors";
 const app = new express();
 const port = 5000; //khai báo cổng sẽ chạy
 app.use(express.json());
+app.use(cors());
 app.use(
   express.urlencoded({
     extended: true,
