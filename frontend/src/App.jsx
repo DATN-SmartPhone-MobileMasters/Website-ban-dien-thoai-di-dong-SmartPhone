@@ -1,7 +1,12 @@
+
 import { useState } from "react";
+
+// import { useState } from "react";
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
+
 
 import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
@@ -22,6 +27,11 @@ import AdminDetailComment from "./pages/(admin)/Comment/DetailComment";
 function App() {
   const configRouter = createBrowserRouter([
 
+
+function App() {
+  const configRouter = createBrowserRouter([
+    // Layout Admin
+
     {
       element: <LayoutAdmin />,
       children: [
@@ -31,6 +41,7 @@ function App() {
           path: "/",
           element: <DashBoard />,
         },
+
         {
 
           path: "/ProductsList",
@@ -76,6 +87,7 @@ function App() {
           path: "/comments/:id",
           element: <AdminDetailComment />,
         },
+
 
       ],
     },
