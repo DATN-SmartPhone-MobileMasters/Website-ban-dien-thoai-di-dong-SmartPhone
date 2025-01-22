@@ -95,10 +95,10 @@ const ProductsList = () => {
                 >
                   Xóa
                 </button> <span> </span>
-                <Link to={`/ProductsEdit/${item._id}`}>
+                <Link to={`/products/edit/${item._id}`}>
                   <button className="btn btn-primary">Sửa</button>
                 </Link> <span> </span>
-                <Link to={`/ProductsDetail/${item._id}`}>
+                <Link to={`/products/detail/${item._id}`}>
                   <button className="btn btn-primary">Chi tiết</button>
                 </Link>
 

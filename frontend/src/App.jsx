@@ -16,21 +16,21 @@ function App() {
           element: <DashBoard />,
         },
         {
-          path: "/ProductsList",
+          path: "/products",
           element: <ProductsList />,
         },
         {
-          path: "/ProductsEdit/:id",
+          path: "/products/edit/:id",
           element: <ProductsEdit />,
         },
         
         {
-          path: "/ProductsAdd",
+          path: "/products/add",
           element: <ProductsAdd />,
         }
         ,
         {
-          path: "/ProductsDetail/:id",
+          path: "/products/detail/:id",
           element: <ProductsDetail />,
         }
         
