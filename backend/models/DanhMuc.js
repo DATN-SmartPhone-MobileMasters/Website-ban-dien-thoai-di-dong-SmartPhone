@@ -6,12 +6,12 @@ const DanhMucSchema = new mongoose.Schema({
   SanPham: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "sanpham", // Tham chiếu tới bảng "sanpham"
+      ref: "SanPham", // Đảm bảo tên model là "SanPham"
     },
   ], // Danh sách sản phẩm thuộc danh mục
   created_at: { type: Date, default: Date.now }, // Thời gian tạo
 });
 
 // Tạo model danh mục
-const danhmuc = mongoose.model("danhmuc", DanhMucSchema);
+const danhmuc = mongoose.model("DanhMuc", DanhMucSchema);
 export default danhmuc;

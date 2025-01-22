@@ -7,8 +7,9 @@ const DanhMucControl = new DanhMucController();
 //api thực hiện các chức năng danh mục
 apiRouter.get("/danhmucs", DanhMucControl.apiList); //lấy danh sách bản ghi
 apiRouter.delete("/danhmucs/:id", DanhMucControl.apiDelete);
+apiRouter.get("/danhmucs/:id", DanhMucControl.apiDetail);
 apiRouter.post("/danhmucs", DanhMucControl.apiCreate);
-apiRouter.put("/danhmucs:id", DanhMucControl.apiUpdate);
+apiRouter.put("/danhmucs/:id", DanhMucControl.apiUpdate);
 
 const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
