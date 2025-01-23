@@ -77,9 +77,9 @@ const UserDetails = () => {
       <div className="mt-6 ">
         <button 
           onClick={() => navigate('/accounts')}
-          className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 duration-200 ease-in-out rounded"
+          className="btn btn-primary"
         >
-          Back to User List
+          Quay Về
         </button>
       </div>
     </div>
