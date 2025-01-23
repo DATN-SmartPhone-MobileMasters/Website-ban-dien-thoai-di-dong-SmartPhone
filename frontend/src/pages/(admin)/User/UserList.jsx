@@ -98,17 +98,17 @@ const UserList = () => {
                     <td>{user.MaQuyen === 1 ? 'Admin' : 'User'}</td>
                     <td className="space-x-2">
                       <button 
-                      id="viewDetailsButton"
-                      onClick={() => handleViewDetails(user._id)}
-                    >
-                      Chi Tiết 
-                    </button>
-                    <button 
-                      id="deleteButton"
-                      onClick={() => handleDelete(user._id)}
-                    >
-                      Xoá
-                    </button>
+                        onClick={() => handleViewDetails(user._id)}
+                        className="btn btn-warning ml-2"
+                      >
+                        Chi Tiết 
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(user._id)}
+                        className="btn btn-danger ml-2"
+                      >
+                        Xoá
+                      </button>
                     </td>
                   </tr>
                 ))}
