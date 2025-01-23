@@ -18,11 +18,7 @@ const UserList = () => {
     try {
       setIsLoading(true);
       const res = await axios.get('http://localhost:5000/api/users');
-      if (Array.isArray(res.data.data)) {
-        setUsers(res.data.data);
-      } else {
-        throw new Error('Lỗi API');
-      }
+      setUsers(res.data);
     } catch (e) {
       console.error(e);
       setError('Không tìm thấy dữ liệu, mời thử lại');
