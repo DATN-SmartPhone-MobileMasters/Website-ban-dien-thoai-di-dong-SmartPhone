@@ -31,10 +31,10 @@ apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
 // api thương hiệu
-usersRouter.get("/users", UsersControl.apiList);//lấy danh sách bản ghi
-usersRouter.get("/users/:id", UsersControl.apiDetail);//lấy chi tiết
-usersRouter.delete("/users/:id", UsersControl.apiDelete);
-usersRouter.post("/users", UsersControl.apiCreate);
-usersRouter.put("/users/:id", UsersControl.apiUpdate);
+apiRouter.get("/users", UsersControl.apiList);//lấy danh sách bản ghi
+apiRouter.get("/users/:id", UsersControl.apiDetail);//lấy chi tiết
+apiRouter.delete("/users/:id", UsersControl.apiDelete);
+apiRouter.post("/users", UsersControl.apiCreate);
+apiRouter.put("/users/:id", UsersControl.apiUpdate);
 
 export default apiRouter;
