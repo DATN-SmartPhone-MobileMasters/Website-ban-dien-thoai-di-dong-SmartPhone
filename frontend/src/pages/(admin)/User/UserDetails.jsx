@@ -11,7 +11,7 @@ const UserDetails = () => {
     const fetchUser = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/users/${id}`);
-        setUser(res.data.data);
+        setUser(res.data);
       } catch (e) {
         console.error(e);
       }
