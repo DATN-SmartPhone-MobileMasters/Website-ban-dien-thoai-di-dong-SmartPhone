@@ -13,6 +13,8 @@ import BrandList from "./pages/(admin)/brands/BrandList";
 import BrandAdd from "./pages/(admin)/brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/brands/BrandEdit";
 import BrandDetail from "./pages/(admin)/brands/BrandDetail";
+import UserList from "./pages/(admin)/User/UserList";
+import UserDetails from './pages/(admin)/User/UserDetails';
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -66,6 +68,14 @@ function App() {
         {
           path: "/brands/detail/:id",
           element: <BrandDetail />,
+        },
+        {
+          path: "/accounts",
+          element: <UserList />,
+        },
+        {
+          path: "/accounts/:id",
+          element: <UserDetails />,
         },
       ],
     },
