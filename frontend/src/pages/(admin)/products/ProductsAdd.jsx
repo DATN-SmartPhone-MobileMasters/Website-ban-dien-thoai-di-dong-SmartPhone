@@ -32,7 +32,7 @@ const ProductsAdd = () => {
     <div>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Thêm sản phẩm mới</h2>
-        <Link to="/ProductsList">
+        <Link to="/products">
           <button className="btn btn-secondary">
             <i ></i> Quay lại
           </button>
