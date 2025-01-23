@@ -5,6 +5,7 @@ import ThuongHieuController from "../controllers/ThuongHieuController.js";
 import UsersController from "../controllers/UsersController.js";
 // tạo router
 const apiRouter = Router();
+
 const DanhMucControl = new DanhMucController();
 //api thực hiện các chức năng danh mục
 apiRouter.get("/danhmucs", DanhMucControl.apiList); //lấy danh sách bản ghi
@@ -20,9 +21,8 @@ apiRouter.get("/sanphams/:id", SanPhamControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/sanphams/:id", SanPhamControl.apiDelete);
 apiRouter.post("/sanphams", SanPhamControl.apiCreate);
 apiRouter.put("/sanphams/:id", SanPhamControl.apiUpdate);
-
 const ThuongHieuControl = new ThuongHieuController();
-
+// api thương hiệu
 apiRouter.get("/thuonghieus", ThuongHieuControl.apiList); //lấy danh sách bản ghi
 apiRouter.get("/thuonghieus/:id", ThuongHieuControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/thuonghieus/:id", ThuongHieuControl.apiDelete);
