@@ -9,6 +9,10 @@ import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
 import CategoryList from "./pages/(admin)/categorys/CategoryList";
 import CategoryAdd from "./pages/(admin)/categorys/CategoryAdd";
 import CategoryUpdate from "./pages/(admin)/categorys/CategoryUpdate";
+import BrandList from "./pages/(admin)/brands/BrandList";
+import BrandAdd from "./pages/(admin)/brands/BrandAdd";
+import BrandEdit from "./pages/(admin)/brands/BrandEdit";
+import BrandDetail from "./pages/(admin)/brands/BrandDetail";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -46,6 +50,22 @@ function App() {
         {
           path: "/products/detail/:id",
           element: <ProductsDetail />,
+        },
+        {
+          path: "/brands",
+          element: <BrandList />,
+        },
+        {
+          path: "/brands/add",
+          element: <BrandAdd />,
+        },
+        {
+          path: "/brands/edit/:id",
+          element: <BrandEdit />,
+        },
+        {
+          path: "/brands/detail/:id",
+          element: <BrandDetail />,
         },
       ],
     },
