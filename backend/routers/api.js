@@ -3,6 +3,7 @@ import SanPhamController from "../controllers/SanPhamController.js";
 import DanhMucController from "../controllers/DanhMucController.js";
 import ThuongHieuController from "../controllers/ThuongHieuController.js";
 import UsersController from "../controllers/UsersController.js";
+import HoaDonController from "../controllers/HoaDonController.js";
 // tạo router
 const apiRouter = Router();
 
@@ -13,6 +14,13 @@ apiRouter.delete("/danhmucs/:id", DanhMucControl.apiDelete);
 apiRouter.get("/danhmucs/:id", DanhMucControl.apiDetail);
 apiRouter.post("/danhmucs", DanhMucControl.apiCreate);
 apiRouter.put("/danhmucs/:id", DanhMucControl.apiUpdate);
+
+
+const HoaDonControl = new HoaDonController();
+// API thực hiện các chức năng hóa đơn (chỉ lấy danh sách và chi tiết)
+apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
+apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
+
 
 const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
