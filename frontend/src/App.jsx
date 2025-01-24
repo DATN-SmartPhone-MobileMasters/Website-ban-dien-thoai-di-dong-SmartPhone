@@ -14,7 +14,9 @@ import BrandAdd from "./pages/(admin)/brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/brands/BrandEdit";
 import BrandDetail from "./pages/(admin)/brands/BrandDetail";
 import UserList from "./pages/(admin)/User/UserList";
-import UserDetails from './pages/(admin)/User/UserDetails';
+import UserDetails from "./pages/(admin)/User/UserDetails";
+import OderList from "./pages/(admin)/orders/Oderlist";
+import OderDetail from "./pages/(admin)/orders/Oderdetail";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -76,6 +78,14 @@ function App() {
         {
           path: "/accounts/:id",
           element: <UserDetails />,
+        },
+        {
+          path: "/orders",
+          element: <OderList />,
+        },
+        {
+          path: "/orders/:id",
+          element: <OderDetail />,
         },
       ],
     },
