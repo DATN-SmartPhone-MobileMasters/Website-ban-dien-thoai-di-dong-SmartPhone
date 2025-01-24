@@ -14,7 +14,9 @@ import BrandAdd from "./pages/(admin)/brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/brands/BrandEdit";
 import BrandDetail from "./pages/(admin)/brands/BrandDetail";
 import UserList from "./pages/(admin)/User/UserList";
-import UserDetails from './pages/(admin)/User/UserDetails';
+import UserDetails from "./pages/(admin)/User/UserDetails";
+import AdminListComment from "./pages/(admin)/comments/ListComments";
+import AdminDetailComment from "./pages/(admin)/comments/DetailComment";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -76,6 +78,14 @@ function App() {
         {
           path: "/accounts/:id",
           element: <UserDetails />,
+        },
+        {
+          path: "/comments",
+          element: <AdminListComment />,
+        },
+        {
+          path: "/comments/:id",
+          element: <AdminDetailComment />,
         },
       ],
     },
