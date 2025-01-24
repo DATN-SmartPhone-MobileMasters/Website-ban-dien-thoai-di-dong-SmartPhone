@@ -3,6 +3,7 @@ import SanPhamController from "../controllers/SanPhamController.js";
 import DanhMucController from "../controllers/DanhMucController.js";
 import ThuongHieuController from "../controllers/ThuongHieuController.js";
 import UsersController from "../controllers/UsersController.js";
+import CommentController from "../controllers/CommentController.js";
 // tạo router
 const apiRouter = Router();
 
@@ -31,10 +32,14 @@ apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
 // api thương hiệu
-apiRouter.get("/users", UsersControl.apiList);//lấy danh sách bản ghi
-apiRouter.get("/users/:id", UsersControl.apiDetail);//lấy chi tiết
+apiRouter.get("/users", UsersControl.apiList); //lấy danh sách bản ghi
+apiRouter.get("/users/:id", UsersControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
 apiRouter.post("/users", UsersControl.apiCreate);
 apiRouter.put("/users/:id", UsersControl.apiUpdate);
 
+const CommentControl = new CommentController();
+apiRouter.get("/comments", CommentControl.cmtList);
+apiRouter.get("/comments/:id", CommentControl.cmtDetail);
+apiRouter.delete("/comments/:id", CommentControl.cmtDelete);
 export default apiRouter;
