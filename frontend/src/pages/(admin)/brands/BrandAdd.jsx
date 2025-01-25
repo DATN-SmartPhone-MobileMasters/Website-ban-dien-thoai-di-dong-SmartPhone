@@ -94,7 +94,7 @@ const BrandAdd = () => {
                   required: "Danh mục không được bỏ trống",
                 })}
               >
-                <option value="" disabled>
+                <option value="" selected disabled>
                   Vui lòng chọn danh mục
                 </option>
                 {categories.map((danhmuc) => (
