@@ -17,6 +17,8 @@ import UserList from "./pages/(admin)/User/UserList";
 import UserDetails from "./pages/(admin)/User/UserDetails";
 import AdminListComment from "./pages/(admin)/comments/ListComments";
 import AdminDetailComment from "./pages/(admin)/comments/DetailComment";
+import OderDetail from "./pages/(admin)/orders/Oderdetail";
+import OderList from "./pages/(admin)/orders/Oderlist";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -86,6 +88,14 @@ function App() {
         {
           path: "/comments/:id",
           element: <AdminDetailComment />,
+        },
+        {
+          path: "/orders",
+          element: <OderList />,
+        },
+        {
+          path: "/orders/:id",
+          element: <OderDetail />,
         },
       ],
     },
