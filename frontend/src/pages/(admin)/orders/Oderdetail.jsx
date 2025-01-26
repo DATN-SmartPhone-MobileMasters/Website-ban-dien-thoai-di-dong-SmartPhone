@@ -6,6 +6,7 @@ const OderDetail = () => {
   const API_URL = "http://localhost:5000/api/hoadons"; // API cho hóa đơn
   const [hoaDon, setHoaDon] = useState(null); // Lưu thông tin hóa đơn
   const { id } = useParams(); // Lấy ID từ URL
+  const [trangThai, setTrangThai] = useState(""); // Lưu trạng thái mới
 
   // Lấy thông tin chi tiết hóa đơn
   useEffect(() => {
@@ -13,11 +14,27 @@ const OderDetail = () => {
       try {
         const { data } = await axios.get(`${API_URL}/${id}`); // Gọi API lấy chi tiết
         setHoaDon(data.data); // Lưu dữ liệu vào state
+        setTrangThai(data.data.TrangThai || ""); // Lưu trạng thái hiện tại
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       }
     })();
   }, [id]);
+
+  // Hàm xử lý khi thay đổi trạng thái
+  const handleChangeTrangThai = async (e) => {
+    const newTrangThai = e.target.value; // Lấy giá trị mới từ select
+    setTrangThai(newTrangThai); // Cập nhật state tạm thời
+
+    try {
+      // Gọi API để cập nhật trạng thái
+      await axios.put(`${API_URL}/${id}`, { TrangThai: newTrangThai });
+      alert("Cập nhật trạng thái thành công!");
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái:", error);
+      alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+    }
+  };
 
   if (!hoaDon) {
     return <p>Đang tải dữ liệu...</p>; // Hiển thị khi dữ liệu chưa sẵn sàng
@@ -34,10 +51,10 @@ const OderDetail = () => {
         </div>
         <div className="card-body">
           <p>
-            <strong>Mã hóa đơn:</strong> {hoaDon.MaHD}
+            <strong>Mã hóa đơn:</strong> {hoaDon.maHD}
           </p>
           <p>
-            <strong>Mã người dùng:</strong> {hoaDon.MaND}
+            <strong>Mã người dùng:</strong> {hoaDon.maND}
           </p>
           <p>
             <strong>Ngày lập:</strong>{" "}
@@ -53,13 +70,24 @@ const OderDetail = () => {
             <strong>Địa chỉ:</strong> {hoaDon.DiaChi}
           </p>
           <p>
-            <strong>Phương thức thanh toán:</strong> {hoaDon.PhuongThucTT}
+            <strong>Phương thức thanh toán:</strong> {hoaDon.PhieuThucTT}
           </p>
           <p>
             <strong>Tổng tiền:</strong> {hoaDon.TongTien}
           </p>
           <p>
-            <strong>Trạng thái:</strong> {hoaDon.TrangThai}
+            <strong>Trạng thái:</strong>
+            <select
+              value={trangThai}
+              onChange={handleChangeTrangThai}
+              className="form-control d-inline-block w-auto ml-2"
+            >
+              {/* Các trạng thái có thể chọn */}
+              <option value="Đang giao">Đang giao</option>
+              <option value="Đã giao">Đã giao</option>
+              <option value="Đã hủy">Đã hủy</option>
+              <option value="Chờ xác nhận">Chờ xác nhận</option>
+            </select>
           </p>
           <p>
             <strong>Ngày nhận hàng:</strong>{" "}

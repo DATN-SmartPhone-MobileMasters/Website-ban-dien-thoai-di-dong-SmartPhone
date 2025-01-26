@@ -17,9 +17,11 @@ apiRouter.put("/danhmucs/:id", DanhMucControl.apiUpdate);
 
 
 const HoaDonControl = new HoaDonController();
-// API thực hiện các chức năng hóa đơn (chỉ lấy danh sách và chi tiết)
+// API thực hiện các chức năng hóa đơn (chỉ lấy danh sách, chi tiết và chỉnh sửa)
 apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
+apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); // Cập nhật hóa đơn
+
 
 
 const SanPhamControl = new SanPhamController();
