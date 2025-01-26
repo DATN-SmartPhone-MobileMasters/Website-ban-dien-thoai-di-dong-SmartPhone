@@ -34,7 +34,7 @@ const SideBar = () => {
         <hr className="sidebar-divider" />
         {/* Heading */}
         <div className="sidebar-heading">Chức năng</div>
-        {/* Nav Item - Pages Collapse Menu */}
+        {/* Quản lý danh mục */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -54,16 +54,16 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/categorys">
                 Danh sách danh mục
               </Link>
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/categorys/addcategory">
                 Thêm mới danh mục
               </Link>
             </div>
           </div>
         </li>
-        {/* Nav Item - Utilities Collapse Menu */}
+        {/* Quản lý sản phẩm */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -83,17 +83,16 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="/ProductsList">
+              <Link className="collapse-item" to="/products">
                 Danh sách sản phẩm
               </Link>
-              <Link className="collapse-item" to="/ProductsAdd">
+              <Link className="collapse-item" to="/products/add">
                 Thêm mới sản phẩm
               </Link>
-             
             </div>
           </div>
         </li>
-        {/* Nav Item - Quản lý thương hiệu */}
+        {/* Quản lý thương hiệu */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -103,7 +102,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseThuonghieu"
           >
-            <i className="fas fa-fw fa-wrench" />
+            <i className="bi bi-slack"></i>
             <span>Quản lý thương hiệu</span>
           </Link>
           <div
@@ -113,23 +112,23 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/brands/add">
                 Thêm mới thương hiệu
               </Link>
             </div>
           </div>
         </li>
-        {/* Other Items */}
+        {/* Quản lý đơn hàng */}
         <li className="nav-item">
-          <Link className="nav-link collapsed" to="#">
-            <i className="fas fa-fw fa-wrench" />
+          <Link className="nav-link" to="/orders">
+            <i className="bi bi-boxes"></i>
             <span>Quản lý đơn hàng</span>
           </Link>
         </li>
-        {/* Nav Item - Quản lý voucher */}
+        {/* Quản lý voucher Admin */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -139,7 +138,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseVoucher"
           >
-            <i className="fas fa-fw fa-wrench" />
+            <i className="bi bi-ticket-perforated"></i>
             <span>Quản lý voucher</span>
           </Link>
           <div
@@ -149,15 +148,16 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/vouchers">
                 Danh sách voucher
               </Link>
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/vouchers/add">
                 Thêm mới voucher
               </Link>
             </div>
           </div>
         </li>
+        {/* Quản lý bình luận */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -167,7 +167,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseBinhluan"
           >
-            <i className="fas fa-fw fa-wrench" />
+            <i className="fas fa-fw fa-comments" />
             <span>Quản lý bình luận</span>
           </Link>
           <div
@@ -177,12 +177,13 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/comments">
                 Danh sách bình luận
               </Link>
             </div>
           </div>
         </li>
+        {/* Quản lý tài khoản */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
@@ -192,7 +193,7 @@ const SideBar = () => {
             aria-expanded="true"
             aria-controls="collapseTaikhoan"
           >
-            <i className="fas fa-fw fa-wrench" />
+            <i className="fas fa-fw fa-user" />
             <span>Quản lý tài khoản</span>
           </Link>
           <div
@@ -202,13 +203,12 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="#">
+              <Link className="collapse-item" to="/accounts">
                 Danh sách tài khoản
               </Link>
             </div>
           </div>
         </li>
-
         {/* Sidebar Toggler */}
         <div className="text-center d-none d-md-inline">
           <button className="rounded-circle border-0" id="sidebarToggle" />
