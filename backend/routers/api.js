@@ -5,6 +5,7 @@ import ThuongHieuController from "../controllers/ThuongHieuController.js";
 import UsersController from "../controllers/UsersController.js";
 import CommentController from "../controllers/CommentController.js";
 import HoaDonController from "../controllers/HoaDonController.js";
+import PromotionController from "../controllers/PromotionController.js";
 // tạo router
 const apiRouter = Router();
 
@@ -49,4 +50,11 @@ const CommentControl = new CommentController();
 apiRouter.get("/comments", CommentControl.cmtList);
 apiRouter.get("/comments/:id", CommentControl.cmtDetail);
 apiRouter.delete("/comments/:id", CommentControl.cmtDelete);
+
+const PromotionControl = new PromotionController();
+apiRouter.get("/promotions", PromotionControl.getListPromotion);
+apiRouter.get("/promotions/:id", PromotionControl.getDetailPromotion);
+apiRouter.post("/promotions", PromotionControl.createPromotion);
+apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
+apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
 export default apiRouter;
