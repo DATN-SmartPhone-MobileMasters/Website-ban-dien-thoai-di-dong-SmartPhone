@@ -19,6 +19,9 @@ import AdminListComment from "./pages/(admin)/comments/ListComments";
 import AdminDetailComment from "./pages/(admin)/comments/DetailComment";
 import OderDetail from "./pages/(admin)/orders/Oderdetail";
 import OderList from "./pages/(admin)/orders/Oderlist";
+import Promotion from "./pages/Promotion/Promotion";
+import AddPromotion from "./pages/Promotion/AddPromotion";
+import UpdatePromotion from "./pages/Promotion/UpdatePromotion";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -96,6 +99,18 @@ function App() {
         {
           path: "/orders/:id",
           element: <OderDetail />,
+        },
+        {
+          path: "/vouchers",
+          element: <Promotion />,
+        },
+        {
+          path: "/vouchers/add",
+          element: <AddPromotion />,
+        },
+        {
+          path: "/vouchers/edit/:id",
+          element: <UpdatePromotion />,
         },
       ],
     },

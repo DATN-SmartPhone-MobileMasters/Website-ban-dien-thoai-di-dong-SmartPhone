@@ -131,8 +131,8 @@ const SideBar = () => {
         {/* Quản lý voucher Admin */}
         <li className="nav-item">
           <Link
-            className="nav-link collapsed"
             to="#"
+            className="nav-link collapsed"
             data-toggle="collapse"
             data-target="#collapseVoucher"
             aria-expanded="true"
