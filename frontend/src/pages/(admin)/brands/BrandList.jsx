@@ -42,9 +42,11 @@ const BrandList = () => {
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <Link to={"/brands/add"} className="btn btn-primary mb-3">
-              Thêm mới
-            </Link>
+            <div className="d-flex justify-content-end mb-3">
+              <Link to={"/brands/add"} className="btn btn-primary">
+                Thêm mới
+              </Link>
+            </div>
             <table className="table table-hover table-bordered dataTable no-footer">
               <thead>
                 <tr>
@@ -70,8 +72,19 @@ const BrandList = () => {
                         alt={`${brand.HinhAnh}`}
                       />
                     </td>
-                    <td>{brand.Mota}</td>
-                    <td>{brand.MaDM?.TenDM || "Không có danh mục"}</td> {/* Hiển thị tên danh mục */}
+                    <td
+                      className="text-truncate"
+                      style={{
+                        maxWidth: "200px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {brand.Mota}
+                    </td>
+                    <td>{brand.MaDM?.TenDM || "Không có danh mục"}</td>{" "}
+                    {/* Hiển thị tên danh mục */}
                     <td>
                       <Link
                         to={`/brands/detail/${brand._id}`}
