@@ -38,8 +38,8 @@ const ProductDetail = () => {
     <div className="container-fluid">
       {/* Page Heading */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Chi Tiết Sản Phẩm</h1> 
-        <Link to="/ProductsList">
+        <h1 className="h3 text-gray-800">Chi Tiết Sản Phẩm</h1>
+        <Link to="/products">
           <button className="btn btn-secondary">
             <i></i> Quay lại
           </button>
@@ -53,7 +53,7 @@ const ProductDetail = () => {
         <div className="card-body">
           {/* Hiển thị chi tiết sản phẩm */}
           <div className="mb-3">
-            <strong>Mã Thể Loại:</strong> {product.MaTH}
+            <strong>Mã Thương hiệu:</strong> {product.MaTH}
           </div>
           <div className="mb-3">
             <strong>Mã Danh Mục:</strong> {product.MaDM}
