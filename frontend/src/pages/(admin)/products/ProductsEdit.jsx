@@ -77,20 +77,8 @@ const ProductsEdit = () => {
   
 
   return (
-
     <div>
       <h1 className="h3 mb-2 text-gray-800">Chỉnh sửa sản phẩm</h1>
-
-    <div className="container-fluid">
-   
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Cập Nhật Sản Phẩm</h1>
-        <button className="btn btn-secondary" onClick={() => navigate("/products")}>
-          Quay Lại
-        </button>
-      </div>
-
-
       <div className="card shadow mb-4">
         <div className="card-header py-3">
           <h6 className="m-0 font-weight-bold text-primary">

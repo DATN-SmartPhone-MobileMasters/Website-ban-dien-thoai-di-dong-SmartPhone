@@ -88,17 +88,10 @@ const ProductsList = () => {
                   onClick={() => removeItem(item._id)}
                 >
                   Xóa
-
                 </button>{" "}
                 <Link to={`/products/edit/${item._id}`}>
                   <button className="btn btn-primary">Sửa</button>
                 </Link>{" "}
-
-                </button> <span> </span>
-                <Link to={`/products/edit/${item._id}`}>
-                  <button className="btn btn-primary">Sửa</button>
-                </Link> <span> </span>
-
                 <Link to={`/products/detail/${item._id}`}>
                   <button className="btn btn-primary">Chi tiết</button>
                 </Link>
