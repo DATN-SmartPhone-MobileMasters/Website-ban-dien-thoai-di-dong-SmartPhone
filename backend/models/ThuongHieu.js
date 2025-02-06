@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const ThuongHieuSchema = new mongoose.Schema({
+  MaTH: { type: String, required: true }, // MTH thương hiệu
   TenTH: { type: String, required: true }, // Tên thương hiệu
   HinhAnh: { type: String }, // Hình ảnh
   Mota: { type: String }, // Mô tả
