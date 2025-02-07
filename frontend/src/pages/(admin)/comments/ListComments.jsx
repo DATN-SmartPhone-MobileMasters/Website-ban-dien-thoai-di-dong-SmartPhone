@@ -3,35 +3,38 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-// interface IComment {
-//   MaBL: number;
-//   MaND: number;
-//   MaSP: number;
-//   NoiDung: string;
-//   NgayBL: string;
-// }
-
 const AdminListComment = () => {
-  const API_URL = "http://localhost:5000/api/comments/";
+  const API_URL_Users = "http://localhost:5000/api/users"; // API lấy danh sách người dùng
+  const API_URL_Products = "http://localhost:5000/api/products"; // API lấy danh sách sản phẩm
+  const API_URL_Comments = "http://localhost:5000/api/comments"; // API lấy danh sách bình luận
 
   const [comments, setComments] = useState([]);
+  const [users, setUsers] = useState([]); // State lưu danh sách người dùng
+  const [products, setProducts] = useState([]); // State lưu danh sách sản phẩm
 
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await axios.get(API_URL);
-        setComments(data);
+        const resComments = await axios.get(API_URL_Comments);
+        setComments(resComments.data);
+
+        const resUsers = await axios.get(API_URL_Users);
+        setUsers(resUsers.data);
+
+        const resProducts = await axios.get(API_URL_Products);
+        setProducts(resProducts.data);
       } catch (error) {
-        console.log(error);
-        message.error("Lỗi khi lấy dữ liệu");
+        console.error(error);
+        // message.error("Lỗi khi lấy dữ liệu");
       }
-    })();
+    };
+    fetchData();
   }, []);
 
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa bình luận này không?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/comments/${id}`);
+        await axios.delete(`${API_URL_Comments}/${id}`);
         setComments(comments.filter((item) => item._id !== id));
         message.success("Đã xóa thành công");
       } catch (error) {
@@ -72,7 +75,7 @@ const AdminListComment = () => {
                     <td className="text-truncate" style={{ maxWidth: "200px" }}>
                       {comment.NoiDung}
                     </td>
-                    <td>{comment.NgayBL}</td>
+                    <td>{new Date(comment.NgayBL).toLocaleDateString()}</td>
                     <td>
                       <div
                         style={{
