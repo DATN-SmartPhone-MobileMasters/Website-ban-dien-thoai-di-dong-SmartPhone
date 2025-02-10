@@ -18,10 +18,10 @@ import UserDetails from "./pages/(admin)/User/UserDetails";
 import AdminListComment from "./pages/(admin)/comments/ListComments";
 import AdminDetailComment from "./pages/(admin)/comments/DetailComment";
 import OderDetail from "./pages/(admin)/orders/Oderdetail";
-import OderList from "./pages/(admin)/orders/Oderlist";
-import Promotion from "./pages/Promotion/Promotion";
-import AddPromotion from "./pages/Promotion/AddPromotion";
-import UpdatePromotion from "./pages/Promotion/UpdatePromotion";
+import OderList from "./pages/(admin)/orders/OderList";
+import Promotion from "./pages/(admin)/Promotion/Promotion";
+import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
+import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -105,11 +105,11 @@ function App() {
           element: <Promotion />,
         },
         {
-          path: "/vouchers/add",
+          path: "/add/promotion",
           element: <AddPromotion />,
         },
         {
-          path: "/vouchers/edit/:id",
+          path: "/edit/promotion/:id",
           element: <UpdatePromotion />,
         },
       ],

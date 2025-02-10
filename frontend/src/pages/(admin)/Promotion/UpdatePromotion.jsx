@@ -44,7 +44,7 @@ const UpdatePromotion = () => {
         buttons: [
           {
             label: "OK",
-            onClick: () => navigate("/voucher"),
+            onClick: () => navigate("/vouchers"),
           },
         ],
         closeOnEscape: true,
@@ -75,7 +75,7 @@ const UpdatePromotion = () => {
         <h1 className="h3 text-gray-800">Cập Nhật Khuyến Mãi</h1>
         <button
           className="btn btn-secondary"
-          onClick={() => navigate("/promotions")}
+          onClick={() => navigate("/vouchers")}
         >
           Quay Lại
         </button>
