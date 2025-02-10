@@ -5,8 +5,8 @@ class ThuongHieuController {
   //API functions
   async apiList(req, res) {
     try {
-      // Sử dụng populate để lấy thông tin từ danh mục
-      const thuongHieus = await thuonghieu.find().populate("MaDM", "TenDM");
+      const thuongHieus = await thuonghieu.find().populate("MaDM", "TenDM").exec();
+
       res.status(200).json({
         message: "Lấy dữ liệu thành công",
         data: thuongHieus,
@@ -36,42 +36,48 @@ class ThuongHieuController {
   }
 
   async apiDetail(req, res) {
-  try {
-    const id = req.params.id;
-
-    // Sử dụng populate để lấy tên danh mục
-    const thuongHieu = await thuonghieu.findById(id).populate("MaDM", "TenDM");
-
-    if (!thuongHieu) {
-      return res.status(404).json({
-        message: "Không tìm thấy thương hiệu",
+    try {
+      const { id } = req.params;
+      
+      const thuongHieu = await thuonghieu.findById(id)
+        .populate("MaDM", "TenDM") // Lấy danh mục của thương hiệu đó
+        .exec();
+  
+      if (!thuongHieu) {
+        return res.status(404).json({ message: "Không tìm thấy thương hiệu" });
+      }
+  
+      res.status(200).json({
+        message: "Lấy dữ liệu thành công",
+        data: thuongHieu,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi lấy dữ liệu",
+        error: error.message,
       });
     }
-
-    res.status(200).json({
-      message: "Thành công",
-      data: thuongHieu,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Lỗi khi lấy chi tiết",
-      error: error.message,
-    });
   }
-}
-
-
+  
   async apiCreate(req, res) {
     try {
-      const data = req.body;
-      const newThuongHieu = await thuonghieu.create(data);
-      res.status(200).json({
-        message: "Thành công",
+      const { MaTH, TenTH, HinhAnh, Mota, MaDM } = req.body;
+
+      const newThuongHieu = await thuonghieu.create({
+        MaTH,
+        TenTH,
+        HinhAnh,
+        Mota,
+        MaDM,
+      });
+
+      res.status(201).json({
+        message: "Thêm thương hiệu thành công!",
         data: newThuongHieu,
       });
     } catch (error) {
       res.status(500).json({
-        message: "Lỗi khi tạo",
+        message: "Lỗi khi tạo thương hiệu!",
         error: error.message,
       });
     }
@@ -80,15 +86,23 @@ class ThuongHieuController {
   async apiUpdate(req, res) {
     try {
       const id = req.params.id;
-      const data = req.body;
-      const thuongHieu = await thuonghieu.findByIdAndUpdate(id, data).populate("MaDM", "TenDM");
+      const { MaTH, TenTH, HinhAnh, Mota, MaDM } = req.body;
+
+      const thuongHieu = await thuonghieu
+        .findByIdAndUpdate(
+          id,
+          { MaTH, TenTH, HinhAnh, Mota, MaDM },
+          { new: true }
+        )
+        .populate("MaDM", "TenDM");
+
       res.status(200).json({
-        message: "Thành công",
+        message: "Cập nhật thương hiệu thành công!",
         data: thuongHieu,
       });
     } catch (error) {
       res.status(500).json({
-        message: "Lỗi khi cập nhật",
+        message: "Lỗi khi cập nhật!",
         error: error.message,
       });
     }
