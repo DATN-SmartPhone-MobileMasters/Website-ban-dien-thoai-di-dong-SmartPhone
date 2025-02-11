@@ -8,17 +8,17 @@ const UserDetails = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/users/${id}`);
-        setUser(res.data);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
     fetchUser();
   }, [id]);
+
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+      setUser(res.data.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (!user) {
     return <div className="text-center mt-5">Loading...</div>;
@@ -77,9 +77,9 @@ const UserDetails = () => {
       <div className="mt-6 ">
         <button 
           onClick={() => navigate('/accounts')}
-          className="btn btn-primary"
+          className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 duration-200 ease-in-out rounded"
         >
-          Quay Về
+          Back to User List
         </button>
       </div>
     </div>
