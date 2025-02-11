@@ -1,12 +1,14 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
-const OderDetail = () => {
-  const API_URL = "http://localhost:5000/api/hoadons"; // API cho hóa đơn
+const OrderDetail = () => {
+  const API_URL = "http://localhost:5000/api/hoadons"; // API hóa đơn
   const [hoaDon, setHoaDon] = useState(null); // Lưu thông tin hóa đơn
   const { id } = useParams(); // Lấy ID từ URL
   const [trangThai, setTrangThai] = useState(""); // Lưu trạng thái mới
+
+  // Các trạng thái có thể chọn
+  const danhSachTrangThai = ["Chờ xác nhận", "Đang giao", "Đã giao", "Đã hủy"];
 
   // Lấy thông tin chi tiết hóa đơn
   useEffect(() => {
@@ -21,14 +23,20 @@ const OderDetail = () => {
     })();
   }, [id]);
 
-  // Hàm xử lý khi thay đổi trạng thái
-  const handleChangeTrangThai = async (e) => {
-    const newTrangThai = e.target.value; // Lấy giá trị mới từ select
-    setTrangThai(newTrangThai); // Cập nhật state tạm thời
+  // Hàm xử lý khi chọn trạng thái mới
+  const handleUpdateTrangThai = async (newTrangThai) => {
+    if (newTrangThai === trangThai) return; // Không làm gì nếu chọn lại trạng thái cũ
+
+    // Hiển thị hộp thoại xác nhận
+    const isConfirmed = window.confirm(
+      `Bạn có chắc chắn muốn cập nhật trạng thái sang "${newTrangThai}"?`
+    );
+
+    if (!isConfirmed) return; // Nếu không đồng ý thì thoát
 
     try {
-      // Gọi API để cập nhật trạng thái
-      await axios.put(`${API_URL}/${id}`, { TrangThai: newTrangThai });
+      await axios.put(`${API_URL}/${id}`, { TrangThai: newTrangThai }); // Gửi API cập nhật
+      setTrangThai(newTrangThai); // Cập nhật state
       alert("Cập nhật trạng thái thành công!");
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái:", error);
@@ -37,72 +45,84 @@ const OderDetail = () => {
   };
 
   if (!hoaDon) {
-    return <p>Đang tải dữ liệu...</p>; // Hiển thị khi dữ liệu chưa sẵn sàng
+    return <p className="text-center">Đang tải dữ liệu...</p>; // Hiển thị khi dữ liệu chưa sẵn sàng
   }
 
   return (
-    <div>
-      <h1 className="h3 mb-2 text-gray-800">Chi tiết hóa đơn</h1>
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">
-            Thông tin hóa đơn
-          </h6>
+    <div className="container d-flex justify-content-center">
+      <div className="card shadow mb-4 w-75">
+        <div className="card-header py-3 text-center">
+          <h4 className="m-0 font-weight-bold text-primary">
+            Chi tiết hóa đơn
+          </h4>
         </div>
         <div className="card-body">
-          <p>
-            <strong>Mã hóa đơn:</strong> {hoaDon.maHD}
-          </p>
-          <p>
-            <strong>Mã người dùng:</strong> {hoaDon.maND}
-          </p>
-          <p>
-            <strong>Ngày lập:</strong>{" "}
-            {new Date(hoaDon.NgayLap).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Người nhận:</strong> {hoaDon.NguoiNhan}
-          </p>
-          <p>
-            <strong>Số điện thoại:</strong> {hoaDon.SDT}
-          </p>
-          <p>
-            <strong>Địa chỉ:</strong> {hoaDon.DiaChi}
-          </p>
-          <p>
-            <strong>Phương thức thanh toán:</strong> {hoaDon.PhieuThucTT}
-          </p>
-          <p>
-            <strong>Tổng tiền:</strong> {hoaDon.TongTien}
-          </p>
-          <p>
-            <strong>Trạng thái:</strong>
-            <select
-              value={trangThai}
-              onChange={handleChangeTrangThai}
-              className="form-control d-inline-block w-auto ml-2"
-            >
-              {/* Các trạng thái có thể chọn */}
-              <option value="Đang giao">Đang giao</option>
-              <option value="Đã giao">Đã giao</option>
-              <option value="Đã hủy">Đã hủy</option>
-              <option value="Chờ xác nhận">Chờ xác nhận</option>
-            </select>
-          </p>
-          <p>
-            <strong>Ngày nhận hàng:</strong>{" "}
-            {hoaDon.NgayNhanHang
-              ? new Date(hoaDon.NgayNhanHang).toLocaleDateString()
-              : "Chưa xác định"}
-          </p>
+          {/* Bảng hiển thị thông tin hóa đơn */}
+          <table className="table table-bordered">
+            <tbody>
+              <tr>
+                <th>Ngày lập</th>
+                <td>{new Date(hoaDon.NgayLap).toLocaleDateString()}</td>
+              </tr>
+              <tr>
+                <th>Người nhận</th>
+                <td>{hoaDon.NguoiNhan}</td>
+              </tr>
+              <tr>
+                <th>Số điện thoại</th>
+                <td>{hoaDon.SDT}</td>
+              </tr>
+              <tr>
+                <th>Địa chỉ</th>
+                <td>{hoaDon.DiaChi}</td>
+              </tr>
+              <tr>
+                <th>Phương thức thanh toán</th>
+                <td>{hoaDon.PhuongThucTT}</td>
+              </tr>
+              <tr>
+                <th>Tổng tiền</th>
+                <td>{hoaDon.TongTien}</td>
+              </tr>
+              <tr>
+                <th>Ngày nhận hàng</th>
+                <td>
+                  {hoaDon.NgayNhanHang
+                    ? new Date(hoaDon.NgayNhanHang).toLocaleDateString()
+                    : "Chưa xác định"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          <Link to="/hoadons" className="btn btn-primary mt-3">
-            Quay lại danh sách
-          </Link>
+          {/* Khung trạng thái đơn hàng */}
+          <div className="mt-4 p-3 border rounded bg-light text-center">
+            <h5 className="mb-3">Trạng thái đơn hàng</h5>
+            <div className="d-flex justify-content-center flex-wrap">
+              {danhSachTrangThai.map((status) => (
+                <button
+                  key={status}
+                  className={`btn btn-sm mx-1 my-1 ${
+                    trangThai === status ? "btn-primary" : "btn-outline-primary"
+                  }`}
+                  onClick={() => handleUpdateTrangThai(status)}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Nút quay lại danh sách */}
+          <div className="text-center mt-3">
+            <Link to="/orders" className="btn btn-primary">
+              Quay lại danh sách
+            </Link>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default OderDetail;
+export default OrderDetail;
