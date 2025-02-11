@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getUserById } from '../../../service/api';
 
 const UserDetails = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -17,11 +17,11 @@ const UserDetails = () => {
       setUser(res.data);
     } catch (e) {
       console.error(e);
-      setUser(null); 
+      setUser([]); 
     }
   };
 
-  if (!user) {
+if (!users || users.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
   }
 
