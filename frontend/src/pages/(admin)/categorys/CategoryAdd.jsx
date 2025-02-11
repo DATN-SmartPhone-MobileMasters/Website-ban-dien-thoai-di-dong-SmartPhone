@@ -16,13 +16,17 @@ const CategoryAdd = () => {
   // Hàm xử lý gửi form
   const onSubmit = async (data) => {
     try {
-      // Gửi dữ liệu đến API thêm mới danh mục
-      await axios.post(API_URL, data);
+      const newCategory = {
+        MaDM: Date.now().toString(), // Tạo mã danh mục tự động
+        TenDM: data.TenDM,
+      };
+
+      await axios.post(API_URL, newCategory);
       message.success("Thêm danh mục thành công!");
-      navigate("/categorys"); // Chuyển hướng sau khi thêm thành công
+      navigate("/categorys");
     } catch (error) {
       message.error("Thêm danh mục thất bại!");
-      console.error(error.response); // Log lỗi để debug
+      console.error(error.response);
     }
   };
 
@@ -36,18 +40,6 @@ const CategoryAdd = () => {
         <div className="card-body">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="form-group">
-              <label htmlFor="MaDM">Mã danh mục</label>
-              <input
-                type="text"
-                className="form-control"
-                id="MaDM"
-                {...register("MaDM", {
-                  required: "Mã danh mục không được bỏ trống",
-                })}
-              />
-              <small className="text-danger">{errors.MaDM?.message}</small>
-            </div>
-            <div className="form-group">
               <label htmlFor="TenDM">Tên danh mục</label>
               <input
                 type="text"
@@ -60,7 +52,7 @@ const CategoryAdd = () => {
               <small className="text-danger">{errors.TenDM?.message}</small>
             </div>
             <div className="d-flex justify-content-between">
-              <Link to="/categories" className="btn btn-primary">
+              <Link to="/categorys" className="btn btn-primary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success">

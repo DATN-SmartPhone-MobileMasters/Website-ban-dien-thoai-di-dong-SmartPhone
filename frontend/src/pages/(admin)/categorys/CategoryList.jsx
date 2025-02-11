@@ -57,7 +57,6 @@ const CategoryList = () => {
               <thead>
                 <tr>
                   <th>STT</th>
-                  <th>Mã danh mục</th>
                   <th>Tên danh mục</th>
                   <th>#</th> {/* Cột thao tác (sửa, xóa) */}
                 </tr>
@@ -66,7 +65,6 @@ const CategoryList = () => {
                 {categories.map((category, i) => (
                   <tr key={category._id}>
                     <td>{i + 1}</td> {/* Hiển thị STT */}
-                    <td>{category._id}</td> {/* Mã danh mục */}
                     <td>{category.TenDM}</td> {/* Tên danh mục */}
                     <td>
                       <Link
