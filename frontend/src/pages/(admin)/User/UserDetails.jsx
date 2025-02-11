@@ -21,7 +21,7 @@ const UserDetails = () => {
     }
   };
 
-if (!users || users.length === 0) { 
+if (!user || user.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
   }
 
