@@ -22,7 +22,7 @@ const AddPromotion = () => {
         buttons: [
           {
             label: "OK",
-            onClick: () => navigate("/voucher"),
+            onClick: () => navigate("/vouchers"),
           },
         ],
         closeOnEscape: true,

@@ -18,10 +18,11 @@ import UserDetails from "./pages/(admin)/User/UserDetails";
 import AdminListComment from "./pages/(admin)/comments/ListComments";
 import AdminDetailComment from "./pages/(admin)/comments/DetailComment";
 import OderDetail from "./pages/(admin)/orders/Oderdetail";
-import OderList from "./pages/(admin)/orders/OderList";
+import OderList from "./pages/(admin)/orders/Oderlist";
 import Promotion from "./pages/(admin)/Promotion/Promotion";
 import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
 import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
+
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -105,11 +106,11 @@ function App() {
           element: <Promotion />,
         },
         {
-          path: "/add/promotion",
+          path: "/vouchers/add",
           element: <AddPromotion />,
         },
         {
-          path: "/edit/promotion/:id",
+          path: "/vouchers/edit/:id",
           element: <UpdatePromotion />,
         },
       ],

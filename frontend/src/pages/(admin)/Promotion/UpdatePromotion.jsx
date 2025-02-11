@@ -20,7 +20,7 @@ const UpdatePromotion = () => {
     const fetchPromotion = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/promotion/${id}`
+          `http://localhost:5000/api/promotions/${id}`
         );
         const promotionData = {
           ...data.data,
@@ -37,7 +37,7 @@ const UpdatePromotion = () => {
 
   const onSubmit = async (data) => {
     try {
-      await axios.put(`http://localhost:5000/api/promotion/${id}`, data);
+      await axios.put(`http://localhost:5000/api/promotions/${id}`, data);
       confirmAlert({
         title: "Thành công!",
         message: "Cập nhật khuyến mãi thành công!",

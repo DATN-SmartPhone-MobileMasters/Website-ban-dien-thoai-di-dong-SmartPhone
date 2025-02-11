@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
 const UserDetails = () => {
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/users/${id}`);
-        setUser(res.data);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
     fetchUser();
   }, [id]);
+
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+      setUser(res.data.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (!user) {
     return <div className="text-center mt-5">Loading...</div>;
@@ -40,7 +40,9 @@ const UserDetails = () => {
               <dd className="mt-1 text-sm text-gray-900">{user.MaND}</dd>
             </div>
             <div className="sm:col-span-1">
-              <dt className="text-sm font-medium text-gray-500">Tên Tài Khoản</dt>
+              <dt className="text-sm font-medium text-gray-500">
+                Tên Tài Khoản
+              </dt>
               <dd className="mt-1 text-sm text-gray-900">{user.TaiKhoan}</dd>
             </div>
             <div className="sm:col-span-1">
@@ -65,21 +67,25 @@ const UserDetails = () => {
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-gray-500">Vai Trò</dt>
-              <dd className="mt-1 text-sm text-gray-900">{user.MaQuyen === 1 ? 'Admin' : 'User'}</dd>
+              <dd className="mt-1 text-sm text-gray-900">
+                {user.MaQuyen === 1 ? "Admin" : "User"}
+              </dd>
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-gray-500">Trạng Thái</dt>
-              <dd className="mt-1 text-sm text-gray-900">{user.TrangThai === 1 ? 'Active' : 'Inactive'}</dd>
+              <dd className="mt-1 text-sm text-gray-900">
+                {user.TrangThai === 1 ? "Active" : "Inactive"}
+              </dd>
             </div>
           </dl>
         </div>
       </div>
       <div className="mt-6 ">
-        <button 
-          onClick={() => navigate('/accounts')}
-          className="btn btn-primary"
+        <button
+          onClick={() => navigate("/accounts")}
+          className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 duration-200 ease-in-out rounded"
         >
-          Quay Về
+          Back to User List
         </button>
       </div>
     </div>
@@ -87,4 +93,3 @@ const UserDetails = () => {
 };
 
 export default UserDetails;
-

@@ -1,39 +1,43 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 
 const ProductsList = () => {
+
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch dữ liệu sản phẩm
+
   const fetchProducts = async () => {
     try {
       const res = await axios.get(`http://localhost:5000/api/sanphams`);
+
       if (res.data) {
         setProducts(res.data);
       } else {
-        console.log("Không có dữ liệu sản phẩm");
+        console.log("Dữ liệu không phải là mảng, cấu trúc dữ liệu:", res.data);
+        setProducts([]);
       }
     } catch (err) {
       setError(err);
-      console.log("Lỗi hiển thị dữ liệu sản phẩm");
+      console.log("Lỗi hiển thị dữ liệu sản phẩm", err);
     } finally {
       setIsLoading(false);
     }
   };
 
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // Xóa sản phẩm
+
   const removeItem = async (id) => {
     try {
       if (window.confirm("Bạn có muốn xóa sản phẩm không?")) {
         await axios.delete(`http://localhost:5000/api/sanphams/${id}`);
-        // Cập nhật danh sách sản phẩm
+
         setProducts(products.filter((item) => item._id !== id));
         alert("Sản phẩm đã được xóa thành công!");
       }
@@ -53,19 +57,14 @@ const ProductsList = () => {
         <thead>
           <tr>
             <th scope="col">STT</th>
-          
             <th scope="col">MaSP</th>
-            <th scope="col">MaTH</th>
-            <th scope="col">MaDM</th>
             <th scope="col">MaKM</th>
             <th scope="col">TenSP</th>
             <th scope="col">GiaSP</th>
             <th scope="col">SoLuong</th>
             <th scope="col">HinhAnh1</th>
-            <th scope="col">BoNhoTrong</th>
-            <th scope="col">Mau</th>
-            <th scope="col">ManHinh</th>
-            <th scope="col">MoTa</th>
+            <th scope="col">HinhAnh2</th>
+            <th scope="col">HinhAnh3</th>
             <th scope="col">created_at</th>
             <th scope="col">Thao tác</th>
           </tr>
@@ -74,38 +73,33 @@ const ProductsList = () => {
           {products.map((item, index) => (
             <tr key={item._id}>
               <th scope="row">{index + 1}</th>
-           
-              <td>{item.MaSP}</td>
-              <td>{item.MaTH}</td>
-              <td>{item.MaDM}</td>
-              <td>{item.MaKM}</td>
+              <td>{item._id}</td>
+              <td>{item.MaKM || "Không có mã KM"}</td>
               <td>{item.TenSP}</td>
               <td>{item.GiaSP}</td>
               <td>{item.SoLuong}</td>
               <td>{item.HinhAnh1}</td>
-              <td>{item.BoNhoTrong}</td>
-              <td>{item.Mau}</td>
-              <td>{item.ManHinh}</td>
-              <td>{item.MoTa}</td>
-              <td>{item.created_at}</td>
+              <td>{item.HinhAnh2}</td>
+              <td>{item.HinhAnh3}</td>
+              <td>{new Date(item.created_at).toLocaleDateString()}</td> {/* Hiển thị ngày đẹp hơn */}
               <td>
                 <button
                   className="btn btn-danger"
                   onClick={() => removeItem(item._id)}
                 >
                   Xóa
-                </button> <span> </span>
+                </button>{" "}
                 <Link to={`/products/edit/${item._id}`}>
                   <button className="btn btn-primary">Sửa</button>
-                </Link> <span> </span>
+                </Link>{" "}
                 <Link to={`/products/detail/${item._id}`}>
                   <button className="btn btn-primary">Chi tiết</button>
                 </Link>
-
               </td>
             </tr>
           ))}
         </tbody>
+
       </table>
     </div>
   );

@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // npm i axios
-import { useNavigate } from 'react-router-dom';
-import { confirmAlert } from 'react-confirm-alert'; // npm i react-confirm-alert
-import 'react-confirm-alert/src/react-confirm-alert.css';
-import '../../../App.css'; // Import App.css
+import React, { useState, useEffect } from "react";
+import axios from "axios"; // npm i axios
+import { useNavigate } from "react-router-dom";
+import { confirmAlert } from "react-confirm-alert"; //npm i react-confirm-alert
+import "react-confirm-alert/src/react-confirm-alert.css";
+
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,13 +15,10 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get('http://localhost:5000/api/users');
-      setUsers(res.data);
+      const res = await axios.get("http://localhost:5000/api/users");
+      setUsers(res.data.data);
     } catch (e) {
       console.error(e);
-      setError('Không tìm thấy dữ liệu, mời thử lại');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -37,10 +32,9 @@ const UserList = () => {
           onClick: async () => {
             try {
               await axios.delete(`http://localhost:5000/api/users/${id}`);
-              setUsers(users.filter(user => user._id !== id));
+              setUsers(users.filter((user) => user._id !== id));
             } catch (e) {
               console.error(e);
-              setError('Lỗi, mời thử lại.');
             }
           },
         },
@@ -58,12 +52,8 @@ const UserList = () => {
     navigate(`/accounts/${id}`);
   };
 
-  if (isLoading) {
+  if (!user) {
     return <div className="text-center mt-5">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center mt-5 text-red-500">{error}</div>;
   }
 
   return (
@@ -75,7 +65,11 @@ const UserList = () => {
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-bordered" width="100%" cellSpacing={0}>
+            <table
+              className="table table-bordered"
+              width="100%"
+              cellSpacing={0}
+            >
               <thead>
                 <tr>
                   <th>ID</th>
@@ -95,17 +89,17 @@ const UserList = () => {
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
-                    <td>{user.MaQuyen === 1 ? 'Admin' : 'User'}</td>
+                    <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
                     <td className="space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleViewDetails(user._id)}
-                        className="btn btn-warning ml-2"
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg mr-2"
                       >
-                        Chi Tiết 
+                        Chi Tiết
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(user._id)}
-                        className="btn btn-danger ml-2"
+                        className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                       >
                         Xoá
                       </button>
