@@ -59,7 +59,11 @@ const UserList = () => {
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-bordered" width="100%" cellSpacing={0}>
+            <table
+              className="table table-bordered"
+              width="100%"
+              cellSpacing={0}
+            >
               <thead>
                 <tr>
                   <th>ID</th>
@@ -79,7 +83,7 @@ const UserList = () => {
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
-                    <td>{user.MaQuyen === 1 ? 'Admin' : 'User'}</td>
+                    <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
                     <td className="space-x-2">
                       <button
                         onClick={() => handleViewDetails(user._id)}
