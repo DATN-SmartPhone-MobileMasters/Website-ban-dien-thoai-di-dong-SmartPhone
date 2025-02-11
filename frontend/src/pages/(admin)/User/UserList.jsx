@@ -30,7 +30,7 @@ const UserList = () => {
           label: 'Có',
           onClick: async () => {
             try {
-              await deleteUser(id); // Use API function
+              await deleteUser(id); 
               setUsers(users.filter((user) => user._id !== id));
             } catch (e) {
               console.error(e);
