@@ -24,3 +24,8 @@ export const deleteCategory = async (id) =>
   axios.delete(`${API_URL}/danhmucs/${id}`);
 export const fetchCategoryById = async (id) =>
   axios.get(`${API_URL}/danhmucs/${id}`);
+
+//users
+export const fetchUsers = async () => axios.get(`${API_URL}/users`);
+export const deleteUser = async (id) => axios.delete(`${API_URL}/users/${id}`);
+export const getUserById = async (id) => axios.get(`${API_URL}/users/${id}`);

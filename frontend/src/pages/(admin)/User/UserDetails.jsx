@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { getUserById } from "../../../service/api";
 
 const UserDetails = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -13,21 +13,22 @@ const UserDetails = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
-      setUser(res.data.data);
+      const res = await getUserById(id);
+      setUser(res.data);
     } catch (e) {
       console.error(e);
+      setUser([]);
     }
   };
 
-  if (!user) {
+  if (!user || user.length === 0) {
     return <div className="text-center mt-5">Loading...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">User Details</h1>
-      <div className="bg-white shadow-md rounded-lg overflow-hidden rounded mb-3 ">
+      <div className="bg-white shadow-md rounded-lg overflow-hidden rounded mb-3">
         <div className="px-6 py-4 border-b border-gray-200 ml-2">
           <h2 className="text-xl font-semibold text-gray-700">
             {user.HoVaTen}
@@ -80,10 +81,10 @@ const UserDetails = () => {
           </dl>
         </div>
       </div>
-      <div className="mt-6 ">
+      <div className="mt-6">
         <button
           onClick={() => navigate("/accounts")}
-          className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 duration-200 ease-in-out rounded"
+          className="btn btn-primary ml-2"
         >
           Back to User List
         </button>
