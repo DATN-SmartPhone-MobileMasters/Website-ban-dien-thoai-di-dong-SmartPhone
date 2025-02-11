@@ -1,6 +1,6 @@
 import axios from "axios";
 const API_URL = `http://localhost:5000/api`;
-//thuong
+
 export const fetchBrands = async () => axios.get(`${API_URL}/thuonghieus`);
 export const createBrand = async (data) =>
   axios.post(`${API_URL}/thuonghieus`, data);
@@ -33,4 +33,3 @@ export const getUserById = async (id) => axios.get(`${API_URL}/users/${id}`);
 //hoadon
 export const fetchOrders = async () => axios.get(`${API_URL}/hoadons`);
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
-
