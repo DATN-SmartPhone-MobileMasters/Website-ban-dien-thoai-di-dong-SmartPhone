@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getUserById } from '../../../service/api'; 
+import { getUserById } from '../../../service/api';
 
 const UserDetails = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -13,14 +13,15 @@ const UserDetails = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await getUserById(id); 
-      setUser(res.data.data);
+      const res = await getUserById(id);
+      setUser(res.data);
     } catch (e) {
       console.error(e);
+      setUser([]); 
     }
   };
 
-  if (!user) {
+if (!users || users.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
   }
 
@@ -79,7 +80,7 @@ const UserDetails = () => {
       <div className="mt-6">
         <button
           onClick={() => navigate('/accounts')}
-          className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-4 duration-200 ease-in-out rounded"
+          className="btn btn-primary ml-2"
         >
           Back to User List
         </button>
