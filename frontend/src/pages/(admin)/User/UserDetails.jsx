@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getUserById } from '../../../service/api'; 
+import { getUserById } from '../../../service/api';
 
 const UserDetails = () => {
   const [user, setUser] = useState(null);
@@ -13,10 +13,11 @@ const UserDetails = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await getUserById(id); 
-      setUser(res.data.data);
+      const res = await getUserById(id);
+      setUser(res.data);
     } catch (e) {
       console.error(e);
+      setUser(null); 
     }
   };
 
