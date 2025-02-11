@@ -1,63 +1,52 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-const OrderDetail = () => {
-  const API_URL = "http://localhost:5000/api/hoadons"; // API hóa đơn
-  const [hoaDon, setHoaDon] = useState(null); // Lưu thông tin hóa đơn
-  const { id } = useParams(); // Lấy ID từ URL
-  const [trangThai, setTrangThai] = useState(""); // Lưu trạng thái mới
 
-  // Các trạng thái có thể chọn
-  const danhSachTrangThai = ["Chờ xác nhận", "Đang giao", "Đã giao", "Đã hủy"];
+const OderDetail = () => {
+  const API_URL = "http://localhost:5000/api/hoadons";
+  const [hoaDon, setHoaDon] = useState(null);
+  const { id } = useParams();
+  const [trangThai, setTrangThai] = useState("");
 
-  // Lấy thông tin chi tiết hóa đơn
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/${id}`); // Gọi API lấy chi tiết
-        setHoaDon(data.data); // Lưu dữ liệu vào state
-        setTrangThai(data.data.TrangThai || ""); // Lưu trạng thái hiện tại
+        const { data } = await axios.get(`${API_URL}/${id}`);
+        setHoaDon(data.data);
+        setTrangThai(data.data.TrangThai || "");
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       }
     })();
   }, [id]);
 
-  // Hàm xử lý khi chọn trạng thái mới
-  const handleUpdateTrangThai = async (newTrangThai) => {
-    if (newTrangThai === trangThai) return; // Không làm gì nếu chọn lại trạng thái cũ
-
-    // Hiển thị hộp thoại xác nhận
-    const isConfirmed = window.confirm(
-      `Bạn có chắc chắn muốn cập nhật trạng thái sang "${newTrangThai}"?`
-    );
-
-    if (!isConfirmed) return; // Nếu không đồng ý thì thoát
-
-    try {
-      await axios.put(`${API_URL}/${id}`, { TrangThai: newTrangThai }); // Gửi API cập nhật
-      setTrangThai(newTrangThai); // Cập nhật state
-      alert("Cập nhật trạng thái thành công!");
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái:", error);
-      alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+  const handleChangeTrangThai = async (newTrangThai) => {
+    if (window.confirm("Bạn có chắc chắn muốn thay đổi trạng thái?")) {
+      setTrangThai(newTrangThai);
+      try {
+        await axios.put(`${API_URL}/${id}`, { TrangThai: newTrangThai });
+        alert("Cập nhật trạng thái thành công!");
+      } catch (error) {
+        console.error("Lỗi khi cập nhật trạng thái:", error);
+        alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+      }
     }
   };
 
   if (!hoaDon) {
-    return <p className="text-center">Đang tải dữ liệu...</p>; // Hiển thị khi dữ liệu chưa sẵn sàng
+    return <p>Đang tải dữ liệu...</p>;
   }
 
   return (
-    <div className="container d-flex justify-content-center">
-      <div className="card shadow mb-4 w-75">
-        <div className="card-header py-3 text-center">
-          <h4 className="m-0 font-weight-bold text-primary">
-            Chi tiết hóa đơn
-          </h4>
+    <div>
+      <h1 className="h3 mb-2 text-gray-800">Chi tiết hóa đơn</h1>
+      <div className="card shadow mb-4">
+        <div className="card-header py-3">
+          <h6 className="m-0 font-weight-bold text-primary">
+            Thông tin hóa đơn
+          </h6>
         </div>
         <div className="card-body">
-          {/* Bảng hiển thị thông tin hóa đơn */}
           <table className="table table-bordered">
             <tbody>
               <tr>
@@ -95,34 +84,46 @@ const OrderDetail = () => {
             </tbody>
           </table>
 
-          {/* Khung trạng thái đơn hàng */}
-          <div className="mt-4 p-3 border rounded bg-light text-center">
-            <h5 className="mb-3">Trạng thái đơn hàng</h5>
-            <div className="d-flex justify-content-center flex-wrap">
-              {danhSachTrangThai.map((status) => (
-                <button
-                  key={status}
-                  className={`btn btn-sm mx-1 my-1 ${
-                    trangThai === status ? "btn-primary" : "btn-outline-primary"
-                  }`}
-                  onClick={() => handleUpdateTrangThai(status)}
-                >
-                  {status}
-                </button>
-              ))}
+          <div
+            className="card mt-4 p-3 shadow-sm"
+            style={{ borderRadius: "10px", backgroundColor: "#f9f9f9" }}
+          >
+            <h5 className="text-center mb-3">Chọn trạng thái đơn hàng</h5>
+            <div className="btn-group d-flex justify-content-center w-100">
+              <button
+                className="btn btn-warning mx-2 rounded-pill shadow"
+                onClick={() => handleChangeTrangThai("Đang giao")}
+              >
+                Đang giao
+              </button>
+              <button
+                className="btn btn-success mx-2 rounded-pill shadow"
+                onClick={() => handleChangeTrangThai("Đã giao")}
+              >
+                Đã giao
+              </button>
+              <button
+                className="btn btn-danger mx-2 rounded-pill shadow"
+                onClick={() => handleChangeTrangThai("Đã hủy")}
+              >
+                Đã hủy
+              </button>
+              <button
+                className="btn btn-info mx-2 rounded-pill shadow"
+                onClick={() => handleChangeTrangThai("Chờ xác nhận")}
+              >
+                Chờ xác nhận
+              </button>
             </div>
           </div>
 
-          {/* Nút quay lại danh sách */}
-          <div className="text-center mt-3">
-            <Link to="/orders" className="btn btn-primary">
-              Quay lại danh sách
-            </Link>
-          </div>
+          <Link to="/orders" className="btn btn-primary mt-3">
+            Quay lại danh sách
+          </Link>
         </div>
       </div>
     </div>
   );
 };
 
-export default OrderDetail;
+export default OderDetail;
