@@ -8,17 +8,17 @@ const UserDetails = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/users/${id}`);
-        setUser(res.data.data);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
     fetchUser();
   }, [id]);
+
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/users/${id}`);
+      setUser(res.data.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (!user) {
     return <div className="text-center mt-5">Loading...</div>;

@@ -6,8 +6,6 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,17 +16,11 @@ const UserList = () => {
     try {
       setIsLoading(true);
       const res = await axios.get('http://localhost:5000/api/users');
-      if (Array.isArray(res.data.data)) {
-        setUsers(res.data.data);
-      } else {
-        throw new Error('Lỗi API');
-      }
+      setUsers(res.data.data);
     } catch (e) {
       console.error(e);
-      setError('Không tìm thấy dữ liệu, mời thử lại');
-    } finally {
-      setIsLoading(false);
-    }
+      
+    } 
   };
 
   const handleDelete = async (id) => {
@@ -44,7 +36,6 @@ const UserList = () => {
               setUsers(users.filter(user => user._id !== id));
             } catch (e) {
               console.error(e);
-              setError('Lỗi, mời thử lại.');
             }
           },
         },
@@ -62,12 +53,8 @@ const UserList = () => {
     navigate(`/accounts/${id}`);
   };
 
-  if (isLoading) {
+  if (!user) {
     return <div className="text-center mt-5">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center mt-5 text-red-500">{error}</div>;
   }
 
   return (
