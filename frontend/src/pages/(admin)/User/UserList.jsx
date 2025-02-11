@@ -83,13 +83,13 @@ const UserList = () => {
                     <td className="space-x-2">
                       <button
                         onClick={() => handleViewDetails(user._id)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg mr-2"
+                        className="btn btn-info ml-2"
                       >
                         Chi Tiết
                       </button>
                       <button
                         onClick={() => handleDelete(user._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                        className="btn btn-danger ml-2"
                       >
                         Xoá
                       </button>
