@@ -1,35 +1,31 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { message } from "antd";
+import { fetchCategoryById, updateCategory } from "../../../service/api";
 
 const CategoryUpdate = () => {
-  const API_URL = "http://localhost:5000/api/danhmucs"; // API lấy và cập nhật danh mục
   const {
     reset,
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const { id } = useParams(); // Lấy ID từ URL
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] = useState(true); // Trạng thái loading
-
-  // Lấy thông tin danh mục
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await axios.get(`${API_URL}/${id}`); // Gọi API lấy danh mục
+        const res = await fetchCategoryById(id);
         if (res.data && res.data.data) {
-          reset({ TenDM: res.data.data.TenDM }); // Chỉ reset Tên danh mục
+          reset({ TenDM: res.data.data.TenDM });
         } else {
-          message.error("Không tìm thấy danh mục");
+          alert("Không tìm thấy danh mục!");
         }
       } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error.response || error.message);
-        message.error("Lỗi khi tải dữ liệu");
+        console.error("Lỗi khi tải dữ liệu:", error);
+        alert("Lỗi khi tải dữ liệu!");
       } finally {
         setLoading(false);
       }
@@ -37,15 +33,14 @@ const CategoryUpdate = () => {
     fetchCategory();
   }, [id, reset]);
 
-  // Xử lý cập nhật danh mục
   const onSubmit = async (data) => {
     try {
-      await axios.put(`${API_URL}/${id}`, { TenDM: data.TenDM }); // Chỉ gửi TenDM
-      message.success("Cập nhật thành công");
+      await updateCategory(id, { TenDM: data.TenDM });
+      alert("Cập nhật thành công!");
       navigate("/categorys");
     } catch (error) {
-      console.error("Lỗi khi cập nhật:", error.response || error.message);
-      message.error("Cập nhật thất bại");
+      console.error("Lỗi khi cập nhật:", error);
+      alert("Cập nhật thất bại!");
     }
   };
 

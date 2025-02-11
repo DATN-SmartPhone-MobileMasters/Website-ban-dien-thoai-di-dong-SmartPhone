@@ -5,7 +5,10 @@ class ThuongHieuController {
   //API functions
   async apiList(req, res) {
     try {
-      const thuongHieus = await thuonghieu.find().populate("MaDM", "TenDM").exec();
+      const thuongHieus = await thuonghieu
+        .find()
+        .populate("MaDM", "TenDM")
+        .exec();
 
       res.status(200).json({
         message: "Lấy dữ liệu thành công",
@@ -38,15 +41,16 @@ class ThuongHieuController {
   async apiDetail(req, res) {
     try {
       const { id } = req.params;
-      
-      const thuongHieu = await thuonghieu.findById(id)
+
+      const thuongHieu = await thuonghieu
+        .findById(id)
         .populate("MaDM", "TenDM") // Lấy danh mục của thương hiệu đó
         .exec();
-  
+
       if (!thuongHieu) {
         return res.status(404).json({ message: "Không tìm thấy thương hiệu" });
       }
-  
+
       res.status(200).json({
         message: "Lấy dữ liệu thành công",
         data: thuongHieu,
@@ -58,7 +62,7 @@ class ThuongHieuController {
       });
     }
   }
-  
+
   async apiCreate(req, res) {
     try {
       const { MaTH, TenTH, HinhAnh, Mota, MaDM } = req.body;

@@ -1,11 +1,10 @@
-import axios from "axios";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { data, Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
+import { createCategory } from "../../../service/api"; // Dùng API từ service
 
 const CategoryAdd = () => {
-  const API_URL = "http://localhost:5000/api/danhmucs"; // API thêm danh mục
   const {
     register,
     handleSubmit,
@@ -13,20 +12,16 @@ const CategoryAdd = () => {
   } = useForm();
   const navigate = useNavigate();
 
-  // Hàm xử lý gửi form
+  // Xử lý khi gửi form
   const onSubmit = async (data) => {
+    console.log("Dữ liệu gửi lên API:", data); // Kiểm tra dữ liệu React gửi
     try {
-      const newCategory = {
-        MaDM: Date.now().toString(), // Tạo mã danh mục tự động
-        TenDM: data.TenDM,
-      };
-
-      await axios.post(API_URL, newCategory);
+      await createCategory({ TenDM: data.TenDM });
       message.success("Thêm danh mục thành công!");
       navigate("/categorys");
     } catch (error) {
-      message.error("Thêm danh mục thất bại!");
-      console.error(error.response);
+      console.error("Lỗi khi thêm danh mục:", error.response?.data || error);
+      message.error(error.response?.data?.message || "Thêm danh mục thất bại!");
     }
   };
 
@@ -39,6 +34,7 @@ const CategoryAdd = () => {
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit(onSubmit)}>
+            {/* Tên danh mục */}
             <div className="form-group">
               <label htmlFor="TenDM">Tên danh mục</label>
               <input
@@ -51,8 +47,10 @@ const CategoryAdd = () => {
               />
               <small className="text-danger">{errors.TenDM?.message}</small>
             </div>
+
+            {/* Nút hành động */}
             <div className="d-flex justify-content-between">
-              <Link to="/categorys" className="btn btn-primary">
+              <Link to="/categorys" className="btn btn-secondary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success">
