@@ -10,8 +10,9 @@ const UserList = () => {
 
  useEffect(() => {
     fetchUsers()
-      .then((res) => setUsers(res.data.data))
+      .then((res) => setUsers(res.data || []))
       .catch(console.error);
+      setUsers([]);
   }, []);
 
 
@@ -45,7 +46,7 @@ const UserList = () => {
     navigate(`/accounts/${id}`);
   };
 
-  if (users.length === 0) {
+   if (!users || users.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
   }
 
