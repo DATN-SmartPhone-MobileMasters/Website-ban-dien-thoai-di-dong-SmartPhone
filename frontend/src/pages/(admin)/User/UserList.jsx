@@ -2,24 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { fetchUsers, deleteUser } from '../../../service/api'; 
+import { fetchUsers, deleteUser } from '../../../service/api';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchUsers();
+ useEffect(() => {
+    fetchUsers()
+      .then((res) => setUsers(res.data.data))
+      .catch(console.error);
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetchUsers(); 
-      setUsers(res.data.data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const handleDelete = async (id) => {
     confirmAlert({
