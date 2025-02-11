@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';// npm i axios
 import { useNavigate } from 'react-router-dom';
-import { confirmAlert } from "react-confirm-alert"; //npm i react-confirm-alert
-import "react-confirm-alert/src/react-confirm-alert.css";
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+import { fetchUsers, deleteUser } from '../../../service/api';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -14,33 +14,31 @@ const UserList = () => {
 
   const fetchUsers = async () => {
     try {
-      setIsLoading(true);
-      const res = await axios.get('http://localhost:5000/api/users');
+      const res = await fetchUsers(); 
       setUsers(res.data.data);
     } catch (e) {
       console.error(e);
-      
-    } 
+    }
   };
 
   const handleDelete = async (id) => {
     confirmAlert({
-      title: "Xác nhận xóa",
-      message: "Bạn có chắc muốn xoá tài khoản này ?",
+      title: 'Xác nhận xóa',
+      message: 'Bạn có chắc muốn xoá tài khoản này?',
       buttons: [
         {
-          label: "Có",
+          label: 'Có',
           onClick: async () => {
             try {
-              await axios.delete(`http://localhost:5000/api/users/${id}`);
-              setUsers(users.filter(user => user._id !== id));
+              await deleteUser(id); // Use API function
+              setUsers(users.filter((user) => user._id !== id));
             } catch (e) {
               console.error(e);
             }
           },
         },
         {
-          label: "Không",
+          label: 'Không',
           onClick: () => {},
         },
       ],
@@ -53,7 +51,7 @@ const UserList = () => {
     navigate(`/accounts/${id}`);
   };
 
-  if (!user) {
+  if (users.length === 0) {
     return <div className="text-center mt-5">Loading...</div>;
   }
 
@@ -88,13 +86,13 @@ const UserList = () => {
                     <td>{user.GioiTinh}</td>
                     <td>{user.MaQuyen === 1 ? 'Admin' : 'User'}</td>
                     <td className="space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleViewDetails(user._id)}
                         className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg mr-2"
                       >
-                        Chi Tiết 
+                        Chi Tiết
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(user._id)}
                         className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded text-xs transition duration-200 ease-in-out shadow-md hover:shadow-lg"
                       >
