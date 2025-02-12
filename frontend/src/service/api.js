@@ -33,3 +33,6 @@ export const getUserById = async (id) => axios.get(`${API_URL}/users/${id}`);
 //hoadon
 export const fetchOrders = async () => axios.get(`${API_URL}/hoadons`);
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
+
+//chitiethoadon
+export const fetchChitiethoadons = async () => axios.get(`${API_URL}/chitiethoadons`);
