@@ -1,18 +1,17 @@
-import { message } from "antd";
+import { message, Rate } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { fetchCommentById } from "../../../service/api";
 
 const AdminDetailComment = () => {
   const { id } = useParams();
-  const API_URL = `http://localhost:5000/api/comments/${id}`;
-
   const [comment, setComment] = useState(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const response = await axios.get(API_URL);
+        const response = await fetchCommentById(id);
         setComment(response.data.data);
       } catch (error) {
         console.log(error);
@@ -33,22 +32,30 @@ const AdminDetailComment = () => {
           </h6>
         </div>
         <div className="card-body">
-          <p>
+          <div className="mb-4">
             <strong>Mã bình luận:</strong> {comment._id}
-          </p>
-          <p>
+          </div>
+          <div className="mb-4">
             <strong>Mã người dùng:</strong> {comment.MaND}
-          </p>
-          <p>
+          </div>
+          <div className="mb-4">
+            <strong>Email:</strong> {comment.Email}
+          </div>
+          <div className="mb-4">
             <strong>Mã sản phẩm:</strong> {comment.MaSP}
-          </p>
-          <p>
+          </div>
+          <div className="mb-4">
             <strong>Nội dung:</strong> {comment.NoiDung}
-          </p>
-          <p>
-            <strong>Ngày bình luận:</strong> {comment.NgayBL}
-          </p>
-          <p>
+          </div>
+          <div className="mb-4">
+            <strong>Đánh giá:</strong>{" "}
+            <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
+          </div>
+          <div className="mb-4">
+            <strong>Ngày bình luận:</strong>{" "}
+            {new Date(comment.NgayBL).toLocaleDateString()}
+          </div>
+          <div className="mb-4">
             <strong>Hình ảnh sản phẩm:</strong>
             <br />
             <img
@@ -56,7 +63,7 @@ const AdminDetailComment = () => {
               alt="Hình ảnh sản phẩm"
               style={{ width: "200px", marginTop: "5px" }}
             />
-          </p>
+          </div>
           <Link to="/comments" className="btn btn-primary mt-3">
             Quay lại danh sách
           </Link>
