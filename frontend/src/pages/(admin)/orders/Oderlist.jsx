@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { message } from "antd";
-import { fetchOrders } from "../../../service/api"; // Đã sửa lỗi import
+import { fetchOrders } from "../../../service/api";
 
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
@@ -10,7 +10,7 @@ const OrderList = () => {
     const getHoaDons = async () => {
       try {
         const response = await fetchOrders();
-        setHoaDons(response.data.data || []); // Đảm bảo lấy đúng dữ liệu
+        setHoaDons(response.data.data || []);
       } catch (error) {
         console.error("Lỗi khi tải danh sách hóa đơn:", error);
         message.error("Lỗi khi tải danh sách hóa đơn!");
@@ -38,7 +38,6 @@ const OrderList = () => {
                     "Người nhận",
                     "Số điện thoại",
                     "Địa chỉ",
-                    "Phương thức thanh toán",
                     "Tổng tiền",
                     "Trạng thái",
                     "Sản phẩm",
@@ -53,15 +52,16 @@ const OrderList = () => {
                   hoaDons.map((hoaDon, i) => (
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
-                      <td>{hoaDon.NguoiNhan || "Không có"}</td>
+                      <td>{hoaDon.NguoiDat || "Không có"}</td>
                       <td>{hoaDon.SDT || "Không có"}</td>
                       <td>{hoaDon.DiaChi || "Không có"}</td>
-                      <td>{hoaDon.PhuongThucTT || "Không có"}</td>
                       <td>{hoaDon.TongTien || "Không có"}</td>
                       <td>{hoaDon.TrangThai || "Không có"}</td>
                       <td>
-                        {hoaDon.SanPham && hoaDon.SanPham.length > 0
+                        {Array.isArray(hoaDon.SanPham)
                           ? hoaDon.SanPham.join(", ")
+                          : typeof hoaDon.SanPham === "string"
+                          ? hoaDon.SanPham
                           : "Không có"}
                       </td>
                       <td>
@@ -69,14 +69,14 @@ const OrderList = () => {
                           to={`/orders/${hoaDon._id}`}
                           className="btn btn-info ml-2"
                         >
-                          Xem chi tiết
+                          👁️Xem chi tiết
                         </Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" className="text-center">
+                    <td colSpan="8" className="text-center">
                       Không có dữ liệu hóa đơn.
                     </td>
                   </tr>

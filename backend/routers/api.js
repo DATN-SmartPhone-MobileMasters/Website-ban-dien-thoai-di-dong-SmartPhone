@@ -6,7 +6,7 @@ import UsersController from "../controllers/UsersController.js";
 import CommentController from "../controllers/CommentController.js";
 import HoaDonController from "../controllers/HoaDonController.js";
 import PromotionController from "../controllers/PromotionController.js";
-import ChiTietSanPhamHoaDonController from "../controllers/ChiTietSanPhamHoaDonController.js";
+import ChiTietHoaDonController from "../controllers/ChiTietHoaDonController.js";
 // tạo router
 const apiRouter = Router();
 
@@ -24,10 +24,14 @@ apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
 apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); // Cập nhật hóa đơn
 
-const ChiTietSanPhamHoaDonControl = new ChiTietSanPhamHoaDonController();
-// API chi tiết sản phẩm hóa đơn (chỉ hiển thị danh sách và chi tiết)
-apiRouter.get("/chitietsanphamhoadon", ChiTietSanPhamHoaDonControl.list); // Lấy danh sách bản ghi
-apiRouter.get("/chitietsanphamhoadon/:id", ChiTietSanPhamHoaDonControl.detail); // Lấy chi tiết bản ghi
+const ChiTietHoaDonControl = new ChiTietHoaDonController();
+// API cho chi tiết hóa đơn
+apiRouter.get("/chitiethoadons", ChiTietHoaDonControl.apiList); // Lấy danh sách
+apiRouter.get("/chitiethoadons/:id", ChiTietHoaDonControl.apiDetail); // Lấy chi tiết
+apiRouter.post("/chitiethoadons", ChiTietHoaDonControl.apiCreate); // Thêm mới
+apiRouter.put("/chitiethoadons/:id", ChiTietHoaDonControl.apiUpdate); // Cập nhật
+apiRouter.delete("/chitiethoadons/:id", ChiTietHoaDonControl.apiDelete); // Xóa
+
 
 const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
