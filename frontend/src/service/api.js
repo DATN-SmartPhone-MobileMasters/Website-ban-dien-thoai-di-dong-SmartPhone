@@ -33,3 +33,9 @@ export const getUserById = async (id) => axios.get(`${API_URL}/users/${id}`);
 //hoadon
 export const fetchOrders = async () => axios.get(`${API_URL}/hoadons`);
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
+
+// Comments
+export const fetchComments = async () => axios.get(`${API_URL}/comments`);
+export const deleteComment = async (id) =>
+  axios.delete(`${API_URL}/comments/${id}`);
+export const fetchCommentById = async (id) => axios.get(`${API_URL}/comments/${id}`)

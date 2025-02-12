@@ -1,13 +1,10 @@
-import { message } from "antd";
+import { message, Rate } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { deleteComment, fetchComments, fetchUsers } from "../../../service/api";
 
 const AdminListComment = () => {
-  const API_URL_Users = "http://localhost:5000/api/users"; // API lấy danh sách người dùng
-  const API_URL_Products = "http://localhost:5000/api/products"; // API lấy danh sách sản phẩm
-  const API_URL_Comments = "http://localhost:5000/api/comments"; // API lấy danh sách bình luận
-
   const [comments, setComments] = useState([]);
   const [users, setUsers] = useState([]); // State lưu danh sách người dùng
   const [products, setProducts] = useState([]); // State lưu danh sách sản phẩm
@@ -15,14 +12,14 @@ const AdminListComment = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resComments = await axios.get(API_URL_Comments);
+        const resComments = await fetchComments();
         setComments(resComments.data);
 
-        const resUsers = await axios.get(API_URL_Users);
+        const resUsers = await fetchUsers();
         setUsers(resUsers.data);
 
-        const resProducts = await axios.get(API_URL_Products);
-        setProducts(resProducts.data);
+        // const resProducts = await fetchProducts();
+        // setProducts(resProducts.data);
       } catch (error) {
         console.error(error);
         // message.error("Lỗi khi lấy dữ liệu");
@@ -34,7 +31,7 @@ const AdminListComment = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xóa bình luận này không?")) {
       try {
-        await axios.delete(`${API_URL_Comments}/${id}`);
+        await deleteComment(id);
         setComments(comments.filter((item) => item._id !== id));
         message.success("Đã xóa thành công");
       } catch (error) {
@@ -58,22 +55,35 @@ const AdminListComment = () => {
             <table className="table table-hover table-bordered">
               <thead>
                 <tr>
-                  <th>Mã bình luận</th>
-                  <th>Mã người dùng</th>
-                  <th>Mã sản phẩm</th>
+                  <th>STT</th>
+                  <th>Email</th>
                   <th>Nội dung</th>
+                  <th>Đánh giá</th>
                   <th>Ngày bình luận</th>
+                  <th></th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 {comments.map((comment, i) => (
                   <tr key={i}>
-                    <td>{comment._id}</td>
+                    {/* <td>{comment._id}</td>
                     <td>{comment.MaND}</td>
                     <td>{comment.MaSP}</td>
                     <td className="text-truncate" style={{ maxWidth: "200px" }}>
                       {comment.NoiDung}
+                    </td>
+                    <td>
+                      <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
+                    </td>
+                    <td>{new Date(comment.NgayBL).toLocaleDateString()}</td> */}
+                    <td>{comment.SoThuTu}</td>
+                    <td>{comment.Email}</td>
+                    <td className="text-truncate" style={{ maxWidth: "200px" }}>
+                      {comment.NoiDung}
+                    </td>
+                    <td>
+                      <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
                     </td>
                     <td>{new Date(comment.NgayBL).toLocaleDateString()}</td>
                     <td>
