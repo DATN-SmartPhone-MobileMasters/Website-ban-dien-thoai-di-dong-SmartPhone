@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { updatePromotion, getDetailPromotion } from "../../../../service/api";
 
 const UpdatePromotion = () => {
   const {
@@ -17,12 +18,11 @@ const UpdatePromotion = () => {
   const { id } = useParams();
 
   // Lấy dữ liệu khuyến mãi hiện tại khi component được mount
+
   useEffect(() => {
-    const fetchPromotion = async () => {
+    const getPromotion = async () => {
       try {
-        const { data } = await axios.get(
-          `http://localhost:5000/api/promotions/${id}`
-        );
+        const { data } = await getDetailPromotion(id);
         const promotionData = {
           ...data.data,
           NgayBD: data.data.NgayBD.split("T")[0], // Chuyển đổi định dạng ngày
@@ -33,12 +33,12 @@ const UpdatePromotion = () => {
         console.error("Có lỗi khi lấy dữ liệu khuyến mãi:", error);
       }
     };
-    fetchPromotion();
+    getPromotion();
   }, [id, reset]);
 
   const onSubmit = async (data) => {
     try {
-      await axios.put(`http://localhost:5000/api/promotions/${id}`, data);
+      await updatePromotion(id, data); // Dùng hàm updatePromotion
       confirmAlert({
         title: "Thành công!",
         message: "Cập nhật khuyến mãi thành công!",
@@ -101,7 +101,7 @@ const UpdatePromotion = () => {
                   required: "Mã khuyến mãi là trường bắt buộc",
                   min: {
                     value: 1,
-                    message: "Mã khuyến mãi không được âm",
+                    message: "Mã khuyến mãi không hợp lệ",
                   },
                 })}
               />

@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { createPromotion } from "../../../../service/api";
 
 const AddPromotion = () => {
   const {
@@ -16,7 +17,7 @@ const AddPromotion = () => {
 
   const onSubmit = async (data) => {
     try {
-      await axios.post("http://localhost:5000/api/promotions", data);
+      await createPromotion(data);
       confirmAlert({
         title: "Thành công!",
         message: "Thêm khuyến mãi thành công!",
@@ -78,7 +79,7 @@ const AddPromotion = () => {
                   required: "Mã khuyến mãi là trường bắt buộc",
                   min: {
                     value: 1,
-                    message: "Mã khuyến mãi không được âm",
+                    message: "Mã khuyến mãi không hợp lệ",
                   },
                 })}
               />

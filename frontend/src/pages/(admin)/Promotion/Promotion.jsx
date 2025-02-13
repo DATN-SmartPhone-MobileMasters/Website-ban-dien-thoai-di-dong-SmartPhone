@@ -3,6 +3,8 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { fetchPromotion } from "../../../../service/api";
+import { deletePromotion } from "../../../../service/api";
 
 const Promotion = () => {
   const [promotions, setPromotions] = useState([]);
@@ -10,18 +12,19 @@ const Promotion = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/promotions")
-      .then((response) => {
+    const getPromotions = async () => {
+      try {
+        const response = await fetchPromotion();
         setPromotions(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         setError("Có lỗi khi lấy dữ liệu.");
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
 
+    getPromotions();
+  }, []);
   const handleDelete = (id) => {
     confirmAlert({
       title: "Xác nhận xóa",
@@ -29,17 +32,15 @@ const Promotion = () => {
       buttons: [
         {
           label: "Có",
-          onClick: () => {
-            axios
-              .delete(`http://localhost:5000/api/promotions/${id}`)
-              .then(() => {
-                setPromotions((prev) =>
-                  prev.filter((promotion) => promotion._id !== id)
-                );
-              })
-              .catch(() => {
-                alert("Có lỗi xảy ra khi xóa khuyến mãi.");
-              });
+          onClick: async () => {
+            try {
+              await deletePromotion(id);
+              setPromotions((prev) =>
+                prev.filter((promotion) => promotion._id !== id)
+              );
+            } catch (error) {
+              alert("Có lỗi xảy ra khi xóa khuyến mãi.");
+            }
           },
         },
         {
