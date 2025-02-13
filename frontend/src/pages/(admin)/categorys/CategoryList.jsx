@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { deleteCategory, fetchCategories } from "../../../service/api";
-import { Table, Button } from "react-bootstrap";
+import { Table, Button, Form } from "react-bootstrap";
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -26,19 +27,33 @@ const CategoryList = () => {
     }
   };
 
+  const filteredCategories = categories.filter((category) =>
+    category.TenDM.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = categories.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(categories.length / itemsPerPage);
+  const currentItems = filteredCategories.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
 
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Danh sách danh mục</h2>
-      <Link to="/categorys/addcategory">
-        <Button variant="primary" className="mb-3">
-          Thêm mới
-        </Button>
-      </Link>
+      <div className="d-flex justify-content-between mb-3">
+        <Form.Control
+          type="text"
+          placeholder="Tìm kiếm danh mục..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-50"
+        />
+        <Link to="/categorys/addcategory">
+          <Button variant="primary">Thêm mới</Button>
+        </Link>
+      </div>
       <Table striped bordered hover>
         <thead>
           <tr>
