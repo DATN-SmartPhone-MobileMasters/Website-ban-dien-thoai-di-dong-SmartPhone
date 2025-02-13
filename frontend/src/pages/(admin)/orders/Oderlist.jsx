@@ -1,25 +1,22 @@
-import { message } from "antd";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { message } from "antd";
+import { fetchOrders } from "../../../service/api";
 
-const OderList = () => {
-  const API_URL = "http://localhost:5000/api/hoadons";
+const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
 
-  // Hàm tải danh sách hóa đơn
-  const fetchHoaDons = async () => {
-    try {
-      const { data } = await axios.get(API_URL);
-      setHoaDons(data.data || []);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      message.error("Lỗi khi tải danh sách hóa đơn!");
-    }
-  };
-
   useEffect(() => {
-    fetchHoaDons();
+    const getHoaDons = async () => {
+      try {
+        const response = await fetchOrders();
+        setHoaDons(response.data.data || []);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách hóa đơn:", error);
+        message.error("Lỗi khi tải danh sách hóa đơn!");
+      }
+    };
+    getHoaDons();
   }, []);
 
   return (
@@ -33,23 +30,18 @@ const OderList = () => {
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            {/* Bảng dữ liệu */}
             <table className="table table-hover table-bordered dataTable no-footer">
               <thead>
                 <tr>
                   {[
                     "STT",
-                    "Mã hóa đơn",
-                    "Mã người dùng",
-                    "Ngày lập",
                     "Người nhận",
                     "Số điện thoại",
                     "Địa chỉ",
-                    "Phương thức thanh toán",
                     "Tổng tiền",
                     "Trạng thái",
-                    "Ngày nhận hàng",
-                    "#",
+                    "Sản phẩm",
+                    "Hành động",
                   ].map((header) => (
                     <th key={header}>{header}</th>
                   ))}
@@ -60,37 +52,31 @@ const OderList = () => {
                   hoaDons.map((hoaDon, i) => (
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
-                      <td>{hoaDon.maHD || "Không có"}</td>
-                      <td>{hoaDon.maND || "Không có"}</td>
-                      <td>
-                        {hoaDon.NgayLap
-                          ? new Date(hoaDon.NgayLap).toLocaleDateString()
-                          : "Không có"}
-                      </td>
-                      <td>{hoaDon.NguoiNhan || "Không có"}</td>
+                      <td>{hoaDon.NguoiDat || "Không có"}</td>
                       <td>{hoaDon.SDT || "Không có"}</td>
                       <td>{hoaDon.DiaChi || "Không có"}</td>
-                      <td>{hoaDon.PhieuThucTT || "Không có"}</td>
                       <td>{hoaDon.TongTien || "Không có"}</td>
                       <td>{hoaDon.TrangThai || "Không có"}</td>
                       <td>
-                        {hoaDon.NgayNhanHang
-                          ? new Date(hoaDon.NgayNhanHang).toLocaleDateString()
-                          : "Chưa nhận"}
+                        {Array.isArray(hoaDon.SanPham)
+                          ? hoaDon.SanPham.join(", ")
+                          : typeof hoaDon.SanPham === "string"
+                          ? hoaDon.SanPham
+                          : "Không có"}
                       </td>
                       <td>
                         <Link
                           to={`/orders/${hoaDon._id}`}
                           className="btn btn-info ml-2"
                         >
-                          Xem chi tiết
+                          👁️Xem chi tiết
                         </Link>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="12" className="text-center">
+                    <td colSpan="8" className="text-center">
                       Không có dữ liệu hóa đơn.
                     </td>
                   </tr>
@@ -104,4 +90,4 @@ const OderList = () => {
   );
 };
 
-export default OderList;
+export default OrderList;

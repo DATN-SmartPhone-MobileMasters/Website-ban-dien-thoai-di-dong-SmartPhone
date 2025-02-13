@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 
 // Schema bình luận
 const binhLuanSchema = new mongoose.Schema({
+  SoThuTu: {
+    type: Number,
+    required: true,
+  },
+  Email: {
+    type: String,
+    required: true,
+  },
   MaBL: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -18,6 +26,10 @@ const binhLuanSchema = new mongoose.Schema({
   },
   NoiDung: {
     type: String,
+    required: true,
+  },
+  DanhGia: {
+    type: Number,
     required: true,
   },
   NgayBL: {
