@@ -76,6 +76,10 @@ const AddPromotion = () => {
                 id="MaKM"
                 {...register("MaKM", {
                   required: "Mã khuyến mãi là trường bắt buộc",
+                  min: {
+                    value: 1,
+                    message: "Mã khuyến mãi không được âm",
+                  },
                 })}
               />
               {errors.MaKM && (
