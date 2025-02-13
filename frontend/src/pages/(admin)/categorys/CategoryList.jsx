@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { deleteCategory, fetchCategories } from "../../../service/api";
+import { Table, Button } from "react-bootstrap";
 
 const CategoryList = () => {
-  const [categorys, setCategorys] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     fetchCategories()
-      .then((res) => setCategorys(res.data.data))
+      .then((res) => setCategories(res.data.data))
       .catch(console.error);
   }, []);
 
@@ -15,7 +18,7 @@ const CategoryList = () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
       try {
         await deleteCategory(id);
-        setCategorys(categorys.filter((category) => category._id !== id));
+        setCategories(categories.filter((category) => category._id !== id));
         alert("Xóa thành công!");
       } catch (error) {
         alert("Xóa thất bại!");
@@ -23,13 +26,20 @@ const CategoryList = () => {
     }
   };
 
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = categories.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(categories.length / itemsPerPage);
+
   return (
-    <div>
-      <h2>Danh sách danh mục</h2>
-      <Link to="/categorys/addcategory" className="btn btn-primary">
-        Thêm mới
+    <div className="container mt-4">
+      <h2 className="mb-4">Danh sách danh mục</h2>
+      <Link to="/categorys/addcategory">
+        <Button variant="primary" className="mb-3">
+          Thêm mới
+        </Button>
       </Link>
-      <table className="table">
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>#</th>
@@ -38,28 +48,46 @@ const CategoryList = () => {
           </tr>
         </thead>
         <tbody>
-          {categorys.map((category, index) => (
+          {currentItems.map((category, index) => (
             <tr key={category._id}>
-              <td>{index + 1}</td>
+              <td>{indexOfFirstItem + index + 1}</td>
               <td>{category.TenDM}</td>
               <td>
-                <Link
-                  to={`/categorys/update/${category._id}`}
-                  className="btn btn-warning ml-2"
-                >
-                  Sửa
+                <Link to={`/categorys/update/${category._id}`}>
+                  <Button variant="warning" className="me-2">
+                    Sửa
+                  </Button>
                 </Link>
-                <button
-                  className="btn btn-danger ml-2"
+                <Button
+                  variant="danger"
                   onClick={() => handleDelete(category._id)}
                 >
                   Xóa
-                </button>
+                </Button>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
+      <div className="d-flex justify-content-end mt-3">
+        <Button
+          variant="secondary"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+        >
+          Trước
+        </Button>
+        <span className="mx-3 align-self-center">
+          Trang {currentPage} / {totalPages}
+        </span>
+        <Button
+          variant="secondary"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(currentPage + 1)}
+        >
+          Tiếp
+        </Button>
+      </div>
     </div>
   );
 };
