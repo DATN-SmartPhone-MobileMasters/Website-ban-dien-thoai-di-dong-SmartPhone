@@ -52,7 +52,7 @@ const AddPromotion = () => {
         <h1 className="h3 text-gray-800">Thêm Khuyến Mãi</h1>
         <button
           className="btn btn-secondary"
-          onClick={() => navigate("/promotions")}
+          onClick={() => navigate("/vouchers")}
         >
           Quay Lại
         </button>
