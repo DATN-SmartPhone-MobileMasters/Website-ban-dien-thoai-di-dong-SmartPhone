@@ -44,3 +44,17 @@ export const fetchCommentById = async (id) => axios.get(`${API_URL}/comments/${i
 //chitiethoadon
 export const fetchChitiethoadons = async () => axios.get(`${API_URL}/chitiethoadons`);
 
+
+//sanpham
+export const fetchProducts = async() => axios.get(`${API_URL}/sanphams`);
+export const createProducts = async (data) =>
+  axios.post(`${API_URL}/sanphams`, data);
+export const updateProducts = async (id, data) =>
+  axios.put(`${API_URL}/sanphams/${id}`, data);
+export const deleteProducts = async (id) =>
+  axios.delete(`${API_URL}/sanphams/${id}`);
+export const getProducts = async (id) =>
+  axios.get(`${API_URL}/sanphams/${id}`);
+
+
+
