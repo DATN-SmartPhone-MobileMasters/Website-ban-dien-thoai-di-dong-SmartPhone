@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
+import { fetchCategories, getBrandById } from "../../../service/api";
 
 const BrandEdit = () => {
   const API_URL_Cate = "http://localhost:5000/api/danhmucs"; // API lấy danh mục
@@ -22,16 +23,17 @@ const BrandEdit = () => {
     (async () => {
       try {
         const [brandRes, categoryRes] = await Promise.all([
-          axios.get(`${API_URL}/${id}`), // Lấy thông tin thương hiệu
-          axios.get(API_URL_Cate), // Lấy danh sách danh mục
+          getBrandById(id), // Lấy thông tin thương hiệu
+          fetchCategories(), // Lấy danh sách danh mục
         ]);
 
-        setCategories(categoryRes.data.data); // Lưu danh mục
+        setCategories(categoryRes.data.data); // Lưu danh mục vào state
+
         reset({
           TenTH: brandRes.data.data.TenTH,
           HinhAnh: brandRes.data.data.HinhAnh,
           Mota: brandRes.data.data.Mota,
-          MaDM: brandRes.data.data.MaDM?._id, // Gán danh mục đã chọn
+          MaDM: brandRes.data.data.MaDM.map((dm) => dm._id), // Lấy danh sách ID của danh mục
         });
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
@@ -106,13 +108,11 @@ const BrandEdit = () => {
               <select
                 className="form-control"
                 id="MaDM"
+                multiple // Cho phép chọn nhiều danh mục
                 {...register("MaDM", {
                   required: "Danh mục không được bỏ trống",
                 })}
               >
-                <option value="" disabled>
-                  Vui lòng chọn danh mục
-                </option>
                 {categories.map((danhmuc) => (
                   <option key={danhmuc._id} value={danhmuc._id}>
                     {danhmuc.TenDM}

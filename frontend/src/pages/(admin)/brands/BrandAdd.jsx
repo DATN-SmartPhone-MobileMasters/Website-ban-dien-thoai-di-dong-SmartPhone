@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
+import { createBrand, fetchCategories } from "../../../service/api";
 
 const BrandAdd = () => {
   const API_URL_Cate = "http://localhost:5000/api/danhmucs"; // API lấy danh sách danh mục
@@ -19,7 +20,7 @@ const BrandAdd = () => {
   const onSubmit = async (data) => {
     try {
       // Gửi dữ liệu đến API thêm mới thương hiệu
-      await axios.post(API_URL, data);
+      await createBrand(data);
       message.success("Thêm thương hiệu thành công!");
       navigate("/brands"); // Chuyển hướng sau khi thêm thành công
     } catch (error) {
@@ -32,7 +33,7 @@ const BrandAdd = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(API_URL_Cate);
+        const res = await fetchCategories();
         setCategories(res.data.data); // Lưu danh sách danh mục vào state
       } catch (error) {
         console.error(error);
@@ -45,7 +46,9 @@ const BrandAdd = () => {
       <h1 className="h3 mb-2 text-gray-800">Thêm Thương Hiệu</h1>
       <div className="card shadow mb-4">
         <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">Thêm thương hiệu</h6>
+          <h6 className="m-0 font-weight-bold text-primary">
+            Thêm thương hiệu
+          </h6>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -90,13 +93,11 @@ const BrandAdd = () => {
               <select
                 className="form-control"
                 id="MaDM"
+                multiple // Cho phép chọn nhiều danh mục
                 {...register("MaDM", {
                   required: "Danh mục không được bỏ trống",
                 })}
               >
-                <option value="" selected disabled>
-                  Vui lòng chọn danh mục
-                </option>
                 {categories.map((danhmuc) => (
                   <option key={danhmuc._id} value={danhmuc._id}>
                     {danhmuc.TenDM}

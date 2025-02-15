@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const PromotionSchema = new mongoose.Schema(
   {
-    MaKM: { type: Number, required: true, unique: true }, // Mã khuyến mãi
+    MaKM: { type: String, required: true, unique: true }, // Mã khuyến mãi
     TenKM: { type: String, required: true }, // Tên khuyến mãi
     LoaiKM: {
       type: String,

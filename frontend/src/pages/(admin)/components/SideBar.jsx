@@ -125,13 +125,13 @@ const SideBar = () => {
             </div>
           </div>
         </li>
-        {/* Quản lý đơn hàng */}
+        {/* Quản lý hóa đơn */}
         <li className="nav-item">
 
-          <Link className="nav-link" to="/listorder">
-            <i className="fas fa-fw fa-wrench" />
+          <Link className="nav-link" to="/orders">
+            <i className="bi bi-boxes"></i>
+            <span>Quản lý hóa đơn</span>
 
-            <span>Quản lý đơn hàng</span>
           </Link>
         </li>
         {/* Quản lý voucher Admin */}

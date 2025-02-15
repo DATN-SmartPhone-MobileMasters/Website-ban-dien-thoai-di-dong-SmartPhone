@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import router from "./routers/index.js";
 import mongoose from "mongoose";
 
+
+
 // Đọc các biến môi trường từ file .env
 dotenv.config();
 
@@ -24,6 +26,7 @@ app.set("views", "./views");
 mongoose.connect(process.env.MONGO_URI).then((result) => {
   // Router
   app.use("/", router);
+  app.use(cors());
   // Start server
   app.listen(port, () => {
     console.log(`Server đang chạy ở port ${port}`);
