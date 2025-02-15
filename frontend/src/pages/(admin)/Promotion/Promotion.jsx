@@ -3,6 +3,8 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { fetchPromotion } from "../../../../service/api";
+import { deletePromotion } from "../../../../service/api";
 
 const Promotion = () => {
   const [promotions, setPromotions] = useState([]);
@@ -10,18 +12,19 @@ const Promotion = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/promotions")
-      .then((response) => {
+    const getPromotions = async () => {
+      try {
+        const response = await fetchPromotion();
         setPromotions(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         setError("Có lỗi khi lấy dữ liệu.");
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
 
+    getPromotions();
+  }, []);
   const handleDelete = (id) => {
     confirmAlert({
       title: "Xác nhận xóa",
@@ -29,41 +32,24 @@ const Promotion = () => {
       buttons: [
         {
           label: "Có",
-          onClick: () => {
-            axios
-              .delete(`http://localhost:5000/api/promotions/${id}`)
-              .then((response) => {
-                setPromotions((prev) =>
-                  prev.filter((promotion) => promotion._id !== id)
-                );
-                confirmAlert({
-                  title: "Xóa thành công",
-                  message: "Khuyến mãi đã được xóa thành công!",
-                  buttons: [
-                    {
-                      label: "OK",
-                      onClick: () => {},
-                    },
-                  ],
-                  closeOnEscape: true,
-                  closeOnClickOutside: true,
-                });
-              })
-              .catch((error) => {
-                alert("Có lỗi xảy ra khi xóa khuyến mãi.");
-                console.error(error);
-              });
+          onClick: async () => {
+            try {
+              await deletePromotion(id);
+              setPromotions((prev) =>
+                prev.filter((promotion) => promotion._id !== id)
+              );
+            } catch (error) {
+              alert("Có lỗi xảy ra khi xóa khuyến mãi.");
+            }
           },
         },
         {
           label: "Không",
-          onClick: () => {},
         },
       ],
-      closeOnEscape: true,
-      closeOnClickOutside: true,
     });
   };
+
   const getStatusLabel = (status) => {
     switch (status) {
       case 0:
@@ -108,16 +94,13 @@ const Promotion = () => {
               </div>
             )}
             {!loading && !error && (
-              <table
-                className="table table-bordered table-striped"
-                id="dataTable"
-              >
+              <table className="table table-bordered table-striped">
                 <thead>
                   <tr>
-                    <th>Mã Khuyến Mãi</th>
-                    <th>Tên Khuyến Mãi</th>
-                    <th>Loại Khuyến Mãi</th>
-                    <th>Giá Trị Khuyến Mãi</th>
+                    <th>Mã KM</th>
+                    <th>Tên KM</th>
+                    <th>Loại KM</th>
+                    <th>Giá Trị KM</th>
                     <th>Ngày Bắt Đầu</th>
                     <th>Ngày Kết Thúc</th>
                     <th>Trạng Thái</th>
@@ -125,13 +108,21 @@ const Promotion = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {promotions && promotions.length > 0 ? (
+                  {promotions.length > 0 ? (
                     promotions.map((promotion) => (
                       <tr key={promotion._id}>
                         <td>{promotion.MaKM}</td>
                         <td>{promotion.TenKM}</td>
-                        <td>{promotion.LoaiKM}</td>
-                        <td>{promotion.GiaTriKM}</td>
+                        <td>
+                          {promotion.LoaiKM === "percentage"
+                            ? "Giảm theo %"
+                            : "Giảm số tiền cố định"}
+                        </td>
+                        <td>
+                          {promotion.LoaiKM === "percentage"
+                            ? `${promotion.GiaTriKM}%`
+                            : `${promotion.GiaTriKM} VND`}
+                        </td>
                         <td>
                           {new Date(promotion.NgayBD).toLocaleDateString()}
                         </td>

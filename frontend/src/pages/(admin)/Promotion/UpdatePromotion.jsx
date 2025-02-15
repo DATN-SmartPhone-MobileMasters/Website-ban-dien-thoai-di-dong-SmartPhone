@@ -4,10 +4,12 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { updatePromotion, getDetailPromotion } from "../../../../service/api";
 
 const UpdatePromotion = () => {
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors },
     reset,
@@ -16,12 +18,11 @@ const UpdatePromotion = () => {
   const { id } = useParams();
 
   // Lấy dữ liệu khuyến mãi hiện tại khi component được mount
+
   useEffect(() => {
-    const fetchPromotion = async () => {
+    const getPromotion = async () => {
       try {
-        const { data } = await axios.get(
-          `http://localhost:5000/api/promotions/${id}`
-        );
+        const { data } = await getDetailPromotion(id);
         const promotionData = {
           ...data.data,
           NgayBD: data.data.NgayBD.split("T")[0], // Chuyển đổi định dạng ngày
@@ -32,12 +33,12 @@ const UpdatePromotion = () => {
         console.error("Có lỗi khi lấy dữ liệu khuyến mãi:", error);
       }
     };
-    fetchPromotion();
+    getPromotion();
   }, [id, reset]);
 
   const onSubmit = async (data) => {
     try {
-      await axios.put(`http://localhost:5000/api/promotions/${id}`, data);
+      await updatePromotion(id, data); // Dùng hàm updatePromotion
       confirmAlert({
         title: "Thành công!",
         message: "Cập nhật khuyến mãi thành công!",
@@ -70,9 +71,8 @@ const UpdatePromotion = () => {
 
   return (
     <div className="container-fluid">
-      {/* Page Heading */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Cập Nhật Khuyến Mãi</h1>
+        <h1 className="h3 text-gray-800">Thêm Khuyến Mãi</h1>
         <button
           className="btn btn-secondary"
           onClick={() => navigate("/vouchers")}
@@ -88,20 +88,21 @@ const UpdatePromotion = () => {
           </h6>
         </div>
         <div className="card-body">
-          {/* Form cập nhật khuyến mãi */}
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <label htmlFor="MaKM" className="form-label">
                 Mã Khuyến Mãi
               </label>
               <input
-                type="text"
+                type="number"
                 className={`form-control ${errors.MaKM ? "is-invalid" : ""}`}
                 id="MaKM"
                 {...register("MaKM", {
                   required: "Mã khuyến mãi là trường bắt buộc",
-                  validate: (value) =>
-                    value >= 0 || "Mã khuyến mãi không được là số âm",
+                  min: {
+                    value: 1,
+                    message: "Mã khuyến mãi không hợp lệ",
+                  },
                 })}
               />
               {errors.MaKM && (
@@ -128,14 +129,17 @@ const UpdatePromotion = () => {
               <label htmlFor="LoaiKM" className="form-label">
                 Loại Khuyến Mãi
               </label>
-              <input
-                type="text"
+              <select
                 className={`form-control ${errors.LoaiKM ? "is-invalid" : ""}`}
                 id="LoaiKM"
                 {...register("LoaiKM", {
                   required: "Loại khuyến mãi là trường bắt buộc",
                 })}
-              />
+              >
+                <option value="">Chọn loại khuyến mãi</option>
+                <option value="fixed">Giảm số tiền cố định</option>
+                <option value="percentage">Giảm theo %</option>
+              </select>
               {errors.LoaiKM && (
                 <div className="invalid-feedback">{errors.LoaiKM.message}</div>
               )}
@@ -150,10 +154,19 @@ const UpdatePromotion = () => {
                   errors.GiaTriKM ? "is-invalid" : ""
                 }`}
                 id="GiaTriKM"
+                step={watch("LoaiKM") === "percentage" ? "1" : "any"}
                 {...register("GiaTriKM", {
                   required: "Giá trị khuyến mãi là trường bắt buộc",
+                  min: { value: 0, message: "Giá trị không được là số âm" },
+                  max:
+                    watch("LoaiKM") === "percentage"
+                      ? { value: 100, message: "Không lớn hơn 100%" }
+                      : undefined,
                   validate: (value) =>
-                    value >= 0 || "Giá trị khuyến mái phải lớn hơn hoặc bằng 0",
+                    watch("LoaiKM") === "percentage" &&
+                    !Number.isInteger(Number(value))
+                      ? "Không được nhập số thập phân khi giảm theo kiểu %"
+                      : true,
                 })}
               />
               {errors.GiaTriKM && (
@@ -218,8 +231,9 @@ const UpdatePromotion = () => {
                 </div>
               )}
             </div>
+
             <button type="submit" className="btn btn-primary">
-              Cập Nhật Khuyến Mãi
+              Sửa khuyễn mãi
             </button>
           </form>
         </div>

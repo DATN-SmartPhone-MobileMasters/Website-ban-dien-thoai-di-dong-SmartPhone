@@ -83,10 +83,12 @@ const SideBar = () => {
             data-parent="#accordionSidebar"
           >
             <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="/products">
+
+              <Link className="collapse-item" to="/ProductsList">
                 Danh sách sản phẩm
               </Link>
-              <Link className="collapse-item" to="/products/add">
+              <Link className="collapse-item" to="/ProductsAdd">
+
                 Thêm mới sản phẩm
               </Link>
             </div>
@@ -115,7 +117,9 @@ const SideBar = () => {
               <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
-              <Link className="collapse-item" to="/brands/add">
+
+              <Link className="collapse-item" to="/brands/addbrand">
+
                 Thêm mới thương hiệu
               </Link>
             </div>
@@ -123,9 +127,11 @@ const SideBar = () => {
         </li>
         {/* Quản lý hóa đơn */}
         <li className="nav-item">
+
           <Link className="nav-link" to="/orders">
             <i className="bi bi-boxes"></i>
             <span>Quản lý hóa đơn</span>
+
           </Link>
         </li>
         {/* Quản lý voucher Admin */}
@@ -151,7 +157,9 @@ const SideBar = () => {
               <Link className="collapse-item" to="/vouchers">
                 Danh sách voucher
               </Link>
+
               <Link className="collapse-item" to="/vouchers/add">
+
                 Thêm mới voucher
               </Link>
             </div>
