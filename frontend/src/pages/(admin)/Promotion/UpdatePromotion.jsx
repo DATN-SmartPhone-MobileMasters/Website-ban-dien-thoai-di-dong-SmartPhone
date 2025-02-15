@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { updatePromotion, getDetailPromotion } from "../../../../service/api";
+import { updatePromotion, getDetailPromotion } from "../../../service/api";
 
 const UpdatePromotion = () => {
   const {

@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { createPromotion } from "../../../../service/api";
+import { createPromotion } from "../../../service/api";
 
 const AddPromotion = () => {
   const {

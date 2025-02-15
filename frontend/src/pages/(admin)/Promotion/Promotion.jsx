@@ -3,8 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { fetchPromotion } from "../../../../service/api";
-import { deletePromotion } from "../../../../service/api";
+import { deletePromotion, fetchPromotion } from "../../../service/api";
 
 const Promotion = () => {
   const [promotions, setPromotions] = useState([]);
