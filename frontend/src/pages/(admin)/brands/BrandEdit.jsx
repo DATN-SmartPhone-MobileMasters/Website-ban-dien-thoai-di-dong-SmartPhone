@@ -3,11 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
-import { fetchCategories, getBrandById } from "../../../service/api";
+import { fetchCategories, getBrandById, updateBrand } from "../../../service/api";
 
 const BrandEdit = () => {
-  const API_URL_Cate = "http://localhost:5000/api/danhmucs"; // API lấy danh mục
-  const API_URL = "http://localhost:5000/api/thuonghieus"; // API lấy và cập nhật thương hiệu
   const [categories, setCategories] = useState([]); // Lưu danh sách danh mục
   const {
     reset,
@@ -44,7 +42,7 @@ const BrandEdit = () => {
   // Xử lý cập nhật thương hiệu
   const onSubmit = async (data) => {
     try {
-      await axios.put(`${API_URL}/${id}`, data);
+      await updateBrand(data);
       message.success("Cập nhật thành công");
       navigate("/brands"); // Điều hướng về danh sách thương hiệu
     } catch (error) {

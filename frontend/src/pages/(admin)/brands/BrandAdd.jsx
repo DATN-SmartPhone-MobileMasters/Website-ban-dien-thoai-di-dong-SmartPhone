@@ -6,8 +6,6 @@ import { message } from "antd";
 import { createBrand, fetchCategories } from "../../../service/api";
 
 const BrandAdd = () => {
-  const API_URL_Cate = "http://localhost:5000/api/danhmucs"; // API lấy danh sách danh mục
-  const API_URL = "http://localhost:5000/api/thuonghieus"; // API thêm thương hiệu
   const {
     register,
     handleSubmit,
