@@ -8,12 +8,12 @@ const Header = () => {
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center">
               <div className="hidden lg:block">
-                <p className="text-sm text-gray-500">Flexible Delivery, Fast Delivery.</p>
+                <p className="text-sm text-gray-500">Số 9, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội </p>
               </div>
               <div className="flex space-x-4 text-sm text-gray-500">
                 <ul className="flex space-x-4">
-                  <li>+084 123 4567</li>
-                  <li>nhom21@laptrinhweb.com</li>
+                  <li>+084-123-4567 / 89</li>
+                  <li>nhom1@laptrinhweb.com</li>
                 </ul>
               </div>
             </div>

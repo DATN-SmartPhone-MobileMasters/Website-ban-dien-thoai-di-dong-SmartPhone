@@ -38,7 +38,7 @@ const Footer = () => {
                     href="index.html"
                     className="text-gray-600 hover:text-blue-500"
                   >
-                    Home
+                    Trang chủ
                   </a>
                 </li>
                 <li>
@@ -46,7 +46,7 @@ const Footer = () => {
                     href="product-list.html"
                     className="text-gray-600 hover:text-blue-500"
                   >
-                    Mobile
+                    Điện thoại
                   </a>
                 </li>
                 <li>
@@ -54,7 +54,7 @@ const Footer = () => {
                     href="about.html"
                     className="text-gray-600 hover:text-blue-500"
                   >
-                    About
+                    Thông tin
                   </a>
                 </li>
                 <li>
@@ -62,7 +62,7 @@ const Footer = () => {
                     href="blog-default.html"
                     className="text-gray-600 hover:text-blue-500"
                   >
-                    Blog
+                    Bài viết
                   </a>
                 </li>
                 <li>
@@ -70,7 +70,7 @@ const Footer = () => {
                     href="contact-us.html"
                     className="text-gray-600 hover:text-blue-500"
                   >
-                    Contact
+                    Liên hệ
                   </a>
                 </li>
               </ul>
@@ -150,13 +150,13 @@ const Footer = () => {
               </a>
             </div>
             <p className="text-sm">
-              Copyright © All Rights Reserved 2020 Template Design by
+              Copyright © All Rights Reserved 2025 by 
               <a
-                href="https://easetemplate.com/"
+                href="#"
                 target="_blank"
                 className="text-yellow-500"
               >
-                Nhom 21
+                Nhom 1
               </a>
             </p>
           </div>
