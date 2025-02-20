@@ -90,8 +90,6 @@ const ProductsList = () => {
         <thead>
           <tr>
             <th scope="col">STT</th>
-            <th scope="col">Mã SP</th>
-            <th scope="col">Mã KM</th>
             <th scope="col">Tên SP</th>
             <th scope="col">Giá SP</th>
             <th scope="col">Số Lượng</th>
@@ -104,8 +102,6 @@ const ProductsList = () => {
           {products.map((item, index) => (
             <tr key={item._id}>
               <th scope="row">{index + 1}</th>
-              <td>{item._id}</td>
-              <td>{item.MaKM || "Không có mã KM"}</td>
               <td>{selectedVariants[item._id]?.name || item.TenSP1}</td>
               <td>
                 {formatCurrency(
