@@ -2,11 +2,15 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   MaND: {
-    type: Number,
+    type: String,
     required: true,
     unique: true
   },
   HoVaTen: {
+    type: String,
+    required: true
+  },
+  Password: {
     type: String,
     required: true
   },

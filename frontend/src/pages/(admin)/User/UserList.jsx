@@ -43,7 +43,7 @@ const UserList = () => {
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/accounts/${id}`);
+    navigate(`/admin/accounts/${id}`);
   };
 
    if (!users || users.length === 0) { 
@@ -51,7 +51,7 @@ const UserList = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 min-w-[100vw]">
+    <div className="container mx-auto px-4 py-8">
       <h1 className="h3 mb-2 text-gray-800">User Management</h1>
       <div className="card shadow mb-4">
         <div className="card-header py-3">
@@ -59,7 +59,11 @@ const UserList = () => {
         </div>
         <div className="card-body">
           <div className="table-responsive">
-            <table className="table table-bordered" width="100%" cellSpacing={0}>
+            <table
+              className="table table-bordered"
+              width="100%"
+              cellSpacing={0}
+            >
               <thead>
                 <tr>
                   <th>ID</th>
@@ -79,7 +83,7 @@ const UserList = () => {
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
-                    <td>{user.MaQuyen === 1 ? 'Admin' : 'User'}</td>
+                    <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
                     <td className="space-x-2">
                       <button
                         onClick={() => handleViewDetails(user._id)}
