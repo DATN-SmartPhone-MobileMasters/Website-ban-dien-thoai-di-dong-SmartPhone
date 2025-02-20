@@ -51,6 +51,10 @@ const UserDetails = () => {
               <dd className="mt-1 text-sm text-gray-900">{user.HoVaTen}</dd>
             </div>
             <div className="sm:col-span-1">
+              <dt className="text-sm font-medium text-gray-500">Mật Khẩu</dt>
+              <dd className="mt-1 text-sm text-gray-900">{user.Password}</dd>
+            </div>
+            <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-gray-500">Giới Tính</dt>
               <dd className="mt-1 text-sm text-gray-900">{user.GioiTinh}</dd>
             </div>
