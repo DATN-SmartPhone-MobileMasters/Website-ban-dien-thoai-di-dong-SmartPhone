@@ -115,6 +115,7 @@ const SideBar = () => {
               <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
+
               <Link className="collapse-item" to="/brands/add">
                 Thêm mới thương hiệu
               </Link>
@@ -151,6 +152,7 @@ const SideBar = () => {
               <Link className="collapse-item" to="/vouchers">
                 Danh sách voucher
               </Link>
+
               <Link className="collapse-item" to="/vouchers/add">
                 Thêm mới voucher
               </Link>
