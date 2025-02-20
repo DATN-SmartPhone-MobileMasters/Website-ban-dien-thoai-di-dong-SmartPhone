@@ -1,158 +1,106 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-const ProductDesciption = () => {
+const relatedProducts = [
+  {
+    id: 1,
+    name: "Google Pixel",
+    variant: "(128GB, Black)",
+    image: "product_img_1.png",
+    price: 1100,
+    oldPrice: 1400,
+    discount: "20% off",
+  },
+  {
+    id: 2,
+    name: "HTC U Ultra",
+    variant: "(64GB, Blue)",
+    image: "product_img_2.png",
+    price: 1200,
+    oldPrice: 1700,
+    discount: "10% off",
+  },
+  {
+    id: 3,
+    name: "Samsung Galaxy Note 8",
+    variant: "",
+    image: "product_img_3.png",
+    price: 1500,
+    oldPrice: 2000,
+    discount: "40% off",
+  },
+  {
+    id: 4,
+    name: "Vivo V5 Plus",
+    variant: "(Matte Black)",
+    image: "product_img_4.png",
+    price: 1500,
+    oldPrice: 2000,
+    discount: "15% off",
+  },
+];
+
+const ProductDescription = () => {
   return (
-    <>
-      {/* /.product-description */}
-      <div className="container">
-        <div className="row">
-          <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div className="box-head">
-              <h3 className="head-title">Sản phẩm liên quan</h3>
-            </div>
-          </div>
+    <div className="container mx-auto p-4">
+      <div className="w-full">
+        <div className="box-head mb-6">
+          <h3 className="text-xl font-semibold">Sản phẩm liên quan</h3>
         </div>
         <div className="box">
           <div className="box-body">
-            <div className="row">
-              {/* product */}
-              <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 mb30">
-                <div className="product-block">
-                  <div className="product-img">
-                    <img src="./src/../img/product_img_1.png" alt />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="product-block border p-4 rounded-lg shadow-lg flex flex-col h-full transition-transform duration-300 hover:scale-105"
+                >
+                  <div className="product-img mb-4">
+                    <Link to={`/product/${product.id}`}>
+                      <img
+                        src={`./src/./img/${product.image}`}
+                        alt={product.name}
+                        className="w-full h-48 object-cover rounded-md"
+                      />
+                    </Link>
                   </div>
                   <div className="product-content">
                     <h5>
-                      <a href="#" className="product-title">
-                        Google Pixel <strong>(128GB, Black)</strong>
-                      </a>
+                      <Link
+                        to={`/product/${product.id}`}
+                        className="product-title text-lg font-medium hover:text-blue-500"
+                      >
+                        {product.name} <strong>{product.variant}</strong>
+                      </Link>
                     </h5>
-                    <div className="product-meta">
-                      <a href="#" className="product-price">
-                        $1100
-                      </a>
-                      <a href="#" className="discounted-price">
-                        $1400
-                      </a>
-                      <span className="offer-price">20%off</span>
+                    <div className="product-meta flex items-center space-x-2 my-2">
+                      <span className="product-price text-xl text-orange-500">
+                        ${product.price}
+                      </span>
+                      <span className="discounted-price text-gray-500 line-through">
+                        ${product.oldPrice}
+                      </span>
+                      <span className="offer-price text-red-500 text-sm">
+                        {product.discount}
+                      </span>
                     </div>
-                    <div className="shopping-btn">
-                      <a href="#" className="product-btn btn-like">
+                    <div className="shopping-btn flex items-center space-x-2 mt-4">
+                      <button className="product-btn btn-like text-red-500 hover:text-red-700">
                         <i className="fa fa-heart" />
-                      </a>
-                      <a href="#" className="product-btn btn-cart">
+                      </button>
+                      <button className="product-btn btn-cart text-blue-500 hover:text-blue-700">
                         <i className="fa fa-shopping-cart" />
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-              {/* /.product */}
-              {/* product */}
-              <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 mb30">
-                <div className="product-block">
-                  <div className="product-img">
-                    <img src="./src/../img/product_img_2.png" alt />
-                  </div>
-                  <div className="product-content">
-                    <h5>
-                      <a href="#" className="product-title">
-                        HTC U Ultra <strong>(64GB, Blue)</strong>
-                      </a>
-                    </h5>
-                    <div className="product-meta">
-                      <a href="#" className="product-price">
-                        $1200
-                      </a>
-                      <a href="#" className="discounted-price">
-                        $1700
-                      </a>
-                      <span className="offer-price">10%off</span>
-                    </div>
-                    <div className="shopping-btn">
-                      <a href="#" className="product-btn btn-like">
-                        <i className="fa fa-heart" />
-                      </a>
-                      <a href="#" className="product-btn btn-cart">
-                        <i className="fa fa-shopping-cart" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* /.product */}
-              {/* product */}
-              <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 mb30">
-                <div className="product-block">
-                  <div className="product-img">
-                    <img src="./src/../img/product_img_3.png" alt />
-                  </div>
-                  <div className="product-content">
-                    <h5>
-                      <a href="#" className="product-title">
-                        Samsung Galaxy Note 8
-                      </a>
-                    </h5>
-                    <div className="product-meta">
-                      <a href="#" className="product-price">
-                        $1500
-                      </a>
-                      <a href="#" className="discounted-price">
-                        $2000
-                      </a>
-                      <span className="offer-price">40%off</span>
-                    </div>
-                    <div className="shopping-btn">
-                      <a href="#" className="product-btn btn-like">
-                        <i className="fa fa-heart" />
-                      </a>
-                      <a href="#" className="product-btn btn-cart">
-                        <i className="fa fa-shopping-cart" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* /.product */}
-              {/* product */}
-              <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 mb30">
-                <div className="product-block">
-                  <div className="product-img">
-                    <img src="./src/../img/product_img_4.png" alt />
-                  </div>
-                  <div className="product-content">
-                    <h5>
-                      <a href="#" className="product-title">
-                        Vivo V5 Plus <strong>(Matte Black)</strong>
-                      </a>
-                    </h5>
-                    <div className="product-meta">
-                      <a href="#" className="product-price">
-                        $1500
-                      </a>
-                      <a href="#" className="discounted-price">
-                        $2000
-                      </a>
-                      <span className="offer-price">15%off</span>
-                    </div>
-                    <div className="shopping-btn">
-                      <a href="#" className="product-btn btn-like">
-                        <i className="fa fa-heart" />
-                      </a>
-                      <a href="#" className="product-btn btn-cart">
-                        <i className="fa fa-shopping-cart" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* /.product */}
+              ))}
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default ProductDesciption;
+export default ProductDescription;

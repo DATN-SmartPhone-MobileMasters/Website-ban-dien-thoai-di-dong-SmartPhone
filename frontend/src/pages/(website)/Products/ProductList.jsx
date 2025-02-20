@@ -10,9 +10,9 @@ const ProductList = () => {
             <div className="flex flex-col">
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2 text-sm text-gray-700">
-                  <a href="index.html" className="hover:text-blue-600">
+                  <Link to="/" className="hover:text-blue-600">
                     Trang chủ
-                  </a>
+                  </Link>
                   <span> &gt; </span>
                   <span>Điện thoại</span>
                 </div>
@@ -29,9 +29,9 @@ const ProductList = () => {
               <div id="cssmenu" className="space-y-6">
                 <ul className="space-y-4">
                   <li className="has-sub">
-                    <a href="#" className="block text-lg font-semibold">
+                    <Link to="#" className="block text-lg font-semibold">
                       Hệ điều hành
-                    </a>
+                    </Link>
                     <ul className="ml-4 space-y-2">
                       <li>
                         <label>
@@ -51,9 +51,9 @@ const ProductList = () => {
                     </ul>
                   </li>
                   <li className="has-sub">
-                    <a href="#" className="block text-lg font-semibold">
+                    <Link to="#" className="block text-lg font-semibold">
                       Hãng sản xuất
-                    </a>
+                    </Link>
                     <ul className="ml-4 space-y-2">
                       <li>
                         <label>
@@ -103,9 +103,9 @@ const ProductList = () => {
                     </ul>
                   </li>
                   <li className="has-sub">
-                    <a href="#" className="block text-lg font-semibold">
+                    <Link to="#" className="block text-lg font-semibold">
                       Giá Bán
-                    </a>
+                    </Link>
                     <ul className="ml-4 space-y-2">
                       <li>
                         <label>
@@ -139,60 +139,6 @@ const ProductList = () => {
                       </li>
                     </ul>
                   </li>
-                  <li className="has-sub">
-                    <a href="#" className="block text-lg font-semibold">
-                      Màn hình
-                    </a>
-                    <ul className="ml-4 space-y-2">
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Tất cả
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Dưới 5.0 inch
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Trên 6.0 inch
-                        </label>
-                      </li>
-                    </ul>
-                  </li>
-                  <li className="has-sub">
-                    <a href="#" className="block text-lg font-semibold">
-                      Bộ nhớ trong
-                    </a>
-                    <ul className="ml-4 space-y-2">
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Tất cả
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Dưới 32GB
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> 64GB và 128GB
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> 256GB và 512GB
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Trên 512GB
-                        </label>
-                      </li>
-                    </ul>
-                  </li>
                 </ul>
               </div>
               {/* /.sidenav-section */}
@@ -218,7 +164,7 @@ const ProductList = () => {
                 {/* product */}
                 <div className="product-block border p-4 rounded-lg shadow-lg flex flex-col h-full">
                   <div className="product-img mb-4">
-                    <Link to={"/products/product_detail/1"}>
+                    <Link to="/products/product_detail/1">
                       <img
                         src="./src/./img/product_img_1.png"
                         alt="Google Pixel"
@@ -228,87 +174,32 @@ const ProductList = () => {
                   </div>
                   <div className="product-content flex-grow">
                     <h5>
-                      <a
-                        href="#"
-                        className="product-title text-lg font-semibold"
-                      >
+                      <Link to="#" className="product-title text-lg font-semibold">
                         Google Pixel <strong>(128GB, Black)</strong>
-                      </a>
+                      </Link>
                     </h5>
                     <div className="product-meta my-2">
-                      <a
-                        href="#"
-                        className="product-price text-lg font-semibold text-orange-500"
-                      >
+                      <Link to="#" className="product-price text-lg font-semibold text-orange-500">
                         $1100
-                      </a>
-                      <a
-                        href="#"
-                        className="discounted-price text-gray-500 line-through ml-2"
-                      >
+                      </Link>
+                      <Link to="#" className="discounted-price text-gray-500 line-through ml-2">
                         $1400
-                      </a>
+                      </Link>
                       <span className="offer-price text-red-500 text-sm ml-2">
                         20%off
                       </span>
                     </div>
                   </div>
                   <div className="shopping-btn flex space-x-4 mt-4">
-                    <a
-                      href="#"
-                      className="product-btn btn-like text-red-500 hover:text-red-700"
-                    >
+                    <Link to="#" className="product-btn btn-like text-red-500 hover:text-red-700">
                       <i className="fa fa-heart" />
-                    </a>
-                    <a
-                      href="#"
-                      className="product-btn btn-cart text-blue-500 hover:text-blue-700"
-                    >
+                    </Link>
+                    <Link to="#" className="product-btn btn-cart text-blue-500 hover:text-blue-700">
                       <i className="fa fa-shopping-cart" />
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 {/* /.product */}
-              </div>
-
-              <div className="mt-8 flex justify-center">
-                <div className="pagination">
-                  <ul className="flex space-x-4">
-                    <li>
-                      <a
-                        href="#"
-                        aria-label="previous"
-                        className="text-gray-600 hover:text-blue-600"
-                      >
-                        <i className="fa fa-angle-left" />
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="text-gray-600 hover:text-blue-600">
-                        1
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="text-gray-600 hover:text-blue-600">
-                        2
-                      </a>
-                    </li>
-                    <li>
-                      <a href="#" className="text-gray-600 hover:text-blue-600">
-                        3
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        aria-label="Next"
-                        className="text-gray-600 hover:text-blue-600"
-                      >
-                        <i className="fa fa-angle-right" />
-                      </a>
-                    </li>
-                  </ul>
-                </div>
               </div>
             </div>
           </div>

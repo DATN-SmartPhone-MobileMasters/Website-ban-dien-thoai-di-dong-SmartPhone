@@ -1,156 +1,75 @@
 import React from "react";
+import { Link } from "react-router-dom";
+
+const products = [
+  {
+    id: 1,
+    name: "Samsung Galaxy Note 8",
+    image: "./src/./img/product_img_3.png",
+    price: 1500,
+    oldPrice: 2000,
+    discount: "40% off",
+  },
+  {
+    id: 2,
+    name: "Vivo V5 Plus (Matte Black)",
+    image: "./src/./img/product_img_4.png",
+    price: 1500,
+    oldPrice: 2000,
+    discount: "15% off",
+  },
+  {
+    id: 3,
+    name: "Google Pixel (128GB, Black)",
+    image: "./src/./img/product_img_1.png",
+    price: 1100,
+    oldPrice: 1400,
+    discount: "20% off",
+  },
+  {
+    id: 4,
+    name: "HTC U Ultra (64GB, Blue)",
+    image: "./src/./img/product_img_2.png",
+    price: 1200,
+    oldPrice: 1700,
+    discount: "10% off",
+  },
+];
 
 const FeaturedProducts = () => {
   return (
-    <>
-      <div className="container">
-        <div className="row">
-          <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div className="box">
-              <div className="box-head">
-                <h3 className="head-title">Đang khuyến mãi</h3>
+    <div className="container mx-auto my-8">
+      <h3 className="text-xl font-semibold mb-6 text-center">Đang khuyến mãi</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map((product) => (
+          <div key={product.id} className="bg-white shadow-md rounded-lg p-4">
+            <div className="flex justify-center">
+              <img src={product.image} alt={product.name} className="w-40 h-40 object-cover" />
+            </div>
+            <div className="text-center mt-4">
+              <h5 className="text-lg font-medium">
+                <Link to={`/product/${product.id}`} className="hover:text-blue-500">
+                  {product.name}
+                </Link>
+              </h5>
+              <div className="mt-2">
+                <span className="text-lg font-bold text-red-500">${product.price}</span>
+                <span className="text-sm text-gray-500 line-through ml-2">${product.oldPrice}</span>
               </div>
-              <div className="box-body">
-                <div className="row">
-                  {/* product */}
-                  <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                    <div className="product-block">
-                      <div className="product-img">
-                        <img src="images/product_img_3.png" alt />
-                      </div>
-                      <div className="product-content">
-                        <h5>
-                          <a href="#" className="product-title">
-                            Samsung Galaxy Note 8
-                          </a>
-                        </h5>
-                        <div className="product-meta">
-                          <a href="#" className="product-price">
-                            $1500
-                          </a>
-                          <a href="#" className="discounted-price">
-                            <strike>$2000</strike>
-                          </a>
-                          <span className="offer-price">40%off</span>
-                        </div>
-                        <div className="shopping-btn">
-                          <a href="#" className="product-btn btn-like">
-                            <i className="fa fa-heart" />
-                          </a>
-                          <a href="#" className="product-btn btn-cart">
-                            <i className="fa fa-shopping-cart" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* /.product */}
-                  {/* product */}
-                  <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                    <div className="product-block">
-                      <div className="product-img">
-                        <img src="images/product_img_4.png" alt />
-                      </div>
-                      <div className="product-content">
-                        <h5>
-                          <a href="#" className="product-title">
-                            Vivo V5 Plus <strong>(Matte Black)</strong>
-                          </a>
-                        </h5>
-                        <div className="product-meta">
-                          <a href="#" className="product-price">
-                            $1500
-                          </a>
-                          <a href="#" className="discounted-price">
-                            <strike>$2000</strike>
-                          </a>
-                          <span className="offer-price">15%off</span>
-                        </div>
-                        <div className="shopping-btn">
-                          <a href="#" className="product-btn btn-like">
-                            <i className="fa fa-heart" />
-                          </a>
-                          <a href="#" className="product-btn btn-cart">
-                            <i className="fa fa-shopping-cart" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* /.product */}
-                  {/* product */}
-                  <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                    <div className="product-block">
-                      <div className="product-img">
-                        <img src="images/product_img_1.png" alt />
-                      </div>
-                      <div className="product-content">
-                        <h5>
-                          <a href="#" className="product-title">
-                            Google Pixel <strong>(128GB, Black)</strong>
-                          </a>
-                        </h5>
-                        <div className="product-meta">
-                          <a href="#" className="product-price">
-                            $1100
-                          </a>
-                          <a href="#" className="discounted-price">
-                            <strike>$1400</strike>
-                          </a>
-                          <span className="offer-price">20%off</span>
-                        </div>
-                        <div className="shopping-btn">
-                          <a href="#" className="product-btn btn-like">
-                            <i className="fa fa-heart" />
-                          </a>
-                          <a href="#" className="product-btn btn-cart">
-                            <i className="fa fa-shopping-cart" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* /.product */}
-                  {/* product */}
-                  <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                    <div className="product-block">
-                      <div className="product-img">
-                        <img src="images/product_img_2.png" alt />
-                      </div>
-                      <div className="product-content">
-                        <h5>
-                          <a href="#" className="product-title">
-                            HTC U Ultra <strong>(64GB, Blue)</strong>
-                          </a>
-                        </h5>
-                        <div className="product-meta">
-                          <a href="#" className="product-price">
-                            $1200
-                          </a>
-                          <a href="#" className="discounted-price">
-                            <strike>$1700</strike>
-                          </a>
-                          <span className="offer-price">10%off</span>
-                        </div>
-                        <div className="shopping-btn">
-                          <a href="#" className="product-btn btn-like">
-                            <i className="fa fa-heart" />
-                          </a>
-                          <a href="#" className="product-btn btn-cart">
-                            <i className="fa fa-shopping-cart" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* /.product */}
-                </div>
-              </div>
+              <span className="text-sm text-green-500">{product.discount}</span>
+            </div>
+            <div className="flex justify-center mt-4 space-x-3">
+              <button className="text-gray-600 hover:text-red-500">
+                <i className="fa fa-heart text-xl"></i>
+              </button>
+              <button className="text-gray-600 hover:text-blue-500">
+                <i className="fa fa-shopping-cart text-xl"></i>
+              </button>
             </div>
           </div>
-        </div>
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 
