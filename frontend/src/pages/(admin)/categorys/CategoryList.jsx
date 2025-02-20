@@ -54,7 +54,7 @@ const CategoryList = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-50"
         />
-        <Link to="/categorys/addcategory">
+        <Link to="/admin/categorys/addcategory">
           <Button variant="primary">Thêm mới</Button>
         </Link>
       </div>
@@ -72,7 +72,7 @@ const CategoryList = () => {
               <td>{indexOfFirstItem + index + 1}</td>
               <td>{category.TenDM}</td>
               <td>
-                <Link to={`/categorys/update/${category._id}`}>
+                <Link to={`/admin/categorys/update/${category._id}`}>
                   <Button variant="warning" className="me-2">
                     Sửa
                   </Button>

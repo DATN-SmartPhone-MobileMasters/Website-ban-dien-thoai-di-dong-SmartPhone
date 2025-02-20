@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  Password: {
+    type: String,
+    required: true
+  },
   GioiTinh: {
     type: String,
     enum: ['Nam', 'Nữ', 'Khác'],

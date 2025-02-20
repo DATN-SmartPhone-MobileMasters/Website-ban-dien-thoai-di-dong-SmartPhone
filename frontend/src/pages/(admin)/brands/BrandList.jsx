@@ -27,7 +27,7 @@ const BrandList = () => {
   return (
     <div>
       <h2>Danh sách thương hiệu</h2>
-      <Link to="/brands/add" className="btn btn-primary">Thêm mới</Link>
+      <Link to="/admin/brands/add" className="btn btn-primary">Thêm mới</Link>
       <table className="table">
         <thead>
           <tr>
@@ -48,8 +48,8 @@ const BrandList = () => {
                   : "Chưa có danh mục"}
               </td>
               <td>
-                <Link to={`/brands/detail/${brand._id}`} className="btn btn-info">Xem</Link>
-                <Link to={`/brands/edit/${brand._id}`} className="btn btn-warning ml-2">Sửa</Link>
+                <Link to={`/admin/brands/detail/${brand._id}`} className="btn btn-info">Xem</Link>
+                <Link to={`/admin/brands/edit/${brand._id}`} className="btn btn-warning ml-2">Sửa</Link>
                 <button className="btn btn-danger ml-2" onClick={() => handleDelete(brand._id)}>Xóa</button>
               </td>
             </tr>

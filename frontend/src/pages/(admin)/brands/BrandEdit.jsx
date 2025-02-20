@@ -44,7 +44,7 @@ const BrandEdit = () => {
     try {
       await updateBrand(data);
       message.success("Cập nhật thành công");
-      navigate("/brands"); // Điều hướng về danh sách thương hiệu
+      navigate("/admin/brands"); // Điều hướng về danh sách thương hiệu
     } catch (error) {
       message.error("Cập nhật thất bại");
       console.error("Lỗi khi cập nhật:", error.response);
@@ -121,7 +121,7 @@ const BrandEdit = () => {
             </div>
 
             <div className="">
-              <Link to="/brands" className="btn btn-primary">
+              <Link to="/admin/brands" className="btn btn-primary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success ml-3">

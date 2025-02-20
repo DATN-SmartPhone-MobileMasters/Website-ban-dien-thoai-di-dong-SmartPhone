@@ -64,7 +64,7 @@ const AdminDetailComment = () => {
               style={{ width: "200px", marginTop: "5px" }}
             />
           </div>
-          <Link to="/comments" className="btn btn-primary mt-3">
+          <Link to="/admin/comments" className="btn btn-primary mt-3">
             Quay lại danh sách
           </Link>
         </div>

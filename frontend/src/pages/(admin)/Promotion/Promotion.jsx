@@ -66,7 +66,7 @@ const Promotion = () => {
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 text-gray-800">Danh Sách Khuyến Mãi</h1>
-        <Link className="btn btn-primary" to="/vouchers/add">
+        <Link className="btn btn-primary" to="/admin/vouchers/add">
           Thêm Khuyến Mãi
         </Link>
       </div>
@@ -131,7 +131,7 @@ const Promotion = () => {
                         <td>{getStatusLabel(promotion.TrangThai)}</td>
                         <td className="d-flex justify-content-center gap-3">
                           <Link
-                            to={`/vouchers/edit/${promotion._id}`}
+                            to={`/admin/vouchers/edit/${promotion._id}`}
                             className="btn btn-warning btn-sm"
                           >
                             <i className="fas fa-edit"></i> Chỉnh Sửa

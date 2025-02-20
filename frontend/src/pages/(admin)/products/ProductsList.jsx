@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (price) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(price);
 };
 
 const ProductsList = () => {
@@ -21,11 +24,11 @@ const ProductsList = () => {
           setProducts(res.data);
           // Khởi tạo biến thể mặc định (màu 1)
           const defaultVariants = res.data.reduce((acc, item) => {
-            acc[item._id] = { 
-              image: item.HinhAnh1, 
+            acc[item._id] = {
+              image: item.HinhAnh1,
               price: item.GiaSP1 || item.GiaSP,
               quantity: item.SoLuong1 || item.SoLuong,
-              name: item.TenSP1
+              name: item.TenSP1,
             };
             return acc;
           }, {});
@@ -44,10 +47,21 @@ const ProductsList = () => {
   }, []);
 
   // Cập nhật biến thể khi người dùng chọn ảnh
-  const handleVariantChange = (id, variantImage, variantPrice, variantQuantity, variantName) => {
+  const handleVariantChange = (
+    id,
+    variantImage,
+    variantPrice,
+    variantQuantity,
+    variantName
+  ) => {
     setSelectedVariants((prev) => ({
       ...prev,
-      [id]: { image: variantImage, price: variantPrice, quantity: variantQuantity, name: variantName },
+      [id]: {
+        image: variantImage,
+        price: variantPrice,
+        quantity: variantQuantity,
+        name: variantName,
+      },
     }));
   };
 
@@ -69,12 +83,13 @@ const ProductsList = () => {
   return (
     <div>
       <h2>Danh sách sản phẩm</h2>
+      <Link className="btn btn-primary mb-3" to="/admin/products/add">
+        Thêm sản phẩm
+      </Link>
       <table className="table table-striped table-bordered">
         <thead>
           <tr>
             <th scope="col">STT</th>
-            <th scope="col">Mã SP</th>
-            <th scope="col">Mã KM</th>
             <th scope="col">Tên SP</th>
             <th scope="col">Giá SP</th>
             <th scope="col">Số Lượng</th>
@@ -87,10 +102,12 @@ const ProductsList = () => {
           {products.map((item, index) => (
             <tr key={item._id}>
               <th scope="row">{index + 1}</th>
-              <td>{item._id}</td>
-              <td>{item.MaKM || "Không có mã KM"}</td>
               <td>{selectedVariants[item._id]?.name || item.TenSP1}</td>
-              <td>{formatCurrency(selectedVariants[item._id]?.price || item.GiaSP1)}</td>
+              <td>
+                {formatCurrency(
+                  selectedVariants[item._id]?.price || item.GiaSP1
+                )}
+              </td>
               <td>{selectedVariants[item._id]?.quantity || item.SoLuong1}</td>
               <td>
                 <img
@@ -105,7 +122,11 @@ const ProductsList = () => {
                   <img
                     src={item.HinhAnh1}
                     alt="Màu 1"
-                    width={selectedVariants[item._id]?.image === item.HinhAnh1 ? 69 : 39}
+                    width={
+                      selectedVariants[item._id]?.image === item.HinhAnh1
+                        ? 69
+                        : 39
+                    }
                     style={{
                       cursor: "pointer",
                       border: "1px solid gray",
@@ -113,14 +134,26 @@ const ProductsList = () => {
                       transition: "width 0.3s ease-in-out",
                       borderRadius: "6px",
                     }}
-                    onClick={() => handleVariantChange(item._id, item.HinhAnh1, item.GiaSP1, item.SoLuong1, item.TenSP1)}
+                    onClick={() =>
+                      handleVariantChange(
+                        item._id,
+                        item.HinhAnh1,
+                        item.GiaSP1,
+                        item.SoLuong1,
+                        item.TenSP1
+                      )
+                    }
                   />
                 )}
                 {item.HinhAnh2 && item.GiaSP2 && item.SoLuong2 && (
                   <img
                     src={item.HinhAnh2}
                     alt="Màu 2"
-                    width={selectedVariants[item._id]?.image === item.HinhAnh2 ? 69 : 39}
+                    width={
+                      selectedVariants[item._id]?.image === item.HinhAnh2
+                        ? 69
+                        : 39
+                    }
                     style={{
                       cursor: "pointer",
                       border: "1px solid gray",
@@ -128,32 +161,55 @@ const ProductsList = () => {
                       transition: "width 0.3s ease-in-out",
                       borderRadius: "6px",
                     }}
-                    onClick={() => handleVariantChange(item._id, item.HinhAnh2, item.GiaSP2, item.SoLuong2, item.TenSP2)}
+                    onClick={() =>
+                      handleVariantChange(
+                        item._id,
+                        item.HinhAnh2,
+                        item.GiaSP2,
+                        item.SoLuong2,
+                        item.TenSP2
+                      )
+                    }
                   />
                 )}
                 {item.HinhAnh3 && item.GiaSP3 && item.SoLuong3 && (
                   <img
                     src={item.HinhAnh3}
                     alt="Màu 3"
-                    width={selectedVariants[item._id]?.image === item.HinhAnh3 ? 69 : 39}
+                    width={
+                      selectedVariants[item._id]?.image === item.HinhAnh3
+                        ? 69
+                        : 39
+                    }
                     style={{
                       cursor: "pointer",
                       border: "1px solid gray",
                       transition: "width 0.3s ease-in-out",
                       borderRadius: "6px",
                     }}
-                    onClick={() => handleVariantChange(item._id, item.HinhAnh3, item.GiaSP3, item.SoLuong3, item.TenSP3)}
+                    onClick={() =>
+                      handleVariantChange(
+                        item._id,
+                        item.HinhAnh3,
+                        item.GiaSP3,
+                        item.SoLuong3,
+                        item.TenSP3
+                      )
+                    }
                   />
                 )}
               </td>
               <td>
-                <button className="btn btn-danger" onClick={() => removeItem(item._id)}>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => removeItem(item._id)}
+                >
                   Xóa
                 </button>{" "}
-                <Link to={`/products/edit/${item._id}`}>
+                <Link to={`/admin/products/edit/${item._id}`}>
                   <button className="btn btn-primary">Sửa</button>
                 </Link>{" "}
-                <Link to={`/products/detail/${item._id}`}>
+                <Link to={`/admin/products/detail/${item._id}`}>
                   <button className="btn btn-primary">Chi tiết</button>
                 </Link>
               </td>

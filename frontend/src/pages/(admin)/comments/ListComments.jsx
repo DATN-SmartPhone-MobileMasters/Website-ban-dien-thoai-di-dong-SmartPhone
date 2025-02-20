@@ -94,7 +94,7 @@ const AdminListComment = () => {
                         }}
                       >
                         <Link
-                          to={`/comments/${comment._id}`}
+                          to={`/admin/comments/${comment._id}`}
                           className="btn btn-info"
                           style={{ flex: "1", marginRight: "5px" }}
                         >
