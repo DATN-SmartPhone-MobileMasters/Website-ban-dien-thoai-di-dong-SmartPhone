@@ -3,10 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
+import { fetchCategories, getBrandById, updateBrand } from "../../../service/api";
 
 const BrandEdit = () => {
-  const API_URL_Cate = "http://localhost:5000/api/danhmucs"; // API lấy danh mục
-  const API_URL = "http://localhost:5000/api/thuonghieus"; // API lấy và cập nhật thương hiệu
   const [categories, setCategories] = useState([]); // Lưu danh sách danh mục
   const {
     reset,
@@ -22,16 +21,17 @@ const BrandEdit = () => {
     (async () => {
       try {
         const [brandRes, categoryRes] = await Promise.all([
-          axios.get(`${API_URL}/${id}`), // Lấy thông tin thương hiệu
-          axios.get(API_URL_Cate), // Lấy danh sách danh mục
+          getBrandById(id), // Lấy thông tin thương hiệu
+          fetchCategories(), // Lấy danh sách danh mục
         ]);
 
-        setCategories(categoryRes.data.data); // Lưu danh mục
+        setCategories(categoryRes.data.data); // Lưu danh mục vào state
+
         reset({
           TenTH: brandRes.data.data.TenTH,
           HinhAnh: brandRes.data.data.HinhAnh,
           Mota: brandRes.data.data.Mota,
-          MaDM: brandRes.data.data.MaDM?._id, // Gán danh mục đã chọn
+          MaDM: brandRes.data.data.MaDM.map((dm) => dm._id), // Lấy danh sách ID của danh mục
         });
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
@@ -42,9 +42,9 @@ const BrandEdit = () => {
   // Xử lý cập nhật thương hiệu
   const onSubmit = async (data) => {
     try {
-      await axios.put(`${API_URL}/${id}`, data);
+      await updateBrand(data);
       message.success("Cập nhật thành công");
-      navigate("/brands"); // Điều hướng về danh sách thương hiệu
+      navigate("/admin/brands"); // Điều hướng về danh sách thương hiệu
     } catch (error) {
       message.error("Cập nhật thất bại");
       console.error("Lỗi khi cập nhật:", error.response);
@@ -106,13 +106,11 @@ const BrandEdit = () => {
               <select
                 className="form-control"
                 id="MaDM"
+                multiple // Cho phép chọn nhiều danh mục
                 {...register("MaDM", {
                   required: "Danh mục không được bỏ trống",
                 })}
               >
-                <option value="" disabled>
-                  Vui lòng chọn danh mục
-                </option>
                 {categories.map((danhmuc) => (
                   <option key={danhmuc._id} value={danhmuc._id}>
                     {danhmuc.TenDM}
@@ -123,7 +121,7 @@ const BrandEdit = () => {
             </div>
 
             <div className="">
-              <Link to="/brands" className="btn btn-primary">
+              <Link to="/admin/brands" className="btn btn-primary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success ml-3">

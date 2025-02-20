@@ -14,68 +14,135 @@ import BrandAdd from "./pages/(admin)/brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/brands/BrandEdit";
 import BrandDetail from "./pages/(admin)/brands/BrandDetail";
 import UserList from "./pages/(admin)/User/UserList";
-import UserDetails from './pages/(admin)/User/UserDetails';
+import UserDetails from "./pages/(admin)/User/UserDetails";
+import AdminListComment from "./pages/(admin)/comments/ListComments";
+import AdminDetailComment from "./pages/(admin)/comments/DetailComment";
+import OderDetail from "./pages/(admin)/orders/Oderdetail";
+import OderList from "./pages/(admin)/orders/Oderlist";
+import Promotion from "./pages/(admin)/Promotion/Promotion";
+import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
+import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
+import LayoutWebsite from "./pages/(website)/LayoutWebsite";
+import "font-awesome/css/font-awesome.min.css"
+import HomePage from "./pages/(website)/HomePage";
+import ProductList from "./pages/(website)/Products/ProductList";
+import ProductDetail from "./pages/(website)/Products/ProductDetail";
+import SignupForm from "./pages/(website)/User/signup-form";
+import LoginForm from "./pages/(website)/User/login-form";
 function App() {
   const configRouter = createBrowserRouter([
     {
       element: <LayoutAdmin />,
       children: [
         {
-          path: "/",
+          path: "/admin/dashboard",
           element: <DashBoard />,
         },
         {
-          path: "/categorys",
+          path: "/admin/categorys",
           element: <CategoryList />,
         },
         {
-          path: "/categorys/addcategory",
+          path: "/admin/categorys/addcategory",
           element: <CategoryAdd />,
         },
         {
-          path: "/categorys/update/:id",
+          path: "/admin/categorys/update/:id",
           element: <CategoryUpdate />,
         },
         {
-          path: "/products",
+          path: "/admin/products",
           element: <ProductsList />,
         },
         {
-          path: "/products/edit/:id",
+          path: "/admin/products/edit/:id",
           element: <ProductsEdit />,
         },
 
         {
-          path: "/products/add",
+          path: "/admin/products/add",
           element: <ProductsAdd />,
         },
         {
-          path: "/products/detail/:id",
+          path: "/admin/products/detail/:id",
           element: <ProductsDetail />,
         },
         {
-          path: "/brands",
+          path: "/admin/brands",
           element: <BrandList />,
         },
         {
-          path: "/brands/add",
+          path: "/admin/brands/add",
           element: <BrandAdd />,
         },
         {
-          path: "/brands/edit/:id",
+          path: "/admin/brands/edit/:id",
           element: <BrandEdit />,
         },
         {
-          path: "/brands/detail/:id",
+          path: "/admin/brands/detail/:id",
           element: <BrandDetail />,
         },
         {
-          path: "/accounts",
+          path: "/admin/accounts",
           element: <UserList />,
         },
         {
-          path: "/accounts/:id",
+          path: "/admin/accounts/:id",
           element: <UserDetails />,
+        },
+        {
+          path: "/admin/comments",
+          element: <AdminListComment />,
+        },
+        {
+          path: "/admin/comments/:id",
+          element: <AdminDetailComment />,
+        },
+        {
+          path: "/admin/orders",
+          element: <OderList />,
+        },
+        {
+          path: "/admin/orders/:id",
+          element: <OderDetail />,
+        },
+        {
+          path: "/admin/vouchers",
+          element: <Promotion />,
+        },
+        {
+          path: "/admin/vouchers/add",
+          element: <AddPromotion />,
+        },
+        {
+          path: "/admin/vouchers/edit/:id",
+          element: <UpdatePromotion />,
+        },
+      ],
+    },
+    {
+      element: <LayoutWebsite />,
+      children: [
+        {
+          path: "/",
+          element: <HomePage/>,
+        },
+        {
+          path: "/products",
+          element: <ProductList/>,
+        },
+        {
+          path: "/products/product_detail/1",
+          element: <ProductDetail/>,
+        },
+        {
+          path: "/login",
+          element: <LoginForm />,
+        },
+        {
+          path: "/signup",
+          element: <SignupForm />,
         },
       ],
     },

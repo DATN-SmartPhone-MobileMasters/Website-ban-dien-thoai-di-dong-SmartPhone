@@ -1,9 +1,9 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getBrandById } from "../../../service/api";
 
 const BrandDetail = () => {
-  const API_URL = "http://localhost:5000/api/thuonghieus";
   const [brand, setBrand] = useState(null); // Lưu thông tin thương hiệu
   const { id } = useParams(); // Lấy ID từ URL
 
@@ -11,7 +11,7 @@ const BrandDetail = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/${id}`); // Gọi API lấy chi tiết
+        const { data } = await getBrandById(id); // Gọi API lấy chi tiết
         setBrand(data.data); // Lưu dữ liệu vào state
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết thương hiệu:", error);
@@ -33,15 +33,34 @@ const BrandDetail = () => {
           </h6>
         </div>
         <div className="card-body">
-          <p><strong>Mã thương hiệu:</strong> {brand._id}</p>
-          <p><strong>Tên thương hiệu:</strong> {brand.TenTH}</p>
+          <p>
+            <strong>Mã thương hiệu:</strong> {brand._id}
+          </p>
+          <p>
+            <strong>Tên thương hiệu:</strong> {brand.TenTH}
+          </p>
           <p>
             <strong>Hình ảnh:</strong> <br />
-            <img src={brand.HinhAnh} alt={brand.TenTH} style={{ width: "200px" }} />
+            <img
+              src={brand.HinhAnh}
+              alt={brand.TenTH}
+              style={{ width: "200px" }}
+            />
           </p>
-          <p><strong>Mô tả:</strong> {brand.Mota}</p>
-          <p><strong>Danh mục:</strong> {brand.MaDM?.TenDM || "Không có danh mục"}</p> {/* Hiển thị tên danh mục */}
-          <Link to="/brands" className="btn btn-primary mt-3">
+          <p>
+            <strong>Mô tả:</strong> {brand.Mota}
+          </p>
+          <p>
+            <strong>Danh mục:</strong>{" "}
+            {brand.MaDM && brand.MaDM.length > 0
+              ? brand.MaDM.map((dm) => (
+                  <span key={dm._id} className="badge badge-info mx-1">
+                    {dm.TenDM}
+                  </span>
+                ))
+              : "Không có danh mục"}
+          </p>
+          <Link to="/admin/brands" className="btn btn-primary mt-3">
             Quay lại danh sách
           </Link>
         </div>

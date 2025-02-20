@@ -1,199 +1,194 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { message } from "antd";
+
 const ProductsEdit = () => {
-  const { id } = useParams(); // Lấy id từ URL
-  const navigate = useNavigate(); // Dùng để điều hướng trang sau khi cập nhật thành công
+  const API_URL_Categories = "http://localhost:5000/api/danhmucs"; 
+  const API_URL_Products = "http://localhost:5000/api/sanphams"; 
+  const API_URL_Discounts = "http://localhost:5000/api/Promotions"; 
+  const API_URL_Brands = "http://localhost:5000/api/thuonghieus"; 
+  const [categories, setCategories] = useState([]); 
+  const [discounts, setDiscounts] = useState([]); 
+  const [brands, setBrands] = useState([]); 
+  const {
+    reset,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const { id } = useParams(); 
+  const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    MaSP: "",
-    MaTH: "",
-    MaDM: "",
-    MaKM: "",
-    TenSP: "",
-    GiaSP: "",
-    SoLuong: "",
-    HinhAnh1: "",
-    BoNhoTrong: "",
-    Mau: "",
-    ManHinh: "",
-    MoTa: "",
-  });
-
-  const [error, setError] = useState(""); // Dùng để hiển thị lỗi tổng quan
-  const [loading, setLoading] = useState(false); // Dùng để hiển thị trạng thái loading
-  const [formErrors, setFormErrors] = useState({}); // Để lưu lỗi cho từng trường
-
-  // Lấy dữ liệu sản phẩm khi component được render
   useEffect(() => {
-    setLoading(true);
-    axios
-      .get(`http://localhost:5000/api/sanphams/${id}`)
-      .then((response) => {
-        setFormData(response.data.data); // Gán dữ liệu lấy được vào formData
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError("Không thể tải dữ liệu sản phẩm.");
-        setLoading(false);
-      });
-  }, [id]);
+    (async () => {
+      try {
+        const [productRes, categoryRes, discountRes, brandRes] = await Promise.all([
+          axios.get(`${API_URL_Products}/${id}`), 
+          axios.get(API_URL_Categories), 
+          axios.get(API_URL_Discounts), 
+          axios.get(API_URL_Brands),
+        ]);
 
-  // Hàm xử lý thay đổi giá trị input
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    setFormErrors({ ...formErrors, [name]: "" }); // Xóa lỗi khi người dùng sửa giá trị
-  };
-
-  // Hàm kiểm tra và xác thực các trường dữ liệu
-  const validate = () => {
-    const errors = {};
-    const {
-      MaSP,
-      MaTH,
-      MaDM,
-      MaKM,
-      TenSP,
-      GiaSP,
-      SoLuong,
-      HinhAnh1,
-      BoNhoTrong,
-      Mau,
-      ManHinh,
-      MoTa,
-    } = formData;
-
-    if (!MaSP) errors.MaSP = "Mã sản phẩm là bắt buộc.";
-    if (!MaTH) errors.MaTH = "Mã thể loại là bắt buộc.";
-    if (!MaDM) errors.MaDM = "Mã danh mục là bắt buộc.";
-    if (!MaKM) errors.MaKM = "Mã khuyến mãi là bắt buộc.";
-    if (!TenSP) errors.TenSP = "Tên sản phẩm là bắt buộc.";
-    if (!GiaSP) errors.GiaSP = "Giá sản phẩm là bắt buộc.";
-    if (!SoLuong) errors.SoLuong = "Số lượng là bắt buộc.";
-    if (!HinhAnh1) errors.HinhAnh1 = "Hình ảnh là bắt buộc.";
-    if (!BoNhoTrong) errors.BoNhoTrong = "Bộ nhớ trong là bắt buộc.";
-    if (!Mau) errors.Mau = "Màu sắc là bắt buộc.";
-    if (!ManHinh) errors.ManHinh = "Màn hình là bắt buộc.";
-    if (!MoTa) errors.MoTa = "Mô tả là bắt buộc.";
-
-    return errors;
-  };
-
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
+        setCategories(categoryRes.data.data); 
+        setDiscounts(discountRes.data.data); 
+        setBrands(brandRes.data.data); 
+        reset(productRes.data.data);
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+      }
+    })();
+  }, [id, reset]);
   
-    const errors = validate();
-    setFormErrors(errors);
 
-   
-    if (Object.keys(errors).length > 0) {
-      return;
+  const onSubmit = async (data) => {
+    if (data.GiaSP1 < 0 || data.GiaSP2 < 0 || data.GiaSP3 < 0) {
+            message.error("Giá sản phẩm không được âm!");
+            return;
+          }
+    if (data.SoLuong1 < 0 || data.SoLuong2 < 0 || data.SoLuong3 < 0) {
+            message.error("Số lượng không được âm!");
+            return;
+          }      
+    try {
+      await axios.put(`${API_URL_Products}/${id}`, data);
+      message.success("Cập nhật sản phẩm thành công");
+      navigate("/products"); 
+    } catch (error) {
+      message.error("Cập nhật sản phẩm thất bại");
+      console.error("Lỗi khi cập nhật:", error.response);
     }
-
-    setLoading(true);
-    setError(""); 
-
-  
-    axios
-      .put(`http://localhost:5000/api/sanphams/${id}`, formData)
-      .then((response) => {
-        alert("Cập nhật sản phẩm thành công!");
-        navigate("/ProductsList"); 
-      })
-      .catch((err) => {
-        setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
-        setLoading(false);
-      });
   };
 
   return (
-    <div className="container-fluid">
-   
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Cập Nhật Sản Phẩm</h1>
-        <button className="btn btn-secondary" onClick={() => navigate("/ProductsList")}>
-          Quay Lại
-        </button>
-      </div>
-
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">Cập Nhật Thông Tin Sản Phẩm</h6>
-        </div>
-        <div className="card-body">
-        
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
-
-        
-          <form onSubmit={handleSubmit}>
-          
-            {[
-              { label: "Mã Thể Loại", name: "MaTH" },
-              { label: "Mã Danh Mục", name: "MaDM" },
-              { label: "Mã Khuyến Mãi", name: "MaKM" },
-              { label: "Tên Sản Phẩm", name: "TenSP" },
-              { label: "Giá Sản Phẩm", name: "GiaSP", type: "number" },
-              { label: "Số Lượng", name: "SoLuong", type: "number" },
-              { label: "Hình Ảnh", name: "HinhAnh1" },
-              { label: "Bộ Nhớ Trong", name: "BoNhoTrong" },
-              { label: "Màu Sắc", name: "Mau" },
-              { label: "Màn Hình", name: "ManHinh" },
-            ].map((field, index) => (
-              <div className="mb-3" key={index}>
-                <label htmlFor={field.name} className="form-label">
-                  {field.label}
-                </label>
-                <input
-                  type={field.type || "text"}
-                  className="form-control"
-                  id={field.name}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                />
-                {formErrors[field.name] && (
-                  <div className="text-danger">{formErrors[field.name]}</div>
-                )}
+          <div>
+            <h1 className="h3 mb-2 text-gray-800">Thêm Sản Phẩm</h1>
+            <div className="card shadow mb-4">
+              <div className="card-header py-3">
+                <h6 className="m-0 font-weight-bold text-primary">Thêm sản phẩm</h6>
               </div>
-            ))}
-            <div className="mb-3">
-              <label htmlFor="MoTa" className="form-label">Mô Tả</label>
-              <textarea
-                className="form-control"
-                id="MoTa"
-                name="MoTa"
-                value={formData.MoTa}
-                onChange={handleChange}
-              ></textarea>
-              {formErrors.MoTa && (
-                <div className="text-danger">{formErrors.MoTa}</div>
-              )}
-            </div>
+              <div className="card-body">
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  {/* Mã sản phẩm */}
+                  <div className="form-group">
+                    <label htmlFor="MaSP">Mã sản phẩm</label>
+                    <input type="text" className="form-control" id="MaSP" {...register("MaSP", { required: "Mã sản phẩm không được bỏ trống" })} />
+                    <small className="text-danger">{errors.MaSP?.message}</small>
+                  </div>
+      
+                  {/* Tên sản phẩm */}
+                  <div className="form-group">
+                    <label htmlFor="TenSP">Tên sản phẩm 1</label>
+                    <input type="text" className="form-control" id="TenSP1" {...register("TenSP1", { required: "Tên sản phẩm không được bỏ trống" })} />
+                    <small className="text-danger">{errors.TenSP?.message}</small>
+                  </div>
 
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang Lưu...
-                </>
-              ) : (
-                "Cập Nhật Sản Phẩm"
-              )}
-            </button>
-          </form>
-          
-        </div>
-      </div>
-    
-    </div>
-  );
-};
+                  <div className="form-group">
+                    <label htmlFor="TenSP">Tên sản phẩm 2</label>
+                    <input type="text" className="form-control" id="TenSP2" {...register("TenSP2", { required: "Tên sản phẩm không được bỏ trống" })} />
+                    <small className="text-danger">{errors.TenSP?.message}</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="TenSP">Tên sản phẩm 3</label>
+                    <input type="text" className="form-control" id="TenSP3" {...register("TenSP3", { required: "Tên sản phẩm không được bỏ trống" })} />
+                    <small className="text-danger">{errors.TenSP?.message}</small>
+                  </div>
+      
+                  {/* Giá sản phẩm */}
+                  <div className="form-group">
+                    <label htmlFor="GiaSP1">Giá cho Hình 1</label>
+                    <input type="number" className="form-control" id="GiaSP1" {...register("GiaSP1", { required: "Giá không được bỏ trống" })} />
+                    <small className="text-danger">{errors.GiaSP1?.message}</small>
+                  </div>
+      
+                  <div className="form-group">
+                    <label htmlFor="GiaSP2">Giá cho Hình 2</label>
+                    <input type="number" className="form-control" id="GiaSP2" {...register("GiaSP2", { required: "Giá không được bỏ trống" })} />
+                    <small className="text-danger">{errors.GiaSP2?.message}</small>
+                  </div>
+      
+                  <div className="form-group">
+                    <label htmlFor="GiaSP3">Giá cho Hình 3</label>
+                    <input type="number" className="form-control" id="GiaSP3" {...register("GiaSP3", { required: "Giá không được bỏ trống" })} />
+                    <small className="text-danger">{errors.GiaSP3?.message}</small>
+                  </div>
+      
+                  {/* Số lượng */}
+                  <div className="form-group">
+                    <label htmlFor="SoLuong">Số lượng 1</label>
+                    <input type="number" className="form-control" id="SoLuong1" {...register("SoLuong1",{ required: "Giá không được bỏ trống" })} />
+                  </div>
+  
+                  <div className="form-group">
+                    <label htmlFor="SoLuong">Số lượng 2</label>
+                    <input type="number" className="form-control" id="SoLuong2" {...register("SoLuong2",{ required: "Giá không được bỏ trống" })} />
+                  </div>
+  
+                  <div className="form-group">
+                    <label htmlFor="SoLuong">Số lượng 3</label>
+                    <input type="number" className="form-control" id="SoLuong3" {...register("SoLuong3",{ required: "Giá không được bỏ trống" })} />
+                  </div>
+      
+                  {/* Mô tả sản phẩm */}
+                  <div className="form-group">
+                    <label htmlFor="ThongTinChiTiet">Thông tin chi tiết</label>
+                    <textarea className="form-control" id="ThongTinChiTiet" {...register("ThongTinChiTiet", { required: "Thông tin chi tiết không được bỏ trống" })} />
+                    <small className="text-danger">{errors.ThongTinChiTiet?.message}</small>
+                  </div>
+      
+                  {/* Ảnh sản phẩm */}
+                  <div className="form-group">
+                    <label htmlFor="HinhAnh1">Hình ảnh 1</label>
+                    <input type="text" className="form-control" id="HinhAnh1" {...register("HinhAnh1", { required: "Hình ảnh không được bỏ trống" })} />
+                    <small className="text-danger">{errors.HinhAnh1?.message}</small>
+                  </div>
+      
+                  <div className="form-group">
+                    <label htmlFor="HinhAnh2">Hình ảnh 2</label>
+                    <input type="text" className="form-control" id="HinhAnh2" {...register("HinhAnh2")} />
+                  </div>
+      
+                  <div className="form-group">
+                    <label htmlFor="HinhAnh3">Hình ảnh 3</label>
+                    <input type="text" className="form-control" id="HinhAnh3" {...register("HinhAnh3")} />
+                  </div>
+      
+                  {/* Danh mục */}
+                  <div className="form-group">
+                    <label htmlFor="MaDM">Danh mục</label>
+                    <select className="form-control" id="MaDM" {...register("MaDM", { required: "Danh mục không được bỏ trống" })}>
+                      <option value="">Vui lòng chọn danh mục</option>
+                      {categories.map((option) => (
+                        <option key={option._id} value={option._id}>{option.TenDM}</option>
+                      ))}
+                    </select>
+                    <small className="text-danger">{errors.MaDM?.message}</small>
+                  </div>
+      
+                  {/* Thương hiệu */}
+                  <div className="form-group">
+                    <label htmlFor="MaTH">Thương hiệu</label>
+                    <select className="form-control" id="MaTH" {...register("MaTH", { required: "Thương hiệu không được bỏ trống" })}>
+                      <option value="">Vui lòng chọn thương hiệu</option>
+                      {brands.map((option) => (
+                        <option key={option._id} value={option._id}>{option.TenTH}</option>
+                      ))}
+                    </select>
+                    <small className="text-danger">{errors.MaTH?.message}</small>
+                  </div>
+      
+                  {/* Nút hành động */}
+                  <div className="">
+                    <Link to="/products" className="btn btn-primary">Quay lại</Link>
+                    <button type="submit" className="btn btn-success ml-3">Thêm</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        );
+      };
 
 export default ProductsEdit;

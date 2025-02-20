@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const DanhMucSchema = new mongoose.Schema({
-  MaDM: { type: String, required: true }, // Mã danh mục
+  MaDM: { type: String }, // Mã danh mục
   TenDM: { type: String, required: true }, // Tên danh mục
   SanPham: [
     {
