@@ -24,7 +24,7 @@ const AddPromotion = () => {
         buttons: [
           {
             label: "OK",
-            onClick: () => navigate("/vouchers"),
+            onClick: () => navigate("/admin/vouchers"),
           },
         ],
         closeOnEscape: true,
@@ -53,7 +53,7 @@ const AddPromotion = () => {
         <h1 className="h3 text-gray-800">Thêm Khuyến Mãi</h1>
         <button
           className="btn btn-secondary"
-          onClick={() => navigate("/vouchers")}
+          onClick={() => navigate("/admin/vouchers")}
         >
           Quay Lại
         </button>
