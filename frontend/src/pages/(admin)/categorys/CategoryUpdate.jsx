@@ -37,7 +37,7 @@ const CategoryUpdate = () => {
     try {
       await updateCategory(id, { TenDM: data.TenDM });
       alert("Cập nhật thành công!");
-      navigate("/categorys");
+      navigate("/admin/categorys");
     } catch (error) {
       console.error("Lỗi khi cập nhật:", error);
       alert("Cập nhật thất bại!");
@@ -71,7 +71,7 @@ const CategoryUpdate = () => {
             </div>
 
             <div className="d-flex justify-content-between">
-              <Link to="/categorys" className="btn btn-primary">
+              <Link to="/admin/categorys" className="btn btn-primary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success">

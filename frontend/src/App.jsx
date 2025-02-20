@@ -22,96 +22,117 @@ import OderList from "./pages/(admin)/orders/Oderlist";
 import Promotion from "./pages/(admin)/Promotion/Promotion";
 import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
 import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
-
+import LayoutWebsite from "./pages/(website)/LayoutWebsite";
+import "font-awesome/css/font-awesome.min.css"
+import HomePage from "./pages/(website)/HomePage";
+import ProductList from "./pages/(website)/Products/ProductList";
+import ProductDetail from "./pages/(website)/Products/ProductDetail";
 function App() {
   const configRouter = createBrowserRouter([
     {
       element: <LayoutAdmin />,
       children: [
         {
-          path: "/",
+          path: "/admin/dashboard",
           element: <DashBoard />,
         },
         {
-          path: "/categorys",
+          path: "/admin/categorys",
           element: <CategoryList />,
         },
         {
-          path: "/categorys/addcategory",
+          path: "/admin/categorys/addcategory",
           element: <CategoryAdd />,
         },
         {
-          path: "/categorys/update/:id",
+          path: "/admin/categorys/update/:id",
           element: <CategoryUpdate />,
         },
         {
-          path: "/products",
+          path: "/admin/products",
           element: <ProductsList />,
         },
         {
-          path: "/products/edit/:id",
+          path: "/admin/products/edit/:id",
           element: <ProductsEdit />,
         },
 
         {
-          path: "/products/add",
+          path: "/admin/products/add",
           element: <ProductsAdd />,
         },
         {
-          path: "/products/detail/:id",
+          path: "/admin/products/detail/:id",
           element: <ProductsDetail />,
         },
         {
-          path: "/brands",
+          path: "/admin/brands",
           element: <BrandList />,
         },
         {
-          path: "/brands/add",
+          path: "/admin/brands/add",
           element: <BrandAdd />,
         },
         {
-          path: "/brands/edit/:id",
+          path: "/admin/brands/edit/:id",
           element: <BrandEdit />,
         },
         {
-          path: "/brands/detail/:id",
+          path: "/admin/brands/detail/:id",
           element: <BrandDetail />,
         },
         {
-          path: "/accounts",
+          path: "/admin/accounts",
           element: <UserList />,
         },
         {
-          path: "/accounts/:id",
+          path: "/admin/accounts/:id",
           element: <UserDetails />,
         },
         {
-          path: "/comments",
+          path: "/admin/comments",
           element: <AdminListComment />,
         },
         {
-          path: "/comments/:id",
+          path: "/admin/comments/:id",
           element: <AdminDetailComment />,
         },
         {
-          path: "/orders",
+          path: "/admin/orders",
           element: <OderList />,
         },
         {
-          path: "/orders/:id",
+          path: "/admin/orders/:id",
           element: <OderDetail />,
         },
         {
-          path: "/vouchers",
+          path: "/admin/vouchers",
           element: <Promotion />,
         },
         {
-          path: "/vouchers/add",
+          path: "/admin/vouchers/add",
           element: <AddPromotion />,
         },
         {
-          path: "/vouchers/edit/:id",
+          path: "/admin/vouchers/edit/:id",
           element: <UpdatePromotion />,
+        },
+      ],
+    },
+    {
+      element: <LayoutWebsite />,
+      children: [
+        {
+          path: "/",
+          element: <HomePage/>,
+        },
+        {
+          path: "/products",
+          element: <ProductList/>,
+        },
+        {
+          path: "/products/product_detail/1",
+          element: <ProductDetail/>,
         },
       ],
     },

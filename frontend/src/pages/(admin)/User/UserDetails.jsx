@@ -83,7 +83,7 @@ const UserDetails = () => {
       </div>
       <div className="mt-6">
         <button
-          onClick={() => navigate("/accounts")}
+          onClick={() => navigate("/admin/accounts")}
           className="btn btn-primary ml-2"
         >
           Back to User List

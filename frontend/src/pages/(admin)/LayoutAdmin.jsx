@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import SideBar from "./components/SideBar";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
-
+import './../../css/sb-admin-2.css'
 const LayoutAdmin = () => {
   return (
     <>

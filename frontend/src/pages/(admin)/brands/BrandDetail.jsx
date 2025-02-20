@@ -60,7 +60,7 @@ const BrandDetail = () => {
                 ))
               : "Không có danh mục"}
           </p>
-          <Link to="/brands" className="btn btn-primary mt-3">
+          <Link to="/admin/brands" className="btn btn-primary mt-3">
             Quay lại danh sách
           </Link>
         </div>

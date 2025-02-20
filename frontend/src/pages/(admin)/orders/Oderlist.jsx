@@ -66,7 +66,7 @@ const OrderList = () => {
                       </td>
                       <td>
                         <Link
-                          to={`/orders/${hoaDon._id}`}
+                          to={`/admin/orders/${hoaDon._id}`}
                           className="btn btn-info ml-2"
                         >
                           👁️Xem chi tiết

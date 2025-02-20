@@ -22,7 +22,7 @@ const BrandAdd = () => {
       // Gửi dữ liệu đến API thêm mới thương hiệu
       await createBrand(data);
       message.success("Thêm thương hiệu thành công!");
-      navigate("/brands"); // Chuyển hướng sau khi thêm thành công
+      navigate("/admin/brands"); // Chuyển hướng sau khi thêm thành công
     } catch (error) {
       message.error("Thêm thương hiệu thất bại!");
       console.error(error.response); // Log lỗi để debug
@@ -107,7 +107,7 @@ const BrandAdd = () => {
               <small className="text-danger">{errors.MaDM?.message}</small>
             </div>
             <div className="">
-              <Link to="/brands" className="btn btn-primary">
+              <Link to="/admin/brands" className="btn btn-primary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success ml-3">
