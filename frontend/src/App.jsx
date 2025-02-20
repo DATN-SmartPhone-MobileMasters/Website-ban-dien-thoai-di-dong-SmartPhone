@@ -27,6 +27,8 @@ import "font-awesome/css/font-awesome.min.css"
 import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
+import SignupForm from "./pages/(website)/User/signup-form";
+import LoginForm from "./pages/(website)/User/login-form";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -133,6 +135,14 @@ function App() {
         {
           path: "/products/product_detail/1",
           element: <ProductDetail/>,
+        },
+        {
+          path: "/login",
+          element: <LoginForm />,
+        },
+        {
+          path: "/signup",
+          element: <SignupForm />,
         },
       ],
     },
