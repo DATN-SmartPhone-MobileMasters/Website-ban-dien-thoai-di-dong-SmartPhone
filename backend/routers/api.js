@@ -32,7 +32,6 @@ apiRouter.post("/chitiethoadons", ChiTietHoaDonControl.apiCreate); // Thêm mớ
 apiRouter.put("/chitiethoadons/:id", ChiTietHoaDonControl.apiUpdate); // Cập nhật
 apiRouter.delete("/chitiethoadons/:id", ChiTietHoaDonControl.apiDelete); // Xóa
 
-
 const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
 apiRouter.get("/sanphams", SanPhamControl.apiList); //lấy danh sách bản ghi
