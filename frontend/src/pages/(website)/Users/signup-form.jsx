@@ -38,7 +38,7 @@ const SignupForm = () => {
       setIsLoading(true);
       const hashedPassword = await bcrypt.hash(formData.password, 10);
 
-      const response = await axios.post('http://localhost:5000/api/users/signup', {
+      const response = await axios.post('http://localhost:5000/users', {
         HoVaTen: formData.name,
         DienThoai: formData.phone,
         Email: formData.email,
