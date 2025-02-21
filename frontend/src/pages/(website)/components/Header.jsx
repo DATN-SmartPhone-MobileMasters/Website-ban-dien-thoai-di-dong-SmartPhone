@@ -92,7 +92,7 @@ const Header = () => {
                     </li>
                     <li>
                       <Link
-                        to="/register"
+                        to="/signup"
                         className="flex items-center gap-2 px-4 py-2 hover:bg-green-500 hover:text-white transition"
                       >
                         <FaUserPlus />
