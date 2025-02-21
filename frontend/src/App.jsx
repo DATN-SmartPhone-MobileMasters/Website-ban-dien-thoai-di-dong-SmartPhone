@@ -137,11 +137,11 @@ function App() {
           element: <ProductDetail/>,
         },
        {
-          path: "/account/login",
+          path: "/login",
           element: <LoginForm />,
         },
         {
-          path: "/account/signup",
+          path: "/signup",
           element: <SignupForm />,
         },
       ],
