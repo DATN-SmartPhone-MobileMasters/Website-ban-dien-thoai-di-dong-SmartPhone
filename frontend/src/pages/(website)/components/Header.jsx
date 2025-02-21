@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaSearch, FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaUser, FaUserPlus } from "react-icons/fa";
@@ -6,7 +6,27 @@ import { FaSearch, FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaUser, FaUserPlus
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const isLoggedIn = false;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    const storedUserData = localStorage.getItem("userData");
+
+    if (authToken && storedUserData) {
+      setIsLoggedIn(true);
+      setUserData(JSON.parse(storedUserData));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    setIsLoggedIn(false);
+    setUserData(null);
+    window.location.href = "/"; 
+  };
+
   return (
     <header className="shadow-md bg-white">
       {/* Top Bar */}
@@ -42,6 +62,7 @@ const Header = () => {
           </div>
         </div>
 
+        {/* User Dropdown */}
         <div
           className="relative cursor-pointer"
           onMouseEnter={() => setIsDropdownOpen(true)}
@@ -58,22 +79,28 @@ const Header = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="absolute right-0  w-56 bg-white shadow-lg rounded-lg overflow-hidden z-10 border border-gray-200"
+              className="absolute right-0 w-56 bg-white shadow-lg rounded-lg overflow-hidden z-10 border border-gray-200"
             >
               <ul className="py-2 text-gray-700">
                 {isLoggedIn ? (
                   <>
+                  <li>
+                     {userData.HoVaTen ||"" }
+                    </li>
                     <li>
                       <Link
                         to="/account"
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
                       >
-                        <FaUser />
-                        Tài khoản của tôi
+                        <FaUser /> 
+                        Thông Tin Tài Khoản
                       </Link>
                     </li>
                     <li>
-                      <button className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white transition">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white transition"
+                      >
                         <FaSignOutAlt />
                         Đăng xuất
                       </button>
@@ -105,6 +132,8 @@ const Header = () => {
             </motion.div>
           )}
         </div>
+
+        {/* Cart Icon */}
         <Link
           to="/cart"
           className="relative text-gray-600 hover:text-blue-600 ml-3"
