@@ -53,8 +53,8 @@ const UsersControl = new UsersController();
 apiRouter.get("/users", UsersControl.apiList); 
 apiRouter.get("/users/:id", UsersControl.apiDetail); 
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
-apiRouter.post("/users", UsersControl.apiSignUp);
-apiRouter.post("/users", UsersControl.apiLogin);
+apiRouter.post("/users/signup", UsersControl.apiSignUp);
+apiRouter.post("/users/login", UsersControl.apiLogin);
 apiRouter.put("/users/:id", UsersControl.apiUpdate);
 
 const CommentControl = new CommentController();
