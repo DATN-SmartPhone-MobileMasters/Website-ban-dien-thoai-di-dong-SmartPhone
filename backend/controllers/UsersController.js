@@ -1,6 +1,6 @@
 import Users from "../models/Users.js";
 import Joi from 'joi';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken';
 
 const signUpSchema = Joi.object({
