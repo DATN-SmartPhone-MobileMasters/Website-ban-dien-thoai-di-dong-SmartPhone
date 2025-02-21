@@ -127,7 +127,7 @@ const SignupForm = () => {
               {isLoading ? 'Đang đăng ký...' : 'ĐĂNG KÝ'}
             </button>
             <div className="mt-4 text-center">
-              <p>Bạn đã có tài khoản? <a href="/account/login" className="text-blue-500 hover:underline">Đăng Nhập</a></p>
+              <p>Bạn đã có tài khoản? <a href="/login" className="text-blue-500 hover:underline">Đăng Nhập</a></p>
             </div>
           </form>
         </div>
