@@ -25,7 +25,7 @@ const LoginForm = () => {
 
     try {
       setIsLoading(true);
-      const response = await axios.post('http://localhost:5000/users/', {
+      const response = await axios.post('http://localhost:5000/api/users/', {
         Email: formData.email,
         MatKhau: formData.password
       });
