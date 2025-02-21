@@ -121,8 +121,8 @@ const LoginForm = () => {
               {isLoading ? 'Đang đăng nhập...' : 'ĐĂNG NHẬP'}
             </button>
             <div className="flex justify-evenly m-4 ">
-              <Link to="/account/signup" className="text-blue-500 hover:underline ">Đăng ký</Link>
-              <Link to="/account/forgot-password" className="text-blue-500 hover:underline">Quên mật khẩu</Link>
+              <Link to="/signup" className="text-blue-500 hover:underline ">Đăng ký</Link>
+              <Link to="/forgot-password" className="text-blue-500 hover:underline">Quên mật khẩu</Link>
             </div>
           </form>
           <div className="mt-6">
