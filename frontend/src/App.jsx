@@ -28,6 +28,8 @@ import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
 import AboutList from "./pages/(website)/about/AboutList";
+import SignupForm from "./pages/(website)/User/signup-form";
+import LoginForm from "./pages/(website)/User/login-form";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -138,6 +140,14 @@ function App() {
         {
           path: "/about",
           element: <AboutList />,
+        },
+        {
+          path: "/login",
+          element: <LoginForm />,
+        },
+        {
+          path: "/signup",
+          element: <SignupForm />,
         },
       ],
     },
