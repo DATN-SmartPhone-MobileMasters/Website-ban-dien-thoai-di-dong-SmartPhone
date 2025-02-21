@@ -135,7 +135,7 @@ const LoginForm = () => {
         <div className="w-1/2 p-8">
           <div className="mb-8">
             <div className="flex items-center">
-              <img src="./src/./img/feature_icon_1.png" className="w-12 mr-4" />
+              <img src="/src/./img/feature_icon_1.png" className="w-12 mr-4" />
               <div>
                 <h4 className="text-lg font-bold text-black">Mức độ uy tín!</h4>
                 <p className="text-sm text-gray-600">Được đánh giá an toàn, tin cậy hàng đầu Việt Nam với nhiều chính sách hỗ trợ chăm sóc khách hàng.</p>
@@ -144,7 +144,7 @@ const LoginForm = () => {
           </div>
           <div className="mb-8">
             <div className="flex items-center">
-              <img src="./src/./img/feature_icon_2.png" className="w-12 mr-4" />
+              <img src="/src/./img/feature_icon_2.png" className="w-12 mr-4" />
               <div>
                 <h4 className="text-lg font-bold text-black">Thanh toán tức thì!</h4>
                 <p className="text-sm text-gray-600">Thanh toán mọi nơi mọi lúc, giao dịch nhanh gọn, bảo đảm, an toàn, với liên kết 90% ngân hàng, ví tiền, VISA trong toàn quốc!</p>
@@ -153,7 +153,7 @@ const LoginForm = () => {
           </div>
           <div className="mb-8">
             <div className="flex items-center">
-              <img src="./src/./img/feature_icon_3.png" className="w-12 mr-4" />
+              <img src="/src/./img/feature_icon_3.png" className="w-12 mr-4" />
               <div>
                 <h4 className="text-lg font-bold text-black">Ưu đãi hấp dẫn!</h4>
                 <p className="text-sm text-gray-600">Với mong muốn làm hài lòng khách hàng, Mobistore luôn mang đến những ưu đãi cực kỳ tốt với chất lượng cao</p>
