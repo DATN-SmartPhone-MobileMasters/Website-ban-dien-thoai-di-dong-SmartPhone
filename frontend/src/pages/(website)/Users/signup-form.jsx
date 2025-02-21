@@ -51,7 +51,7 @@ const SignupForm = () => {
         buttons: [{ label: 'OK', onClick: () => navigate('/login-form') }]
       });
     } catch (err) {
-      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+      setError( 'Đăng ký thất bại. Vui lòng thử lại.');
       confirmAlert({
         title: 'Lỗi',
         message: error,
