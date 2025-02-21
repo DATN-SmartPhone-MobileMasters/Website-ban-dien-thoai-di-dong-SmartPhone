@@ -23,10 +23,11 @@ import Promotion from "./pages/(admin)/Promotion/Promotion";
 import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
 import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
 import LayoutWebsite from "./pages/(website)/LayoutWebsite";
-import "font-awesome/css/font-awesome.min.css"
+import "font-awesome/css/font-awesome.min.css";
 import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
+import AboutList from "./pages/(website)/about/AboutList";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -124,15 +125,19 @@ function App() {
       children: [
         {
           path: "/",
-          element: <HomePage/>,
+          element: <HomePage />,
         },
         {
           path: "/products",
-          element: <ProductList/>,
+          element: <ProductList />,
         },
         {
           path: "/products/product_detail/1",
-          element: <ProductDetail/>,
+          element: <ProductDetail />,
+        },
+        {
+          path: "/about",
+          element: <AboutList />,
         },
       ],
     },
