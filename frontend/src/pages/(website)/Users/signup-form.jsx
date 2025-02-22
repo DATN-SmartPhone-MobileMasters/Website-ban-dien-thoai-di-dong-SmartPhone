@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
+import { signupUsers } from '../../../service/api';
 
 const SignupForm = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    password: '',
-    re_password: ''
+    HoVaTen: '',
+    SDT: '',
+    Email: '',
+    MatKhau: '', 
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +25,7 @@ const SignupForm = () => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.re_password) {
+    if (formData.MatKhau !== formData.confirmPassword) {
       confirmAlert({
         title: 'Lỗi',
         message: 'Mật khẩu xác nhận không khớp',
@@ -36,22 +36,22 @@ const SignupForm = () => {
 
     try {
       setIsLoading(true);
-      const hashedPassword = await bcrypt.hash(formData.password, 10);
-
-      const response = await axios.post('http://localhost:5000/api/users', {
-        HoVaTen: formData.name,
-        DienThoai: formData.phone,
-        Email: formData.email,
-        MatKhau: hashedPassword
-      });
-
+ 
+      const userData = {
+        HoVaTen: formData.HoVaTen,
+        SDT: formData.SDT,
+        Email: formData.Email,
+        MatKhau: formData.MatKhau,
+        confirmPassword: formData.confirmPassword
+      };
+      const response = await signupUsers(userData);
       confirmAlert({
         title: 'Thành công',
         message: 'Đăng ký thành công!',
-        buttons: [{ label: 'OK', onClick: () => navigate('/login-form') }]
+        buttons: [{ label: 'OK', onClick: () => navigate('/login') }]
       });
-    } catch (err) {
-      setError( 'Đăng ký thất bại. Vui lòng thử lại.');
+    } catch (e) {
+      setError('Đăng ký thất bại. Vui lòng thử lại.');
       confirmAlert({
         title: 'Lỗi',
         message: error,
@@ -76,47 +76,52 @@ const SignupForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <input
-                name="name"
+                name="HoVaTen"
                 type="text"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Họ và tên"
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-6">
               <input
-                name="phone"
-                type="number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                placeholder="Điện thoại"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-6">
-              <input
-                name="email"
+                name="SDT"
                 type="text"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                placeholder="Số điện thoại"
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-6">
+              <input
+                name="Email"
+                type="email"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Email"
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-6">
               <input
-                name="password"
+                name="MatKhau" 
                 type="password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Mật khẩu"
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-6">
               <input
-                name="re_password"
+                name="confirmPassword"
                 type="password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Xác nhận mật khẩu"
                 onChange={handleChange}
+                required
               />
             </div>
             <button
