@@ -50,8 +50,8 @@ apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
 
-apiRouter.get("/users", UsersControl.apiList); 
-apiRouter.get("/users/:id", UsersControl.apiDetail); 
+apiRouter.get("/users", UsersControl.apiList); //lấy danh sách bản ghi
+apiRouter.get("/users/:id", UsersControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
 apiRouter.post("/users/signup", UsersControl.apiSignUp);
 apiRouter.post("/users/login", UsersControl.apiLogin);
