@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { Rate } from "antd";
+
 const ProductDetail = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -218,16 +220,87 @@ const ProductDetail = () => {
                 )}
 
                 {activeSection === "rating" && (
-                  <div id="rating">
-                    <div className="box container-rating-review">
-                      <h3 className="text-2xl font-semibold">
-                        Đánh giá và nhận xét
-                      </h3>
-                      {/* Add ratings and reviews content here */}
-                      <p>
-                        Đây là phần đánh giá và nhận xét của người dùng về sản
-                        phẩm.
-                      </p>
+                  <div className="box container-rating-review p-4 border rounded-lg bg-white shadow-md">
+                    <h3 className="text-2xl font-semibold mb-4">
+                      Đánh giá và nhận xét
+                    </h3>
+
+                    {/* Hiển thị đánh giá tổng thể */}
+                    <div className="overall-rating flex items-center mb-4">
+                      <span className="rating-number text-3xl font-bold mr-2">
+                        4
+                      </span>
+                      <Rate allowHalf value={4} disabled />
+                      <span className="total-reviews text-gray-600 ml-2">
+                        12 nhận xét
+                      </span>
+                    </div>
+
+                    {/* Phân loại đánh giá */}
+                    <div className="rating-breakdown mb-4">
+                      <div className="rating-row flex items-center mb-2">
+                        <Rate allowHalf value={5} disabled />
+                        <span className="count text-gray-600 ml-2">12</span>
+                      </div>
+                      <div className="rating-row flex items-center mb-2">
+                        <Rate allowHalf value={4} disabled />
+                        <span className="count text-gray-600 ml-2">0</span>
+                      </div>
+                      <div className="rating-row flex items-center mb-2">
+                        <Rate allowHalf value={3} disabled />
+                        <span className="count text-gray-600 ml-2">0</span>
+                      </div>
+                      <div className="rating-row flex items-center mb-2">
+                        <Rate allowHalf value={2} disabled />
+                        <span className="count text-gray-600 ml-2">0</span>
+                      </div>
+                      <div className="rating-row flex items-center mb-2">
+                        <Rate allowHalf value={1} disabled />
+                        <span className="count text-gray-600 ml-2">0</span>
+                      </div>
+                    </div>
+
+                    {/* Danh sách nhận xét */}
+                    <div className="reviews">
+                      <div className="review p-4 mb-4 border rounded-lg bg-gray-50 shadow-sm">
+                        <div className="review-header flex items-center mb-2">
+                          <span className="reviewer-name font-bold mr-2">
+                            Nika Nguyen
+                          </span>
+                          <Rate allowHalf value={4} disabled />
+                        </div>
+                        <p className="review-text text-gray-600">
+                          Giao hàng siêu đúng hẹn, hàng cũng được đóng gói cẩn
+                          thận. Hiện tại mình xài được vài bữa thì không bị vấn
+                          đề gì. Hàng của shopdunk thì không lo về chất lượng.
+                        </p>
+                      </div>
+                      <div className="review p-4 mb-4 border rounded-lg bg-gray-50 shadow-sm">
+                        <div className="review-header flex items-center mb-2">
+                          <span className="reviewer-name font-bold mr-2">
+                            Lưu Tee
+                          </span>
+                          <Rate allowHalf value={4} disabled />
+                        </div>
+                        <p className="review-text text-gray-600">
+                          Mặc dù vận chuyển lâu do lỗi, nhưng shop vẫn hỗ trợ
+                          mình rất nhiệt tình.
+                        </p>
+                      </div>
+                      <div className="review p-4 mb-4 border rounded-lg bg-gray-50 shadow-sm">
+                        <div className="review-header flex items-center mb-2">
+                          <span className="reviewer-name font-bold mr-2">
+                            William Cassidy
+                          </span>
+                          <Rate allowHalf value={5} disabled />
+                        </div>
+                        <p className="review-text text-gray-600">
+                          Sản phẩm rất tốt vì là lần đầu tôi mua trên mạng đt
+                          nên thấy khá lo lắng nhưng khi nhận dc hàng thì tôi
+                          lại thấy tốt hơn mong đợi của mình chúc Shop làm ăn
+                          mua may bán đắt.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
