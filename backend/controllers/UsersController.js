@@ -2,17 +2,7 @@ import Users from "../models/Users.js";
 import Joi from 'joi';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const signUpSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  confirmPassword: Joi.string().valid(Joi.ref('password')).required()
-});
-
-const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required()
-});
+import mongoose from "mongoose";
 
 class UsersController {
   async apiList(req, res) {
@@ -51,29 +41,48 @@ class UsersController {
   }
 
   async apiSignUp(req, res) {
+    const signUpSchema = Joi.object({
+      HoVaTen: Joi.string().required(), 
+      SDT: Joi.string().required(), 
+      Email: Joi.string().email().required(), 
+      MatKhau: Joi.string().min(6).required(), 
+      confirmPassword:  Joi.string().min(6).required(),
+    }).options({ abortEarly: false });
     try {
-      const { error } = signUpSchema.validate(req.body);
+      const { error } = signUpSchema.validate(req.body, { abortEarly: false });
       if (error) {
-        return res.status(400).json({ message: error.details[0].message });
+        const errorMessages = error.details.map((detail) => detail.message);
+        return res.status(400).json({ message: errorMessages });
       }
-      
-      const existingUser = await Users.findOne({ email: req.body.email });
+      if (req.body.confirmPassword !== req.body.MatKhau) {
+        return res.status(400).json({ message: 'Mật khẩu và xác nhận mật khẩu không khớp' });
+      }
+      const existingUser = await Users.findOne({ Email: req.body.Email });
       if (existingUser) {
         return res.status(400).json({ message: 'Email đã tồn tại' });
       }
 
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
+      const hashedPassword = await bcrypt.hash(req.body.MatKhau, 10);
       const newUser = new Users({
-        ...req.body,
-        password: hashedPassword
+        MaND: new mongoose.Types.ObjectId().toString(),
+        HoVaTen: req.body.HoVaTen,
+        GioiTinh:'Nam',
+        SDT: req.body.SDT,
+        Email: req.body.Email,
+        DiaChi:'',
+        TaiKhoan:'',
+        MatKhau: hashedPassword, 
+        MaQuyen: 0,
+        TrangThai: 1 
       });
-
+  
+      // Save the user to the database
       const savedUser = await newUser.save();
-      
+  
+      // Return success response
       res.status(201).json({
         id: savedUser._id,
-        email: savedUser.email
+        Email: savedUser.Email
       });
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -81,33 +90,37 @@ class UsersController {
   }
   
   async apiLogin(req, res) {
-
+    const loginSchema = Joi.object({
+      Email: Joi.string().required(),
+      MatKhau: Joi.string().required()
+    }).options({ abortEarly: false });
+    
     try {
-      const { error } = loginSchema.validate(req.body);
+      const { error } = loginSchema.validate(req.body, { abortEarly: false });
       if (error) {
         return res.status(400).json({ message: error.details[0].message });
       }
 
-      const user = await Users.findOne({ email: req.body.email });
+      const user = await Users.findOne({ Email: req.body.Email });
       if (!user) {
         return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
       }
 
-      const validPassword = await bcrypt.compare(req.body.password, user.password);
+      const validPassword = await bcrypt.compare(req.body.MatKhau, user.MatKhau);
       if (!validPassword) {
         return res.status(401).json({ message: 'Mật khẩu không chính xác' });
       }
 
       const token = jwt.sign(
         { userId: user._id },
-        process.env.JWT_SECRET || 'your_jwt_secret',
+        process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
 
       res.json({
         user: {
           id: user._id,
-          email: user.email
+          Email: user.Email
         },
         token
       });
@@ -115,6 +128,7 @@ class UsersController {
       res.status(500).json({ message: error.message });
     }
   }
+
   async apiUpdate(req, res) {
     try {
       const user = await Users.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -130,4 +144,3 @@ class UsersController {
 }
 
 export default UsersController;
-
