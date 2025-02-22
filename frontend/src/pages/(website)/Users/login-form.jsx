@@ -27,7 +27,6 @@ const LoginForm = () => {
       setIsLoading(true);
       const response = await loginUsers(formData);
 
-      // Successful login
       if (response.data.token) {
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
@@ -35,7 +34,15 @@ const LoginForm = () => {
         confirmAlert({
           title: 'Thành công',
           message: 'Đăng nhập thành công!',
-          buttons: [{ label: 'OK', onClick: () => navigate('/') }]
+          buttons: [
+            {
+              label: 'OK',
+              onClick: () => {
+                navigate('/'); 
+                window.location.reload(); 
+              },
+            },
+          ],
         });
       }
     } catch (e) {
