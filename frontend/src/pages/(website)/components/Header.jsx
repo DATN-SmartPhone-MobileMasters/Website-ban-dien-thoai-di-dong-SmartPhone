@@ -19,6 +19,7 @@ const Header = () => {
     }
   }, []);
 
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
@@ -68,10 +69,18 @@ const Header = () => {
           onMouseEnter={() => setIsDropdownOpen(true)}
           onMouseLeave={() => setIsDropdownOpen(false)}
         >
-          <FaUser
-            size={22}
-            className="text-gray-600 hover:text-blue-600 transition duration-200"
-          />
+          {isLoggedIn ? (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 hover:text-blue-600 transition duration-200">
+                {userData?.Email}
+              </span>
+            </div>
+          ) : (
+            <FaUser
+              size={22}
+              className="text-gray-600 hover:text-blue-600 transition duration-200"
+            />
+          )}
 
           {isDropdownOpen && (
             <motion.div
@@ -84,9 +93,6 @@ const Header = () => {
               <ul className="py-2 text-gray-700">
                 {isLoggedIn ? (
                   <>
-                  <li>
-                     {userData.HoVaTen ||"" }
-                    </li>
                     <li>
                       <Link
                         to="/account"
