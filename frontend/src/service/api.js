@@ -26,6 +26,8 @@ export const fetchCategoryById = async (id) =>
   axios.get(`${API_URL}/danhmucs/${id}`);
 
 //users
+export const loginUsers = async (data) => axios.post(`${API_URL}/users/login`,data);
+export const signupUsers = async (data) => axios.post(`${API_URL}/users/signup`,data);
 export const fetchUsers = async () => axios.get(`${API_URL}/users`);
 export const deleteUser = async (id) => axios.delete(`${API_URL}/users/${id}`);
 export const getUserById = async (id) => axios.get(`${API_URL}/users/${id}`);

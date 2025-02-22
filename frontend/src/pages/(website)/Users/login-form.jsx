@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
+import { loginUsers } from '../../../service/api';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    Email: '', 
+    MatKhau: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,41 +25,33 @@ const LoginForm = () => {
 
     try {
       setIsLoading(true);
-      const response = await axios.post('http://localhost:5000/api/users/login', {
-        Email: formData.email,
-        MatKhau: formData.password
-      });
+      const response = await loginUsers(formData);
 
-      if (response.data.success) {
-        const isPasswordValid = await bcrypt.compare(formData.password, response.data.user.MatKhau);
-
-        if (isPasswordValid) {
-          localStorage.setItem('authToken', response.data.token);
-          localStorage.setItem('userData', JSON.stringify(response.data.user));
-          confirmAlert({
-            title: 'Thành công',
-            message: 'Đăng nhập thành công!',
-            buttons: [{ label: 'OK', onClick: () => navigate('/') }]
-          });
-        } else {
-          confirmAlert({
-            title: 'Lỗi',
-            message: 'Mật khẩu không đúng',
-            buttons: [{ label: 'OK', onClick: () => {} }]
-          });
-        }
-      } else {
+      if (response.data.token) {
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('userData', JSON.stringify(response.data.user));
+        
         confirmAlert({
-          title: 'Lỗi',
-          message: 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.',
-          buttons: [{ label: 'OK', onClick: () => {} }]
+          title: 'Thành công',
+          message: 'Đăng nhập thành công!',
+          buttons: [
+            {
+              label: 'OK',
+              onClick: () => {
+                navigate('/'); 
+                window.location.reload(); 
+              },
+            },
+          ],
         });
       }
     } catch (e) {
-      setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      const errorMessage = e.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+      setError(errorMessage);
+      
       confirmAlert({
         title: 'Lỗi',
-        message: error,
+        message: errorMessage,
         buttons: [{ label: 'OK', onClick: () => {} }]
       });
     } finally {
@@ -86,10 +78,10 @@ const LoginForm = () => {
               <div className="relative">
                 <i className="absolute left-3 top-1/2 transform -translate-y-1/2 fas fa-user text-gray-400"></i>
                 <input
-                  name="email"
-                  type="text"
+                  name="Email" 
+                  type="email"
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                  placeholder="Địa chỉ email"
+                  placeholder="Tài khoản Email"
                   onChange={handleChange}
                 />
               </div>
@@ -98,7 +90,7 @@ const LoginForm = () => {
               <div className="relative">
                 <i className="absolute left-3 top-1/2 transform -translate-y-1/2 fas fa-lock text-gray-400"></i>
                 <input
-                  name="password"
+                  name="MatKhau" 
                   type={showPassword ? 'text' : 'password'}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                   placeholder="Mật khẩu"
