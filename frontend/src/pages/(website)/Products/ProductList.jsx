@@ -39,14 +39,20 @@ const ProductList = () => {
                 isOSOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
               }`}
             >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
               <li className="p-2 mt-2 border-b flex items-center">
-                <input type="checkbox" className="mr-2" /> Tất cả
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Android
+                </label>
               </li>
-              <li className="p-2 border-b flex items-center">
-                <input type="checkbox" className="mr-2" /> Android
-              </li>
-              <li className="p-2 flex items-center">
-                <input type="checkbox" className="mr-2" /> iOS
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> iOS
+                </label>
               </li>
             </ul>
           </div>
@@ -64,14 +70,20 @@ const ProductList = () => {
                 isBrandOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
               }`}
             >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
               <li className="p-2 mt-2 border-b flex items-center">
-                <input type="checkbox" className="mr-2" /> Tất cả
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Samsung
+                </label>
               </li>
-              <li className="p-2 border-b flex items-center">
-                <input type="checkbox" className="mr-2" /> Samsung
-              </li>
-              <li className="p-2 flex items-center">
-                <input type="checkbox" className="mr-2" /> Apple
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Apple
+                </label>
               </li>
             </ul>
           </div>
@@ -89,23 +101,35 @@ const ProductList = () => {
                 isPriceOpen ? "max-h-screen opacitay-100" : "max-h-0 opacity-0"
               }`}
             >
-              <li className="mt-2 p-2 border-b flex items-center">
-                <input type="checkbox" className="mr-2" /> Tất cả
+              <li className="mt-3 p-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
               </li>
-              <li className="p-2 border-b flex items-center">
-                <input type="checkbox" className="mr-2" /> Dưới 2 triệu
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Dưới 2 triệu
+                </label>
               </li>
-              <li className="p-2 flex items-center">
-                <input type="checkbox" className="mr-2" /> Từ 2 - 5 triệu
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Từ 2 - 5 triệu
+                </label>
               </li>
-              <li className="p-2 flex items-center">
-                <input type="checkbox" className="mr-2" /> Từ 5 - 15 triệu
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Từ 5 - 15 triệu
+                </label>
               </li>
-              <li className="p-2 flex items-center">
-                <input type="checkbox" className="mr-2" /> Từ 15 - 40 triệu
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Từ 15 - 40 triệu
+                </label>
               </li>
-              <li className="p-2 flex items-center">
-                <input type="checkbox" className="mr-2" /> Trên 40 triệu
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Trên 40 triệu
+                </label>
               </li>
             </ul>
           </div>
