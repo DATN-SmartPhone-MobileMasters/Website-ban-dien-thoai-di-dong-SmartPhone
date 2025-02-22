@@ -86,7 +86,7 @@ const ProductList = () => {
             </button>
             <ul
               className={`overflow-hidden transition-all duration-700 ease-in-out ${
-                isPriceOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                isPriceOpen ? "max-h-screen opacitay-100" : "max-h-0 opacity-0"
               }`}
             >
               <li className="mt-2 p-2 border-b flex items-center">
@@ -97,6 +97,15 @@ const ProductList = () => {
               </li>
               <li className="p-2 flex items-center">
                 <input type="checkbox" className="mr-2" /> Từ 2 - 5 triệu
+              </li>
+              <li className="p-2 flex items-center">
+                <input type="checkbox" className="mr-2" /> Từ 5 - 15 triệu
+              </li>
+              <li className="p-2 flex items-center">
+                <input type="checkbox" className="mr-2" /> Từ 15 - 40 triệu
+              </li>
+              <li className="p-2 flex items-center">
+                <input type="checkbox" className="mr-2" /> Trên 40 triệu
               </li>
             </ul>
           </div>
