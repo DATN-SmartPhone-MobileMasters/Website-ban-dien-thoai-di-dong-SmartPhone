@@ -5,6 +5,9 @@ const ProductList = () => {
   const [isOSOpen, setIsOSOpen] = useState(false);
   const [isBrandOpen, setIsBrandOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isBoNho, setBoNho] = useState(false);
+  const [isPin, setPin] = useState(false);
+  const [isColor, setColor] = useState(false);
 
   return (
     <div className="bg-gray-100 min-h-screen py-6">
@@ -31,7 +34,7 @@ const ProductList = () => {
               className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
               onClick={() => setIsOSOpen(!isOSOpen)}
             >
-              <span className="relative top-2">HỆ ĐIỀU HÀNH</span>{" "}
+              <span className="relative top-2 font-bold">HỆ ĐIỀU HÀNH</span>{" "}
               <span>{isOSOpen ? "-" : "+"}</span>
             </button>
             <ul
@@ -62,7 +65,7 @@ const ProductList = () => {
               className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
               onClick={() => setIsBrandOpen(!isBrandOpen)}
             >
-              <span className="relative top-2">HÃNG SẢN XUẤT</span>{" "}
+              <span className="relative top-2 font-bold">HÃNG SẢN XUẤT</span>{" "}
               <span>{isBrandOpen ? "-" : "+"}</span>
             </button>
             <ul
@@ -88,12 +91,174 @@ const ProductList = () => {
             </ul>
           </div>
 
+          {/*  */}
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setBoNho(!isBoNho)}
+            >
+              <span className="relative top-2  font-bold">BỘ NHỚ TRONG</span>{" "}
+              <span>{isBoNho ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isBoNho ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 18 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 32 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 64 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 128 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 256 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 512 GB
+                </label>
+              </li>
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 1 TB
+                </label>
+              </li>
+            </ul>
+          </div>
+          {/*  */}
+          {/*  */}
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setPin(!isPin)}
+            >
+              <span className="relative top-2  font-bold">DUNG LƯỢNG PIN</span>{" "}
+              <span>{isPin ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isPin ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 3000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 4000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 5000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 6000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 7000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 10000mAh
+                </label>
+              </li>
+            </ul>
+          </div>
+          {/*  */}
+          {/*  */}
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setColor(!isColor)}
+            >
+              <span className="relative top-2  font-bold">MÀU SẮC</span>{" "}
+              <span>{isColor ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isColor ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Đen
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Trắng
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Xanh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Đỏ
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Vàng
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tím
+                </label>
+              </li>
+            </ul>
+          </div>
+          {/*  */}
+
           <div className="mb-4 text-sm">
             <button
               className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
               onClick={() => setIsPriceOpen(!isPriceOpen)}
             >
-              <span className="relative top-2">GIÁ BÁN</span>{" "}
+              <span className="relative top-2 font-bold">GIÁ BÁN</span>{" "}
               <span>{isPriceOpen ? "-" : "+"}</span>
             </button>
             <ul
