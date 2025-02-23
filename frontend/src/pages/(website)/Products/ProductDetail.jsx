@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Rate } from "antd";
+import { Button, Rate } from "antd";
 
 const ProductDetail = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -167,7 +167,7 @@ const ProductDetail = () => {
             <div className="flex flex-wrap">
               <div className="w-full">
                 <div className="box-head scroll-nav">
-                  <div className="head-title">
+                  <div className="head-title fex space-x-4">
                     {/* Section navigation links */}
                     <Link
                       to="#product"
@@ -176,7 +176,7 @@ const ProductDetail = () => {
                       }`}
                       onClick={() => handleSectionChange("product")}
                     >
-                      Mô tả sản phẩm
+                      <Button>Mô tả sản phẩm</Button>
                     </Link>
                     <Link
                       to="#rating"
@@ -185,7 +185,7 @@ const ProductDetail = () => {
                       }`}
                       onClick={() => handleSectionChange("rating")}
                     >
-                      Đánh giá và nhận xét
+                      <Button>Đánh giá và nhận xét</Button>
                     </Link>
                     <Link
                       to="#review"
@@ -194,7 +194,7 @@ const ProductDetail = () => {
                       }`}
                       onClick={() => handleSectionChange("review")}
                     >
-                      Thêm nhận xét
+                      <Button>Thêm nhận xét</Button>
                     </Link>
                   </div>
                 </div>
