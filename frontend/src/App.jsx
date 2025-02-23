@@ -30,6 +30,7 @@ import ProductDetail from "./pages/(website)/Products/ProductDetail";
 import LoginForm from "./pages/(website)/Users/login-form";
 import SignupForm from "./pages/(website)/Users/signup-form";
 import Cart from "./pages/(website)/Cart/Cart";
+import AboutList from "./pages/(website)/about/AboutList";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -148,6 +149,10 @@ function App() {
         {
           path: "/cart",
           element: <Cart />,
+        },
+        {
+          path: "/about",
+          element: <AboutList />,
         },
       ],
     },
