@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaSearch, FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaUser, FaUserPlus } from "react-icons/fa";
+import {
+  FaSearch,
+  FaShoppingCart,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaUser,
+  FaUserPlus,
+} from "react-icons/fa";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +32,7 @@ const Header = () => {
     localStorage.removeItem("userData");
     setIsLoggedIn(false);
     setUserData(null);
-    window.location.href = "/"; 
+    window.location.href = "/";
   };
 
   return (
@@ -98,7 +105,7 @@ const Header = () => {
                         to="/account"
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
                       >
-                        <FaUser /> 
+                        <FaUser />
                         Thông Tin Tài Khoản
                       </Link>
                     </li>
