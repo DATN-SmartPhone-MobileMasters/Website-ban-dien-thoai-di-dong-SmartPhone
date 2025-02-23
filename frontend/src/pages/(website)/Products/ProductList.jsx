@@ -1,211 +1,350 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 const ProductList = () => {
+  const [isOSOpen, setIsOSOpen] = useState(false);
+  const [isBrandOpen, setIsBrandOpen] = useState(false);
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isBoNho, setBoNho] = useState(false);
+  const [isPin, setPin] = useState(false);
+  const [isColor, setColor] = useState(false);
+
   return (
-    <>
-      <div>
-        <div className="bg-gray-100 py-4">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col">
-              <div className="flex justify-between items-center">
-                <div className="flex space-x-2 text-sm text-gray-700">
-                  <Link to="/" className="hover:text-blue-600">
-                    Trang chủ
-                  </Link>
-                  <span> &gt; </span>
-                  <span>Điện thoại</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* product-list */}
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex">
-            <div className="w-full md:w-1/4 lg:w-1/4 xl:w-1/4">
-              {/* sidenav-section */}
-              <div id="cssmenu" className="space-y-6">
-                <ul className="space-y-4">
-                  <li className="has-sub">
-                    <Link to="#" className="block text-lg font-semibold">
-                      Hệ điều hành
-                    </Link>
-                    <ul className="ml-4 space-y-2">
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Tất cả
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Android
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> IOS
-                        </label>
-                      </li>
-                    </ul>
-                  </li>
-                  <li className="has-sub">
-                    <Link to="#" className="block text-lg font-semibold">
-                      Hãng sản xuất
-                    </Link>
-                    <ul className="ml-4 space-y-2">
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Tất cả
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Samsung
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Apple
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Xiaomi
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Vsmart
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> OPPO
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Vivo
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Nokia
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Huawei
-                        </label>
-                      </li>
-                    </ul>
-                  </li>
-                  <li className="has-sub">
-                    <Link to="#" className="block text-lg font-semibold">
-                      Giá Bán
-                    </Link>
-                    <ul className="ml-4 space-y-2">
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Tất cả
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Dưới 2 triệu
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Từ 2 - 5 triệu
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Từ 5 - 10 triệu
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Từ 10 - 15 triệu
-                        </label>
-                      </li>
-                      <li>
-                        <label>
-                          <input type="checkbox" /> Trên 15 triệu
-                        </label>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-              {/* /.sidenav-section */}
-            </div>
-
-            <div className="w-full md:w-3/4 lg:w-3/4 xl:w-3/4">
-              <div className="flex justify-end mb-4">
-                <form>
-                  <div className="form-group">
-                    <select name="select" className="form-control py-2 px-4 ">
-                      <option value default>
-                        Sắp xếp theo
-                      </option>
-                      <option value>Bán Chạy</option>
-                      <option value>Giá Thấp</option>
-                      <option value>Giá Cao</option>
-                    </select>
-                  </div>
-                </form>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* product */}
-                <div className="product-block border p-4 rounded-lg shadow-lg flex flex-col h-full">
-                  <div className="product-img mb-4">
-                    <Link to="/products/product_detail/1">
-                      <img
-                        src="./src/./img/product_img_1.png"
-                        alt="Google Pixel"
-                        className="w-full h-48 object-cover rounded-md"
-                      />
-                    </Link>
-                  </div>
-                  <div className="product-content flex-grow">
-                    <h5>
-                      <Link to="#" className="product-title text-lg font-semibold">
-                        Google Pixel <strong>(128GB, Black)</strong>
-                      </Link>
-                    </h5>
-                    <div className="product-meta my-2">
-                      <Link to="#" className="product-price text-lg font-semibold text-orange-500">
-                        $1100
-                      </Link>
-                      <Link to="#" className="discounted-price text-gray-500 line-through ml-2">
-                        $1400
-                      </Link>
-                      <span className="offer-price text-red-500 text-sm ml-2">
-                        20%off
-                      </span>
-                    </div>
-                  </div>
-                  <div className="shopping-btn flex space-x-4 mt-4">
-                    <Link to="#" className="product-btn btn-like text-red-500 hover:text-red-700">
-                      <i className="fa fa-heart" />
-                    </Link>
-                    <Link to="#" className="product-btn btn-cart text-blue-500 hover:text-blue-700">
-                      <i className="fa fa-shopping-cart" />
-                    </Link>
-                  </div>
-                </div>
-                {/* /.product */}
+    <div className="bg-gray-100 min-h-screen py-6">
+      <div className="bg-gray-100 py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col">
+            <div className="flex justify-between items-center">
+              <div className="flex space-x-2 text-sm text-gray-700">
+                <Link to="/" className="hover:text-blue-600">
+                  Trang chủ
+                </Link>
+                <span> &gt; </span>
+                <span>Sản Phẩm</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+      <div className="container mx-auto px-4 flex">
+        {/* Sidebar */}
+        <div className="w-1/4 bg-white p-4 rounded-lg shadow-md mt-16">
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setIsOSOpen(!isOSOpen)}
+            >
+              <span className="relative top-2 font-bold">HỆ ĐIỀU HÀNH</span>{" "}
+              <span>{isOSOpen ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isOSOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Android
+                </label>
+              </li>
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> iOS
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setIsBrandOpen(!isBrandOpen)}
+            >
+              <span className="relative top-2 font-bold">HÃNG SẢN XUẤT</span>{" "}
+              <span>{isBrandOpen ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isBrandOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Samsung
+                </label>
+              </li>
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Apple
+                </label>
+              </li>
+            </ul>
+          </div>
+
+          {/*  */}
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setBoNho(!isBoNho)}
+            >
+              <span className="relative top-2  font-bold">BỘ NHỚ TRONG</span>{" "}
+              <span>{isBoNho ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isBoNho ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 18 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 32 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 64 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 128 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 256 GB
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 512 GB
+                </label>
+              </li>
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 1 TB
+                </label>
+              </li>
+            </ul>
+          </div>
+          {/*  */}
+          {/*  */}
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setPin(!isPin)}
+            >
+              <span className="relative top-2  font-bold">DUNG LƯỢNG PIN</span>{" "}
+              <span>{isPin ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isPin ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 3000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 4000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 5000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 6000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 7000mAh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> 10000mAh
+                </label>
+              </li>
+            </ul>
+          </div>
+          {/*  */}
+          {/*  */}
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setColor(!isColor)}
+            >
+              <span className="relative top-2  font-bold">MÀU SẮC</span>{" "}
+              <span>{isColor ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isColor ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="p-2 mt-3 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Đen
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Trắng
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Xanh
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Đỏ
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Vàng
+                </label>
+              </li>
+              <li className="p-2 border-b mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tím
+                </label>
+              </li>
+            </ul>
+          </div>
+          {/*  */}
+
+          <div className="mb-4 text-sm">
+            <button
+              className="text-base font-semibold w-full text-left flex justify-between hover:text-red-500 transition-colors duration-200"
+              onClick={() => setIsPriceOpen(!isPriceOpen)}
+            >
+              <span className="relative top-2 font-bold">GIÁ BÁN</span>{" "}
+              <span>{isPriceOpen ? "-" : "+"}</span>
+            </button>
+            <ul
+              className={`overflow-hidden transition-all duration-700 ease-in-out ${
+                isPriceOpen ? "max-h-screen opacitay-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <li className="mt-3 p-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Tất cả
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Dưới 2 triệu
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Từ 2 - 5 triệu
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Từ 5 - 15 triệu
+                </label>
+              </li>
+              <li className="p-2 mt-2 border-b flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Từ 15 - 40 triệu
+                </label>
+              </li>
+              <li className="p-2 mt-2 flex items-center">
+                <label className="flex-grow">
+                  <input type="checkbox" className="mr-2" /> Trên 40 triệu
+                </label>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Product List */}
+        <div className="w-3/4 pl-6">
+          <div className="flex justify-end mb-4">
+            <select className="p-2 border rounded text-sm">
+              <option>Sắp xếp theo</option>
+              <option>Bán chạy</option>
+              <option>Giá thấp</option>
+              <option>Giá cao</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="border p-4 rounded-lg shadow-lg bg-white h-auto flex flex-col items-center">
+              <div className="product-img mb-4 w-full h-60 flex justify-center items-center">
+                <Link to="/products/product_detail/1">
+                  <img
+                    src="./src/./img/product_img_1.png"
+                    alt="Google Pixel"
+                    className="object-cover rounded-md max-h-full"
+                  />
+                </Link>
+              </div>
+              <h5 className="text-sm text-center">
+                <Link to="#" className="font-semibold">
+                  Google Pixel <strong>(128GB, Black)</strong>
+                </Link>
+              </h5>
+              <div className="my-2 text-sm text-center">
+                <span className="font-semibold text-orange-500">$1100</span>
+                <span className="text-gray-500 line-through ml-2">$1400</span>
+                <span className="text-red-500 text-sm ml-2">20% off</span>
+              </div>
+              <div className="flex space-x-4 mt-4">
+                <button className="text-red-500 hover:text-red-700">
+                  <i className="fa fa-heart" />
+                </button>
+                <button className="text-blue-500 hover:text-blue-700">
+                  <i className="fa fa-shopping-cart" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

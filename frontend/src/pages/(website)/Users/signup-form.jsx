@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+import bcrypt from 'bcryptjs';
+import { signupUsers } from '../../../service/api';
 
 const SignupForm = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    password: '',
-    re_password: ''
+    HoVaTen: '',
+    SDT: '',
+    Email: '',
+    MatKhau: '', 
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,22 +25,38 @@ const SignupForm = () => {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.re_password) {
-      setError('Mật khẩu xác nhận không khớp');
+    if (formData.MatKhau !== formData.confirmPassword) {
+      confirmAlert({
+        title: 'Lỗi',
+        message: 'Mật khẩu xác nhận không khớp',
+        buttons: [{ label: 'OK', onClick: () => {} }]
+      });
       return;
     }
 
     try {
       setIsLoading(true);
-      await axios.post('http://localhost:5000/api/users/signup', {
-        HoVaTen: formData.name,
-        DienThoai: formData.phone,
-        Email: formData.email,
-        MatKhau: formData.password
+ 
+      const userData = {
+        HoVaTen: formData.HoVaTen,
+        SDT: formData.SDT,
+        Email: formData.Email,
+        MatKhau: formData.MatKhau,
+        confirmPassword: formData.confirmPassword
+      };
+      const response = await signupUsers(userData);
+      confirmAlert({
+        title: 'Thành công',
+        message: 'Đăng ký thành công!',
+        buttons: [{ label: 'OK', onClick: () => navigate('/login') }]
       });
-      navigate('/login-form');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } catch (e) {
+      setError('Đăng ký thất bại. Vui lòng thử lại.');
+      confirmAlert({
+        title: 'Lỗi',
+        message: error,
+        buttons: [{ label: 'OK', onClick: () => {} }]
+      });
     } finally {
       setIsLoading(false);
     }
@@ -57,47 +76,52 @@ const SignupForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <input
-                name="name"
+                name="HoVaTen"
                 type="text"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Họ và tên"
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-6">
               <input
-                name="phone"
-                type="number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                placeholder="Điện thoại"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-6">
-              <input
-                name="email"
+                name="SDT"
                 type="text"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                placeholder="Số điện thoại"
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-6">
+              <input
+                name="Email"
+                type="email"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Email"
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-6">
               <input
-                name="password"
+                name="MatKhau" 
                 type="password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Mật khẩu"
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-6">
               <input
-                name="re_password"
+                name="confirmPassword"
                 type="password"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                 placeholder="Xác nhận mật khẩu"
                 onChange={handleChange}
+                required
               />
             </div>
             <button
@@ -115,10 +139,7 @@ const SignupForm = () => {
         <div className="w-1/2 p-8">
           <div className="mb-8">
             <div className="flex items-center">
-            <img
-                  src="./src/./img/feature_icon_1.png"
-                  className="w-12 mr-4"
-                />
+              <img src="/src/./img/feature_icon_1.png" className="w-12 mr-4" />
               <div>
                 <h4 className="text-lg font-bold text-black">Mức độ uy tín!</h4>
                 <p className="text-sm text-gray-600">Được đánh giá an toàn, tin cậy hàng đầu Việt Nam với nhiều chính sách hỗ trợ chăm sóc khách hàng.</p>
@@ -127,10 +148,7 @@ const SignupForm = () => {
           </div>
           <div className="mb-8">
             <div className="flex items-center">
-            <img
-                  src="./src/./img/feature_icon_2.png"
-                  className="w-12 mr-4"
-                />
+              <img src="/src/./img/feature_icon_2.png" className="w-12 mr-4" />
               <div>
                 <h4 className="text-lg font-bold text-black">Thanh toán tức thì!</h4>
                 <p className="text-sm text-gray-600">Thanh toán mọi nơi mọi lúc, giao dịch nhanh gọn, bảo đảm, an toàn, với liên kết 90% ngân hàng, ví tiền, VISA trong toàn quốc!</p>
@@ -139,10 +157,7 @@ const SignupForm = () => {
           </div>
           <div className="mb-8">
             <div className="flex items-center">
-            <img
-                  src="./src/./img/feature_icon_3.png"
-                  className="w-12 mr-4"
-                />
+              <img src="/src/./img/feature_icon_3.png" className="w-12 mr-4" />
               <div>
                 <h4 className="text-lg font-bold text-black">Ưu đãi hấp dẫn!</h4>
                 <p className="text-sm text-gray-600">Với mong muốn làm hài lòng khách hàng, Mobistore luôn mang đến những ưu đãi cực kỳ tốt với chất lượng cao</p>

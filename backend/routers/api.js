@@ -48,11 +48,12 @@ apiRouter.post("/thuonghieus", ThuongHieuControl.apiCreate);
 apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
-// api thương hiệu
+
 apiRouter.get("/users", UsersControl.apiList); //lấy danh sách bản ghi
 apiRouter.get("/users/:id", UsersControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
-apiRouter.post("/users", UsersControl.apiCreate);
+apiRouter.post("/users/signup", UsersControl.apiSignUp);
+apiRouter.post("/users/login", UsersControl.apiLogin);
 apiRouter.put("/users/:id", UsersControl.apiUpdate);
 
 const CommentControl = new CommentController();
