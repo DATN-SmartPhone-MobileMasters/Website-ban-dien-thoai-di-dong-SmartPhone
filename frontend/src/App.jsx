@@ -31,6 +31,8 @@ import LoginForm from "./pages/(website)/Users/login-form";
 import SignupForm from "./pages/(website)/Users/signup-form";
 import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
+import Blogdefault from "./pages/(website)/Blog/blogdefault";
+import Blogsingle from "./pages/(website)/Blog/Blogsingle";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -153,6 +155,14 @@ function App() {
         {
           path: "/about",
           element: <AboutList />,
+        },
+        {
+          path: "/blog",
+          element: <Blogdefault />,
+        },
+        {
+          path: "/blog/sigle",
+          element: <Blogsingle />,
         },
       ],
     },
