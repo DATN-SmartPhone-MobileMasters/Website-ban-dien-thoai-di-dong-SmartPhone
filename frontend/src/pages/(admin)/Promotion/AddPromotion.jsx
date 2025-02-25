@@ -14,7 +14,7 @@ const AddPromotion = () => {
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
-
+  const ngayBatDau = watch("NgayBD");
   const onSubmit = async (data) => {
     try {
       await createPromotion(data);
@@ -72,14 +72,18 @@ const AddPromotion = () => {
                 Mã Khuyến Mãi
               </label>
               <input
-                type="number"
+                type="text"
                 className={`form-control ${errors.MaKM ? "is-invalid" : ""}`}
                 id="MaKM"
                 {...register("MaKM", {
                   required: "Mã khuyến mãi là trường bắt buộc",
-                  min: {
-                    value: 1,
-                    message: "Mã khuyến mãi không hợp lệ",
+                  minLength: {
+                    value: 3,
+                    message: "Mã khuyến mãi phải có ít nhất 3 ký tự",
+                  },
+                  maxLength: {
+                    value: 20,
+                    message: "Mã khuyến mãi không được dài quá 20 ký tự",
                   },
                 })}
               />
@@ -87,6 +91,7 @@ const AddPromotion = () => {
                 <div className="invalid-feedback">{errors.MaKM.message}</div>
               )}
             </div>
+
             <div className="mb-3">
               <label htmlFor="TenKM" className="form-label">
                 Tên Khuyến Mãi
@@ -153,6 +158,7 @@ const AddPromotion = () => {
                 </div>
               )}
             </div>
+            {/* kthuc */}
             <div className="mb-3">
               <label htmlFor="NgayBD" className="form-label">
                 Ngày Bắt Đầu
@@ -169,6 +175,7 @@ const AddPromotion = () => {
                 <div className="invalid-feedback">{errors.NgayBD.message}</div>
               )}
             </div>
+
             <div className="mb-3">
               <label htmlFor="NgayKT" className="form-label">
                 Ngày Kết Thúc
@@ -179,12 +186,20 @@ const AddPromotion = () => {
                 id="NgayKT"
                 {...register("NgayKT", {
                   required: "Ngày kết thúc là trường bắt buộc",
+                  validate: (value) => {
+                    if (!ngayBatDau) return "Vui lòng chọn Ngày Bắt Đầu trước";
+                    if (new Date(value) < new Date(ngayBatDau))
+                      return "Ngày Kết Thúc phải lớn hơn hoặc bằng Ngày Bắt Đầu";
+                    return true;
+                  },
                 })}
               />
               {errors.NgayKT && (
                 <div className="invalid-feedback">{errors.NgayKT.message}</div>
               )}
             </div>
+
+            {/* ket huc */}
             <div className="mb-3">
               <label htmlFor="TrangThai" className="form-label">
                 Trạng Thái
