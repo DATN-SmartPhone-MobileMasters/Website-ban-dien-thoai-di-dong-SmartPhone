@@ -50,7 +50,7 @@ const CategoryAdd = () => {
 
             {/* Nút hành động */}
             <div className="d-flex justify-content-between">
-              <Link to="/categorys" className="btn btn-secondary">
+              <Link to="/admin/categorys" className="btn btn-secondary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success">
