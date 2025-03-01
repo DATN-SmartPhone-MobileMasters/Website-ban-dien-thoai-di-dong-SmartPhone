@@ -117,12 +117,6 @@ const LoginForm = () => {
               <Link to="/forgot-password" className="text-blue-500 hover:underline">Quên mật khẩu</Link>
             </div>
           </form>
-          <div className="mt-6">
-            <p className="text-center mb-4">Hoặc đăng nhập với</p>
-            <button className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-300">
-              <i className="fab fa-google mr-2"></i> Google
-            </button>
-          </div>
         </div>
         <div className="w-1/2 p-8">
           <div className="mb-8">
