@@ -38,8 +38,8 @@ const LoginForm = () => {
             {
               label: 'OK',
               onClick: () => {
-                navigate('/'); 
                 window.location.reload(); 
+                navigate('/'); 
               },
             },
           ],
