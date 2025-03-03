@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
@@ -132,7 +132,7 @@ const SignupForm = () => {
               {isLoading ? 'Đang đăng ký...' : 'ĐĂNG KÝ'}
             </button>
             <div className="mt-4 text-center">
-              <p>Bạn đã có tài khoản? <a href="/login" className="text-blue-500 hover:underline">Đăng Nhập</a></p>
+              <p>Bạn đã có tài khoản? <Link to="/login" className="text-blue-500 hover:underline ">Đăng Nhập</Link></p>
             </div>
           </form>
         </div>

@@ -1,7 +1,7 @@
 import Users from "../models/Users.js";
-import Joi from "joi";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import Joi from 'joi';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import mongoose from "mongoose";
 
 class UsersController {
@@ -20,7 +20,7 @@ class UsersController {
       if (user) {
         res.json(user);
       } else {
-        res.status(404).json({ message: "Không thấy tài khoản" });
+        res.status(404).json({ message: 'Không thấy tài khoản' });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -31,9 +31,9 @@ class UsersController {
     try {
       const user = await Users.findByIdAndDelete(req.params.id);
       if (user) {
-        res.json({ message: "Xoá Thành Công" });
+        res.json({ message: 'Xoá Thành Công' });
       } else {
-        res.status(404).json({ message: "Không thấy tài khoản" });
+        res.status(404).json({ message: 'Không thấy tài khoản' });
       }
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -42,11 +42,11 @@ class UsersController {
 
   async apiSignUp(req, res) {
     const signUpSchema = Joi.object({
-      HoVaTen: Joi.string().required(),
-      SDT: Joi.string().required(),
-      Email: Joi.string().email().required(),
-      MatKhau: Joi.string().min(6).required(),
-      confirmPassword: Joi.string().min(6).required(),
+      HoVaTen: Joi.string().required(), 
+      SDT: Joi.string().required(), 
+      Email: Joi.string().email().required(), 
+      MatKhau: Joi.string().min(6).required(), 
+      confirmPassword:  Joi.string().min(6).required(),
     }).options({ abortEarly: false });
     try {
       const { error } = signUpSchema.validate(req.body, { abortEarly: false });
@@ -55,48 +55,44 @@ class UsersController {
         return res.status(400).json({ message: errorMessages });
       }
       if (req.body.confirmPassword !== req.body.MatKhau) {
-        return res
-          .status(400)
-          .json({ message: "Mật khẩu và xác nhận mật khẩu không khớp" });
+        return res.status(400).json({ message: 'Mật khẩu và xác nhận mật khẩu không khớp' });
       }
       const existingUser = await Users.findOne({ Email: req.body.Email });
       if (existingUser) {
-        return res.status(400).json({ message: "Email đã tồn tại" });
+        return res.status(400).json({ message: 'Email đã tồn tại' });
       }
 
       const hashedPassword = await bcrypt.hash(req.body.MatKhau, 10);
       const newUser = new Users({
         MaND: new mongoose.Types.ObjectId().toString(),
         HoVaTen: req.body.HoVaTen,
-        GioiTinh: "Nam",
+        GioiTinh:'Nam',
         SDT: req.body.SDT,
         Email: req.body.Email,
-        DiaChi: "",
-        TaiKhoan: "",
-        MatKhau: hashedPassword,
+        DiaChi:'',
+        TaiKhoan:'',
+        MatKhau: hashedPassword, 
         MaQuyen: 0,
-        TrangThai: 1,
+        TrangThai: 1 
       });
 
-      // Save the user to the database
       const savedUser = await newUser.save();
 
-      // Return success response
       res.status(201).json({
         id: savedUser._id,
-        Email: savedUser.Email,
+        Email: savedUser.Email
       });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
-
+  
   async apiLogin(req, res) {
     const loginSchema = Joi.object({
       Email: Joi.string().required(),
-      MatKhau: Joi.string().required(),
+      MatKhau: Joi.string().required()
     }).options({ abortEarly: false });
-
+    
     try {
       const { error } = loginSchema.validate(req.body, { abortEarly: false });
       if (error) {
@@ -105,27 +101,26 @@ class UsersController {
 
       const user = await Users.findOne({ Email: req.body.Email });
       if (!user) {
-        return res.status(404).json({ message: "Không tìm thấy tài khoản" });
+        return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
       }
 
-      const validPassword = await bcrypt.compare(
-        req.body.password,
-        user.password
-      );
+      const validPassword = await bcrypt.compare(req.body.MatKhau, user.MatKhau);
       if (!validPassword) {
-        return res.status(401).json({ message: "Mật khẩu không chính xác" });
+        return res.status(401).json({ message: 'Mật khẩu không chính xác' });
       }
 
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "1h",
-      });
+      const token = jwt.sign(
+        { userId: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
 
       res.json({
         user: {
           id: user._id,
-          Email: user.Email,
+          Email: user.Email
         },
-        token,
+        token
       });
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -134,16 +129,52 @@ class UsersController {
 
   async apiUpdate(req, res) {
     try {
-      const user = await Users.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-      });
+      const user = await Users.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (user) {
         res.json(user);
       } else {
-        res.status(404).json({ message: "Không thấy tài khoản" });
+        res.status(404).json({ message: 'Không thấy tài khoản' });
       }
     } catch (error) {
       res.status(400).json({ message: error.message });
+    }
+  }
+  async apiForgotPassword(req, res) {
+    const { Email } = req.body;
+    try {
+      const user = await Users.findOne({ Email });
+      if (!user) {
+        return res.status(404).json({ message: 'Email không tồn tại' });
+      }
+
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+      res.json({ 
+        message: 'Xác Nhận Email thành công, bạn sẽ được chuyển hướng đến trang đặt lại mật khẩu.', 
+        token 
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  async apiResetPassword(req, res) {
+    const { token, MatKhau } = req.body;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await Users.findById(decoded.userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tồn tại' });
+      }
+
+      const hashedPassword = await bcrypt.hash(MatKhau, 10);
+      user.MatKhau = hashedPassword;
+      await user.save();
+
+      res.json({ message: 'Mật khẩu đã được đặt lại thành công' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   }
 }

@@ -29,6 +29,8 @@ import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
 import LoginForm from "./pages/(website)/Users/login-form";
 import SignupForm from "./pages/(website)/Users/signup-form";
+import ForgotPassword from "./pages/(website)/Users/forgot-password";
+import ResetPassword from "./pages/(website)/Users/reset-password";
 import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/blogdefault";
@@ -147,6 +149,14 @@ function App() {
         {
           path: "/signup",
           element: <SignupForm />,
+        },
+        {
+          path: "/forgot-password",
+          element: <ForgotPassword />,
+        },
+        {
+          path: "/reset-password",
+          element: <ResetPassword />,
         },
         {
           path: "/cart",
