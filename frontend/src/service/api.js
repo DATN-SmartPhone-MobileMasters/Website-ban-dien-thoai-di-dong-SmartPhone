@@ -31,6 +31,8 @@ export const signupUsers = async (data) => axios.post(`${API_URL}/users/signup`,
 export const fetchUsers = async () => axios.get(`${API_URL}/users`);
 export const deleteUser = async (id) => axios.delete(`${API_URL}/users/${id}`);
 export const getUserById = async (id) => axios.get(`${API_URL}/users/${id}`);
+export const forgotPassword = async (data) => axios.post(`${API_URL}/users/forgot-password`, data);
+export const resetPassword = async (data) => axios.post(`${API_URL}/users/reset-password`, data);
 
 //hoadon
 export const fetchOrders = async () => axios.get(`${API_URL}/hoadons`);
