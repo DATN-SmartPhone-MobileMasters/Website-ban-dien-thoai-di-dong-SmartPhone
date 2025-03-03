@@ -23,13 +23,18 @@ import Promotion from "./pages/(admin)/Promotion/Promotion";
 import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
 import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
 import LayoutWebsite from "./pages/(website)/LayoutWebsite";
-import "font-awesome/css/font-awesome.min.css"
+import "font-awesome/css/font-awesome.min.css";
 import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
-import LoginForm from './pages/(website)/Users/login-form';
-import SignupForm from './pages/(website)/Users/signup-form';
-
+import LoginForm from "./pages/(website)/Users/login-form";
+import SignupForm from "./pages/(website)/Users/signup-form";
+import ForgotPassword from "./pages/(website)/Users/forgot-password";
+import ResetPassword from "./pages/(website)/Users/reset-password";
+import Cart from "./pages/(website)/Cart/Cart";
+import AboutList from "./pages/(website)/about/AboutList";
+import Blogdefault from "./pages/(website)/Blog/blogdefault";
+import Blogsingle from "./pages/(website)/Blog/Blogsingle";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -127,15 +132,15 @@ function App() {
       children: [
         {
           path: "/",
-          element: <HomePage/>,
+          element: <HomePage />,
         },
         {
           path: "/products",
-          element: <ProductList/>,
+          element: <ProductList />,
         },
         {
           path: "/products/product_detail/1",
-          element: <ProductDetail/>,
+          element: <ProductDetail />,
         },
         {
           path: "/login",
@@ -144,6 +149,30 @@ function App() {
         {
           path: "/signup",
           element: <SignupForm />,
+        },
+        {
+          path: "/forgot-password",
+          element: <ForgotPassword />,
+        },
+        {
+          path: "/reset-password",
+          element: <ResetPassword />,
+        },
+        {
+          path: "/cart",
+          element: <Cart />,
+        },
+        {
+          path: "/about",
+          element: <AboutList />,
+        },
+        {
+          path: "/blog",
+          element: <Blogdefault />,
+        },
+        {
+          path: "/blog/sigle",
+          element: <Blogsingle />,
         },
       ],
     },

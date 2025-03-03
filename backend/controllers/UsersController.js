@@ -75,11 +75,9 @@ class UsersController {
         MaQuyen: 0,
         TrangThai: 1 
       });
-  
-      // Save the user to the database
+
       const savedUser = await newUser.save();
-  
-      // Return success response
+
       res.status(201).json({
         id: savedUser._id,
         Email: savedUser.Email
@@ -139,6 +137,44 @@ class UsersController {
       }
     } catch (error) {
       res.status(400).json({ message: error.message });
+    }
+  }
+  async apiForgotPassword(req, res) {
+    const { Email } = req.body;
+    try {
+      const user = await Users.findOne({ Email });
+      if (!user) {
+        return res.status(404).json({ message: 'Email không tồn tại' });
+      }
+
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+      res.json({ 
+        message: 'Xác Nhận Email thành công, bạn sẽ được chuyển hướng đến trang đặt lại mật khẩu.', 
+        token 
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+  async apiResetPassword(req, res) {
+    const { token, MatKhau } = req.body;
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await Users.findById(decoded.userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'Người dùng không tồn tại' });
+      }
+
+      const hashedPassword = await bcrypt.hash(MatKhau, 10);
+      user.MatKhau = hashedPassword;
+      await user.save();
+
+      res.json({ message: 'Mật khẩu đã được đặt lại thành công' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   }
 }

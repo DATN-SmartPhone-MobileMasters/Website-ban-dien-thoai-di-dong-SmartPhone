@@ -32,7 +32,6 @@ apiRouter.post("/chitiethoadons", ChiTietHoaDonControl.apiCreate); // Thêm mớ
 apiRouter.put("/chitiethoadons/:id", ChiTietHoaDonControl.apiUpdate); // Cập nhật
 apiRouter.delete("/chitiethoadons/:id", ChiTietHoaDonControl.apiDelete); // Xóa
 
-
 const SanPhamControl = new SanPhamController();
 //api thực hiện các chức năng sản phẩm
 apiRouter.get("/sanphams", SanPhamControl.apiList); //lấy danh sách bản ghi
@@ -49,7 +48,7 @@ apiRouter.post("/thuonghieus", ThuongHieuControl.apiCreate);
 apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
-// api thương hiệu
+
 apiRouter.get("/users", UsersControl.apiList); //lấy danh sách bản ghi
 apiRouter.get("/users/:id", UsersControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
