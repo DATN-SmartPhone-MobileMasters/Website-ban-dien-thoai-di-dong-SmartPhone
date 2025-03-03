@@ -55,6 +55,8 @@ apiRouter.delete("/users/:id", UsersControl.apiDelete);
 apiRouter.post("/users/signup", UsersControl.apiSignUp);
 apiRouter.post("/users/login", UsersControl.apiLogin);
 apiRouter.put("/users/:id", UsersControl.apiUpdate);
+apiRouter.post("/users/forgot-password", UsersControl.apiForgotPassword);
+apiRouter.post("/users/reset-password", UsersControl.apiResetPassword);
 
 const CommentControl = new CommentController();
 apiRouter.get("/comments", CommentControl.cmtList);
