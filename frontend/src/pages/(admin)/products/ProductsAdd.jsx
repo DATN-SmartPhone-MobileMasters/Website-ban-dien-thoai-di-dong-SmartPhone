@@ -3,13 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
+import {
+  fetchCategories,
+  fetchBrands,
+  fetchPromotion,
+  createProducts,
+} from "../../../service/api";
 
 const ProductsAdd = () => {
-  const API_URL_CATEGORIES = "http://localhost:5000/api/danhmucs";
-  const API_URL_BRANDS = "http://localhost:5000/api/thuonghieus";
-  const API_URL_PROMOTIONS = "http://localhost:5000/api/Promotions";
-  const API_URL_PRODUCTS = "http://localhost:5000/api/sanphams";
-
   const navigate = useNavigate();
   const {
     register,
@@ -24,9 +25,10 @@ const ProductsAdd = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categoriesResponse = await axios.get(API_URL_CATEGORIES);
-        const brandsResponse = await axios.get(API_URL_BRANDS);
-        const promotionsResponse = await axios.get(API_URL_PROMOTIONS);
+
+        const categoriesResponse = await fetchCategories();
+        const brandsResponse = await fetchBrands();
+        const promotionsResponse = await fetchPromotion();
 
         setCategories(categoriesResponse.data.data);
         setBrands(brandsResponse.data.data);
@@ -36,6 +38,7 @@ const ProductsAdd = () => {
         message.error("Lỗi tải dữ liệu, vui lòng thử lại!");
       }
     };
+
     fetchData();
   }, []);
 
@@ -50,7 +53,8 @@ const ProductsAdd = () => {
         return;
       }
 
-      await axios.post(API_URL_PRODUCTS, data);
+      // Sử dụng đúng API để tạo sản phẩm
+      await createProducts(data);
       message.success("Thêm sản phẩm thành công!");
       navigate("/products");
     } catch (error) {

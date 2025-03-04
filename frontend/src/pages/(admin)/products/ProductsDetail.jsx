@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import { getProducts } from "../../../service/api";  
 
 const ProductDetail = () => {
-  const { id } = useParams(); // Lấy id từ URL
+  const { id } = useParams(); 
   const [product, setProduct] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    axios
-      .get(`http://localhost:5000/api/sanphams/${id}`)
+
+    getProducts(id)
       .then((response) => {
-        setProduct(response.data.data);
+        setProduct(response.data.data);  
         setLoading(false);
       })
       .catch(() => {
@@ -22,13 +22,13 @@ const ProductDetail = () => {
       });
   }, [id]);
 
-  if (loading) return <div>Đang tải dữ liệu...</div>;
-  if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!product) return <div>Không tìm thấy sản phẩm.</div>;
-
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
   };
+
+  if (loading) return <div>Đang tải dữ liệu...</div>;
+  if (error) return <div className="alert alert-danger">{error}</div>;
+  if (!product) return <div>Không tìm thấy sản phẩm.</div>;
 
   return (
     <div className="container-fluid">
@@ -38,7 +38,7 @@ const ProductDetail = () => {
           <button className="btn btn-secondary">Quay lại</button>
         </Link>
       </div>
-    
+
       <div className="card shadow mb-4">
         <div className="card-header py-3">
           <h6 className="m-0 font-weight-bold text-primary">Thông Tin Sản Phẩm</h6>
@@ -49,35 +49,42 @@ const ProductDetail = () => {
           <div className="mb-3"><strong>Mã Danh Mục:</strong> {product.MaDM}</div>
           <div className="mb-3"><strong>Mã Khuyến Mãi:</strong> {product.MaKM}</div>
           <div className="mb-3"><strong>Tên Sản Phẩm:</strong> {product.TenSP}</div>
-          <div className="mb-3">
-           </div>
           <div className="mb-3"><strong>Số Lượng:</strong> {product.SoLuong1}</div>
-          <div className="mb-3"><strong>Hình Ảnh 1:</strong> <img src={product.HinhAnh1} alt={product.TenSP} className="img-fluid" width={100} /></div>
+          <div className="mb-3">
+            <strong>Hình Ảnh 1:</strong>
+            {product.HinhAnh1 && (
+              <img src={product.HinhAnh1} alt={product.TenSP} className="img-fluid" width={100} />
+            )}
+          </div>
           <ul>
-                <li>Giá 1: <span className="text-danger">{formatCurrency(product.GiaSP1)}</span></li>
-              
-          </ul> 
+            <li>Giá 1: <span className="text-danger">{formatCurrency(product.GiaSP1)}</span></li>
+          </ul>
           <hr />
-
 
           <div className="mb-3"><strong>Số Lượng:</strong> {product.SoLuong2}</div>
-          <div className="mb-3"><strong>Hình Ảnh 2:</strong> <img src={product.HinhAnh2} alt={product.TenSP} className="img-fluid" width={100} /></div>
+          <div className="mb-3">
+            <strong>Hình Ảnh 2:</strong>
+            {product.HinhAnh2 && (
+              <img src={product.HinhAnh2} alt={product.TenSP} className="img-fluid" width={100} />
+            )}
+          </div>
           <ul>
-                <li>Giá : <span className="text-danger">{formatCurrency(product.GiaSP2)}</span></li>
-              
+            <li>Giá : <span className="text-danger">{formatCurrency(product.GiaSP2)}</span></li>
           </ul>
           <hr />
-
 
           <div className="mb-3"><strong>Số Lượng:</strong> {product.SoLuong3}</div>
-          <div className="mb-3"><strong>Hình Ảnh 3:</strong> <img src={product.HinhAnh3} alt={product.TenSP} className="img-fluid" width={100} /></div>
+          <div className="mb-3">
+            <strong>Hình Ảnh 3:</strong>
+            {product.HinhAnh3 && (
+              <img src={product.HinhAnh3} alt={product.TenSP} className="img-fluid" width={100} />
+            )}
+          </div>
           <ul>
-                <li>Giá : <span className="text-danger">{formatCurrency(product.GiaSP3)}</span></li>
-              
+            <li>Giá : <span className="text-danger">{formatCurrency(product.GiaSP3)}</span></li>
           </ul>
           <hr />
 
-          
           <div className="mb-3"><strong>Bộ Nhớ Trong:</strong> {product.BoNhoTrong}</div>
           <div className="mb-3"><strong>Màu Sắc:</strong> {product.Mau}</div>
           <div className="mb-3"><strong>Màn Hình:</strong> {product.ManHinh}</div>

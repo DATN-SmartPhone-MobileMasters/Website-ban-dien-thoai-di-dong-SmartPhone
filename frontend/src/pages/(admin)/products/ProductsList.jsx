@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { message } from "antd";
+import { fetchProducts, deleteProducts } from "../../../service/api"; 
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (price) => {
@@ -17,9 +18,9 @@ const ProductsList = () => {
   const [selectedVariants, setSelectedVariants] = useState({});
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/sanphams`);
+        const res = await fetchProducts(); 
         if (Array.isArray(res.data)) {
           setProducts(res.data);
           // Khởi tạo biến thể mặc định (màu 1)
@@ -43,7 +44,7 @@ const ProductsList = () => {
         setIsLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   // Cập nhật biến thể khi người dùng chọn ảnh
@@ -68,12 +69,12 @@ const ProductsList = () => {
   const removeItem = async (id) => {
     try {
       if (window.confirm("Bạn có muốn xóa sản phẩm không?")) {
-        await axios.delete(`http://localhost:5000/api/sanphams/${id}`);
+        await deleteProducts(id); 
         setProducts(products.filter((item) => item._id !== id));
-        alert("Sản phẩm đã được xóa thành công!");
+        message.success("Sản phẩm đã được xóa thành công!");
       }
     } catch (error) {
-      alert("Có lỗi xảy ra khi xóa sản phẩm!");
+      message.error("Có lỗi xảy ra khi xóa sản phẩm!");
     }
   };
 
