@@ -18,7 +18,11 @@ const ResetPassword = () => {
     setError('');
 
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu và xác nhận mật khẩu không khớp');
+     confirmAlert({
+        title: 'Lỗi',
+        message: 'Mật khẩu xác nhận không khớp',
+        buttons: [{ label: 'OK', onClick: () => {} }]
+      });
       return;
     }
 
