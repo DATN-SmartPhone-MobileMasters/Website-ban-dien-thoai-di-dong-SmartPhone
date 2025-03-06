@@ -16,6 +16,7 @@ const UpdatePromotion = () => {
   } = useForm();
   const navigate = useNavigate();
   const { id } = useParams();
+  const ngayBatDau = watch("NgayBD");
 
   // Lấy dữ liệu khuyến mãi hiện tại khi component được mount
 
@@ -94,14 +95,18 @@ const UpdatePromotion = () => {
                 Mã Khuyến Mãi
               </label>
               <input
-                type="number"
+                type="text"
                 className={`form-control ${errors.MaKM ? "is-invalid" : ""}`}
                 id="MaKM"
                 {...register("MaKM", {
                   required: "Mã khuyến mãi là trường bắt buộc",
-                  min: {
-                    value: 1,
-                    message: "Mã khuyến mãi không hợp lệ",
+                  minLength: {
+                    value: 3,
+                    message: "Mã khuyến mãi phải có ít nhất 3 ký tự",
+                  },
+                  maxLength: {
+                    value: 20,
+                    message: "Mã khuyến mãi không được dài quá 20 ký tự",
                   },
                 })}
               />
@@ -175,6 +180,7 @@ const UpdatePromotion = () => {
                 </div>
               )}
             </div>
+
             <div className="mb-3">
               <label htmlFor="NgayBD" className="form-label">
                 Ngày Bắt Đầu
@@ -191,6 +197,7 @@ const UpdatePromotion = () => {
                 <div className="invalid-feedback">{errors.NgayBD.message}</div>
               )}
             </div>
+
             <div className="mb-3">
               <label htmlFor="NgayKT" className="form-label">
                 Ngày Kết Thúc
@@ -201,6 +208,12 @@ const UpdatePromotion = () => {
                 id="NgayKT"
                 {...register("NgayKT", {
                   required: "Ngày kết thúc là trường bắt buộc",
+                  validate: (value) => {
+                    if (!ngayBatDau) return "Vui lòng chọn Ngày Bắt Đầu trước";
+                    if (new Date(value) < new Date(ngayBatDau))
+                      return "Ngày Kết Thúc phải lớn hơn hoặc bằng Ngày Bắt Đầu";
+                    return true;
+                  },
                 })}
               />
               {errors.NgayKT && (

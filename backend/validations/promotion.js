@@ -1,10 +1,20 @@
 import Joi from "joi";
 
 const promotionValidator = Joi.object({
-  MaKM: Joi.number().required().messages({
-    "number.base": "Mã khuyến mãi phải là số",
-    "any.required": "Mã khuyến mãi là trường bắt buộc",
-  }),
+  MaKM: Joi.string()
+    .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$/)
+    .min(3)
+    .max(20)
+    .required()
+    .messages({
+      "string.base": "Mã khuyến mãi phải là chuỗi ký tự",
+      "string.empty": "Mã khuyến mãi không được để trống",
+      "string.pattern.base":
+        "Mã khuyến mãi phải có cả chữ và số, không được toàn số và không chứa ký tự đặc biệt",
+      "string.min": "Mã khuyến mãi phải có ít nhất 3 ký tự",
+      "string.max": "Mã khuyến mãi không được dài quá 20 ký tự",
+      "any.required": "Mã khuyến mãi là trường bắt buộc",
+    }),
   TenKM: Joi.string().required().messages({
     "string.base": "Tên khuyến mãi phải là chuỗi",
     "any.required": "Tên khuyến mãi là trường bắt buộc",
