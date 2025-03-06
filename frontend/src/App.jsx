@@ -27,10 +27,13 @@ import "font-awesome/css/font-awesome.min.css";
 import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
-import LoginForm from "./pages/(website)/Users/login-form";
-import SignupForm from "./pages/(website)/Users/signup-form";
+import LoginForm from './pages/(website)/Users/login-form';
+import SignupForm from './pages/(website)/Users/signup-form';
 import ForgotPassword from "./pages/(website)/Users/forgot-password";
 import ResetPassword from "./pages/(website)/Users/reset-password";
+import AccountPage from "./pages/(website)/Users/account";
+import ProfileResetPasswordPage from "./pages/(website)/Users/profile-reset-password";
+import AccountDetails from "./pages/(website)/Users/account-details";
 import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/blogdefault";
@@ -157,6 +160,18 @@ function App() {
         {
           path: "/reset-password",
           element: <ResetPassword />,
+        },
+        {
+          path: "/account-details/:id",
+          element: <AccountDetails />,
+        },
+        {
+          path: "/account/:id",
+          element: <AccountPage />,
+        },
+        {
+          path: "/profile-reset-password/:id",
+          element: <ProfileResetPasswordPage />,
         },
         {
           path: "/cart",
