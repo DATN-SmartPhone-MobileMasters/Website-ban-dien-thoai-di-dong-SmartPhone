@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
-import { loginUsers } from '../../../service/api';
+import { loginUsers,updateUser } from '../../../service/api';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -22,15 +22,17 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+  
     try {
       setIsLoading(true);
       const response = await loginUsers(formData);
-
+  
       if (response.data.token) {
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
-        
+
+        await updateUser(response.data.user.id, { TrangThai: 1 });
+  
         confirmAlert({
           title: 'Thành công',
           message: 'Đăng nhập thành công!',

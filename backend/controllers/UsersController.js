@@ -131,7 +131,7 @@ class UsersController {
     try {
       const user = await Users.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (user) {
-        res.json(user);
+        res.json({ message: 'Cập nhật thông tin thành công!' }); 
       } else {
         res.status(404).json({ message: 'Không thấy tài khoản' });
       }
@@ -139,6 +139,7 @@ class UsersController {
       res.status(400).json({ message: error.message });
     }
   }
+
   async apiForgotPassword(req, res) {
     const { Email } = req.body;
     try {
@@ -173,6 +174,27 @@ class UsersController {
       await user.save();
 
       res.json({ message: 'Mật khẩu đã được đặt lại thành công' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+  async apiUpdatePassword(req, res) {
+    const { id } = req.params; 
+    const { MatKhau } = req.body;
+  
+    try {
+      const user = await Users.findById(id);
+      if (!user) {
+        return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+      }
+      const hashedPassword = await bcrypt.hash(MatKhau, 10);
+      const updatePassword = await Users.findByIdAndUpdate(
+        id,
+        { MatKhau: hashedPassword },
+        { new: true }
+      );
+  
+      res.json({ message: 'Mật khẩu đã được cập nhật thành công' });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
