@@ -9,6 +9,7 @@ import {
   FaUser,
   FaUserPlus,
 } from "react-icons/fa";
+import { updateUser } from '../../../service/api';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,12 +28,16 @@ const Header = () => {
   }, []);
 
   // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
+  const handleLogout = async () => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      await updateUser(userData.id, { TrangThai: 0 });
+    }
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
     setIsLoggedIn(false);
     setUserData(null);
-    window.location.href = "/";
+    window.location.href = '/'; 
   };
 
   return (
@@ -71,7 +76,7 @@ const Header = () => {
         </div>
 
         {/* User Dropdown */}
-        <div
+         <div
           className="relative cursor-pointer"
           onMouseEnter={() => setIsDropdownOpen(true)}
           onMouseLeave={() => setIsDropdownOpen(false)}
@@ -102,10 +107,10 @@ const Header = () => {
                   <>
                     <li>
                       <Link
-                        to="/account"
+                        to={`/account-details/${userData.id}`}
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
                       >
-                        <FaUser />
+                        <FaUser /> 
                         Thông Tin Tài Khoản
                       </Link>
                     </li>
