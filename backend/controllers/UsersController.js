@@ -147,9 +147,7 @@ class UsersController {
       if (!user) {
         return res.status(404).json({ message: 'Email không tồn tại' });
       }
-
       const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
       res.json({ 
         message: 'Xác Nhận Email thành công, bạn sẽ được chuyển hướng đến trang đặt lại mật khẩu.', 
         token 
@@ -164,7 +162,6 @@ class UsersController {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await Users.findById(decoded.userId);
-
       if (!user) {
         return res.status(404).json({ message: 'Người dùng không tồn tại' });
       }
@@ -181,7 +178,6 @@ class UsersController {
   async apiUpdatePassword(req, res) {
     const { id } = req.params; 
     const { MatKhau } = req.body;
-  
     try {
       const user = await Users.findById(id);
       if (!user) {
