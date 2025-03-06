@@ -11,7 +11,7 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const token = new URLSearchParams(location.search).get('token'); // Extract token from URL
+  const token = new URLSearchParams(location.search).get('token'); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
