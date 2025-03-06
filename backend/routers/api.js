@@ -48,13 +48,13 @@ apiRouter.post("/thuonghieus", ThuongHieuControl.apiCreate);
 apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
-
-apiRouter.get("/users", UsersControl.apiList); //lấy danh sách bản ghi
-apiRouter.get("/users/:id", UsersControl.apiDetail); //lấy chi tiết
+apiRouter.get("/users", UsersControl.apiList); 
+apiRouter.get("/users/:id", UsersControl.apiDetail); 
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
 apiRouter.post("/users/signup", UsersControl.apiSignUp);
 apiRouter.post("/users/login", UsersControl.apiLogin);
 apiRouter.put("/users/:id", UsersControl.apiUpdate);
+apiRouter.put("/users/update-password/:id", UsersControl.apiUpdatePassword);
 apiRouter.post("/users/forgot-password", UsersControl.apiForgotPassword);
 apiRouter.post("/users/reset-password", UsersControl.apiResetPassword);
 
