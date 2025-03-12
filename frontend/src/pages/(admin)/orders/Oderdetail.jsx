@@ -1,42 +1,33 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+const API_URL = "http://localhost:5000/api";
 
-const API_URL = "http://localhost:5000/api"; // Đổi URL API nếu cần
-
-const OderDetail = () => {
+const Orderdetail = () => {
   const [hoaDon, setHoaDon] = useState(null);
-  const [chiTietHoaDons, setChiTietHoaDons] = useState([]);
   const { id } = useParams();
-  const [trangThai, setTrangThai] = useState("");
-  const navigate = useNavigate(); // ✅ Thêm useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
       try {
         const { data } = await axios.get(`${API_URL}/hoadons/${id}`);
         setHoaDon(data.data);
-        setTrangThai(data.data.TrangThai || "");
-
-        const chiTietRes = await axios.get(`${API_URL}/chitiethoadons/${id}`);
-        setChiTietHoaDons(chiTietRes.data.data);
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       }
-    })();
+    };
+    fetchData();
   }, [id]);
 
-  const handleChangeTrangThai = async (newTrangThai) => {
+  const handleStatusChange = async (newStatus) => {
     if (window.confirm("Bạn có chắc chắn muốn thay đổi trạng thái?")) {
       try {
         await axios.put(`${API_URL}/hoadons/${id}`, {
-          TrangThai: newTrangThai,
+          paymentStatus: newStatus
         });
-
         alert("Cập nhật trạng thái thành công!");
-
-        // ✅ Tự động chuyển về danh sách hóa đơn sau khi cập nhật
-        navigate("/orders");
+        navigate("/admin/orders");
       } catch (error) {
         console.error("Lỗi khi cập nhật trạng thái:", error);
         alert("Có lỗi xảy ra khi cập nhật trạng thái!");
@@ -49,98 +40,106 @@ const OderDetail = () => {
   }
 
   return (
-    <div>
-      <h1 className="h3 mb-2 text-gray-800">Chi tiết hóa đơn</h1>
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">
-            Thông tin hóa đơn
-          </h6>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Chi tiết hóa đơn</h1>
+      
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-3">Thông tin khách hàng</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="font-medium">Tên:</p>
+              <p>{hoaDon.shippingInfo?.name || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-medium">SĐT:</p>
+              <p>{hoaDon.shippingInfo?.phone || "N/A"}</p>
+            </div>
+            <div>
+              <p className="font-medium">Địa chỉ:</p>
+              <p>{hoaDon.shippingInfo?.address || "N/A"}</p>
+            </div>
+          </div>
         </div>
-        <div className="card-body">
-          <table className="table table-bordered">
-            <tbody>
-              <tr>
-                <th>Người nhận</th>
-                <td>{hoaDon.NguoiDat}</td>
-              </tr>
-              <tr>
-                <th>Số điện thoại</th>
-                <td>{hoaDon.SDT}</td>
-              </tr>
-              <tr>
-                <th>Địa chỉ</th>
-                <td>{hoaDon.DiaChi}</td>
-              </tr>
-              <tr>
-                <th>Tổng tiền</th>
-                <td>{hoaDon.TongTien}</td>
-              </tr>
-              <tr>
-                <th>Trạng thái</th>
-                <td>{hoaDon.TrangThai} 🚚</td>
-              </tr>
-            </tbody>
-          </table>
 
-          <h5 className="mt-4">Danh sách sản phẩm</h5>
-          <table className="table table-striped">
-            <thead>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-3">Chi tiết đơn hàng</h2>
+          <div className="mb-4">
+            <p className="font-medium">Mã HĐ: {hoaDon._id}</p>
+            <p className="font-medium">Ngày đặt: {new Date(hoaDon.createdAt).toLocaleDateString()}</p>
+            <p className="font-medium">Tổng tiền: {hoaDon.total?.toLocaleString()}đ</p>
+            <p className="font-medium">Trạng thái: {hoaDon.paymentStatus}</p>
+          </div>
+
+          <table className="table-auto w-full">
+            <thead className="bg-gray-100">
               <tr>
-                <th>Mã chi tiết hóa đơn</th>
-                <th>Mã sản phẩm</th>
-                <th>Số lượng</th>
+                <th className="p-2">Sản phẩm</th>
+                <th className="p-2">Bộ nhớ</th>
+                <th className="p-2">Màu</th>
+                <th className="p-2">SL</th>
+                <th className="p-2">Đơn giá</th>
               </tr>
             </thead>
             <tbody>
-              {chiTietHoaDons.map((item) => (
-                <tr key={item.MaCTHD}>
-                  <td>{item.MaCTHD}</td>
-                  <td>{item.MaSP}</td>
-                  <td>{item.SoLuong}</td>
+              {hoaDon.products?.map((product, index) => (
+                <tr key={index} className="border-b">
+                  <td className="p-2">
+                    <div className="flex items-center">
+                      <img 
+                        src={product.image} 
+                        alt={product.name}
+                        className="w-12 h-12 object-cover mr-2"
+                      />
+                      {product.name}
+                    </div>
+                  </td>
+                  <td className="p-2">{product.memory}</td>
+                  <td className="p-2">{product.color}</td>
+                  <td className="p-2">{product.quantity}</td>
+                  <td className="p-2">{product.price?.toLocaleString()}đ</td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
 
-          <div className="mt-4 p-3 bg-light rounded shadow-sm">
-            <h5 className="text-center mb-3">Trạng thái đơn hàng</h5>
-            <div
-              className="d-flex flex-wrap justify-content-center gap-3"
-              style={{ gap: "10px" }}
+        <div className="mt-6 p-4 bg-gray-100 rounded">
+          <h3 className="text-lg font-semibold mb-3">Cập nhật trạng thái</h3>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              className="px-4 py-2 bg-yellow-500 text-white rounded"
+              onClick={() => handleStatusChange("Chờ xử lý")}
             >
-              <button
-                className="btn btn-warning px-4 py-2 rounded-pill shadow"
-                onClick={() => handleChangeTrangThai("Đang giao")}
-              >
-                🚚 Đang giao
-              </button>
-              <button
-                className="btn btn-success px-4 py-2 rounded-pill shadow"
-                onClick={() => handleChangeTrangThai("Đã giao")}
-              >
-                ✅ Đã giao
-              </button>
-              <button
-                className="btn btn-danger px-4 py-2 rounded-pill shadow"
-                onClick={() => handleChangeTrangThai("Đã hủy")}
-              >
-                ❌ Đã hủy
-              </button>
-              <button
-                className="btn btn-info px-4 py-2 rounded-pill shadow"
-                onClick={() => handleChangeTrangThai("Chờ xác nhận")}
-              >
-                ⏳ Chờ xác nhận
-              </button>
-            </div>
+              ⏳ Chờ xử lý
+            </button>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+              onClick={() => handleStatusChange(" Đang Giao")}
+            >
+               🚚Đang Giao
+            </button>
+            <button
+              className="px-4 py-2 bg-green-500 text-white rounded"
+              onClick={() => handleStatusChange(" Hoàn thành")}
+            >
+              ✅ Hoàn thành
+            </button>
+            <button
+              className="px-4 py-2 bg-red-500 text-white rounded"
+              onClick={() => handleStatusChange(" Huỷ Đơn")}
+            >
+              ❌Huỷ Đơn
+            </button>
           </div>
+        </div>
 
+        <div className="mt-6">
           <Link
-            to="/orders"
-            className="btn btn-primary mt-3 px-4 py-2 rounded-pill shadow"
+            to="/admin/orders"
+            className="px-4 py-2 bg-blue-500 text-white rounded inline-block hover:bg-blue-600"
           >
-            🔙 Quay lại danh sách
+           🔙 Quay lại danh sách
           </Link>
         </div>
       </div>
@@ -148,4 +147,4 @@ const OderDetail = () => {
   );
 };
 
-export default OderDetail;
+export default Orderdetail;

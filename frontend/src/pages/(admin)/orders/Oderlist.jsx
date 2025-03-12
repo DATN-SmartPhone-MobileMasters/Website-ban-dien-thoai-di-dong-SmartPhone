@@ -40,7 +40,6 @@ const OrderList = () => {
                     "Địa chỉ",
                     "Tổng tiền",
                     "Trạng thái",
-                    "Sản phẩm",
                     "Hành động",
                   ].map((header) => (
                     <th key={header}>{header}</th>
@@ -52,18 +51,11 @@ const OrderList = () => {
                   hoaDons.map((hoaDon, i) => (
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
-                      <td>{hoaDon.NguoiDat || "Không có"}</td>
-                      <td>{hoaDon.SDT || "Không có"}</td>
-                      <td>{hoaDon.DiaChi || "Không có"}</td>
-                      <td>{hoaDon.TongTien || "Không có"}</td>
-                      <td>{hoaDon.TrangThai || "Không có"}</td>
-                      <td>
-                        {Array.isArray(hoaDon.SanPham)
-                          ? hoaDon.SanPham.join(", ")
-                          : typeof hoaDon.SanPham === "string"
-                          ? hoaDon.SanPham
-                          : "Không có"}
-                      </td>
+                      <td>{hoaDon.shippingInfo.name || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo.phone|| "Không có"}</td>
+                      <td>{hoaDon.shippingInfo.address||"Không có"}</td>
+                      <td>{hoaDon.total || "Không có"}</td>
+                      <td>{hoaDon.paymentStatus || "Không có"}</td>
                       <td>
                         <Link
                           to={`/admin/orders/${hoaDon._id}`}
