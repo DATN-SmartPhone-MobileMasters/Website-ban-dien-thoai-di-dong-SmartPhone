@@ -24,17 +24,13 @@ const ProductList = () => {
     setLoading(true);
     try {
       const response = await fetchProducts();
-      const data = Array.isArray(response.data)
-        ? response.data
-        : response.data.data || [];
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProducts(data);
 
-      const uniqueBrands = [
-        ...new Set(data.map((product) => product.TenSP.split(" ")[0])),
-      ];
+      const uniqueBrands = [...new Set(data.map(product => product.TenSP.split(" ")[0]))];
       setBrands(uniqueBrands);
 
-      const prices = data.map((product) => Number(product.GiaSP1) || 0);
+      const prices = data.map(product => Number(product.GiaSP1) || 0);
       const min = Math.min(...prices);
       const max = Math.max(...prices);
       setMinPrice(min);
@@ -56,14 +52,10 @@ const ProductList = () => {
       selectedStorage ? product.BoNhoTrong1 === selectedStorage : true
     )
     .filter((product) =>
-      selectedBrand
-        ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase())
-        : true
+      selectedBrand ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase()) : true
     )
     .filter((product) =>
-      searchQuery
-        ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase())
-        : true
+      searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true
     )
     .filter((product) => {
       const price = Number(product.GiaSP1) || 0;
@@ -77,6 +69,7 @@ const ProductList = () => {
       return 0;
     });
 
+
   return (
     <div className="bg-gray-100 min-h-screen py-6">
       <div className="container mx-auto px-4">
@@ -88,9 +81,7 @@ const ProductList = () => {
           >
             <option value="">Tất cả sản phẩm</option>
             {brands.map((brand) => (
-              <option key={brand} value={brand}>
-                {brand}
-              </option>
+              <option key={brand} value={brand}>{brand}</option>
             ))}
           </select>
 
@@ -101,6 +92,7 @@ const ProductList = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+
 
           <select
             className="p-2 border rounded text-sm"
@@ -137,17 +129,14 @@ const ProductList = () => {
             {showPriceFilter && (
               <div className="absolute left-0 mt-2 w-60 bg-white border rounded shadow-lg p-4 z-10">
                 <label className="text-sm font-medium block mb-2">
-                  Khoảng giá ({priceRange[0].toLocaleString()}₫ -{" "}
-                  {priceRange[1].toLocaleString()}₫)
+                  Khoảng giá ({priceRange[0].toLocaleString()}₫ - {priceRange[1].toLocaleString()}₫)
                 </label>
                 <input
                   type="range"
                   min={minPrice}
                   max={maxPrice}
                   value={priceRange[0]}
-                  onChange={(e) =>
-                    setPriceRange([Number(e.target.value), priceRange[1]])
-                  }
+                  onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
                   className="w-full"
                 />
                 <input
@@ -155,9 +144,7 @@ const ProductList = () => {
                   min={minPrice}
                   max={maxPrice}
                   value={priceRange[1]}
-                  onChange={(e) =>
-                    setPriceRange([priceRange[0], Number(e.target.value)])
-                  }
+                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
                   className="w-full"
                 />
 
@@ -186,10 +173,7 @@ const ProductList = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedProducts.map((product) => (
-              <div
-                key={product.id}
-                className="border p-4 rounded-lg shadow-lg bg-white transition-transform duration-300 transform hover:scale-105"
-              >
+              <div key={product.id} className="border p-4 rounded-lg shadow-lg bg-white transition-transform duration-300 transform hover:scale-105">
                 <div className="product-img mb-4">
                   <Link to={`/products/product_detail/${product._id}`}>
                     <img
@@ -201,10 +185,7 @@ const ProductList = () => {
                 </div>
 
                 <h5 className="text-sm text-center">
-                  <Link
-                    to={`/products/product_detail/${product.id}`}
-                    className="font-semibold"
-                  >
+                  <Link to={`/products/product_detail/${product.id}`} className="font-semibold">
                     {product.TenSP} <strong>({product.BoNhoTrong1})</strong>
                   </Link>
                 </h5>
