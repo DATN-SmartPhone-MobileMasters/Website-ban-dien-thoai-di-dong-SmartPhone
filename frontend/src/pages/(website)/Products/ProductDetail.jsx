@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProducts } from "../../../service/api";
+import { FaMobileAlt, FaCamera, FaMicrochip, FaBatteryFull, FaPlug, FaInfoCircle } from "react-icons/fa";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -43,7 +44,7 @@ const ProductDetail = () => {
 
     if (!authToken) {
       alert("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
-      navigate("/login"); // Chuyển hướng đến trang đăng nhập
+      navigate("/login");
       return;
     }
 
@@ -73,7 +74,7 @@ const ProductDetail = () => {
         image: selectedImage,
         quantity: 1,
         price: selectedMemory.price,
-        maxQuantity: selectedMemory.quantity, // Thêm maxQuantity vào sản phẩm
+        maxQuantity: selectedMemory.quantity,
       });
     }
 
@@ -106,6 +107,7 @@ const ProductDetail = () => {
   return (
     <div className="container mt-4">
       <div className="row">
+        {/* Phần hình ảnh */}
         <div className="col-md-6 text-center">
           <div
             style={{
@@ -114,6 +116,7 @@ const ProductDetail = () => {
               overflow: "hidden",
               borderRadius: "10px",
               position: "relative",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             }}
           >
             <img
@@ -148,6 +151,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
+        {/* Phần thông tin sản phẩm */}
         <div className="col-md-6">
           <h2>{product.TenSP}</h2>
           <p className="text-muted">Mã sản phẩm: {product.MaSP}</p>
@@ -191,14 +195,58 @@ const ProductDetail = () => {
           <button className="btn btn-success mt-3" onClick={addToCart}>
             🛒 Thêm vào giỏ hàng
           </button>
-          <p><strong>Hệ Điều Hành:</strong> {product.HDH}</p>
-          <p><strong>Camera Sau:</strong> {product.CamSau}</p>
-          <p><strong>Camera Trước:</strong> {product.CamTruoc}</p>
-          <p><strong>CPU:</strong> {product.CPU}</p>
-          <p><strong>Cáp sạc:</strong> {product.CapSac}</p>
-          <p><strong>Trạng Thái:</strong> {product.TrangThai}</p>
+        </div>
+
+        {/* Phần thông tin chi tiết sản phẩm */}
+        <div className="col-12 mt-4">
+          <div className="card shadow-sm p-4 bg-light">
+            <h3 className="mb-4"><FaInfoCircle className="me-2" />THÔNG TIN SẢN PHẨM</h3>
+            <div className="row">
+              <div className="col-md-6">
+                <div className="d-flex align-items-center mb-3">
+                  <FaMobileAlt className="me-3" />
+                  <div>
+                    <strong>Hệ Điều Hành:</strong> {product.HDH}
+                  </div>
+                </div>
+                <div className="d-flex align-items-center mb-3">
+                  <FaCamera className="me-3" />
+                  <div>
+                    <strong>Camera Sau:</strong> {product.CamSau}
+                  </div>
+                </div>
+                <div className="d-flex align-items-center mb-3">
+                  <FaCamera className="me-3" />
+                  <div>
+                    <strong>Camera Trước:</strong> {product.CamTruoc}
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="d-flex align-items-center mb-3">
+                  <FaMicrochip className="me-3" />
+                  <div>
+                    <strong>CPU:</strong> {product.CPU}
+                  </div>
+                </div>
+                <div className="d-flex align-items-center mb-3">
+                  <FaPlug className="me-3" />
+                  <div>
+                    <strong>Cáp sạc:</strong> {product.CapSac}
+                  </div>
+                </div>
+                <div className="d-flex align-items-center mb-3">
+                  <FaBatteryFull className="me-3" />
+                  <div>
+                    <strong>Trạng Thái:</strong> {product.TrangThai}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      <br />
     </div>
   );
 };
