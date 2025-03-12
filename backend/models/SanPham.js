@@ -1,0 +1,35 @@
+import mongoose from "mongoose";
+
+const SanPhamSchema = new mongoose.Schema({
+  MaSP: { type: String, unique: true, required: true },
+  MaKM: { type: String },
+  TenTH: {type: String},
+  MoTa: {type: String},
+  CapSac: {type: String},
+  TenSP: { type: String, required: true },
+  GiaSP1: { type: Number, required: true },
+  GiaSP2: { type: Number, required: true },
+  GiaSP3: { type: Number, required: true },
+  SoLuong1: { type: Number, required: true },
+  SoLuong2: { type: Number, required: true },
+  SoLuong3: { type: Number, required: true },
+  HinhAnh1: { type: String },
+  HinhAnh2: { type: String },
+  HinhAnh3: { type: String },
+  BoNhoTrong1: { type: String },
+  BoNhoTrong2: { type: String },
+  BoNhoTrong3: { type: String },
+  Mau1: { type: String },
+  Mau2: { type: String },
+  Mau3: { type: String },
+  ManHinh: { type: String },
+  HDH: { type: String },
+  CamSau: { type: String },
+  CamTruoc: { type: String },
+  CPU: { type: String },
+  LoaiPin: { type: String },
+  TrangThai: { type: String },
+  created_at: { type: Date, default: Date.now },
+});
+
+export default mongoose.model("SanPham", SanPhamSchema);
