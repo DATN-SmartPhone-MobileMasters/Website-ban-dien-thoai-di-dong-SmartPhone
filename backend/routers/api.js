@@ -39,6 +39,7 @@ apiRouter.get("/sanphams/:id", SanPhamControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/sanphams/:id", SanPhamControl.apiDelete);
 apiRouter.post("/sanphams", SanPhamControl.apiCreate);
 apiRouter.put("/sanphams/:id", SanPhamControl.apiUpdate);
+
 const ThuongHieuControl = new ThuongHieuController();
 // api thương hiệu
 apiRouter.get("/thuonghieus", ThuongHieuControl.apiList); //lấy danh sách bản ghi
