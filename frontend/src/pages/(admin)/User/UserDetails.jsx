@@ -36,6 +36,21 @@ const UserDetails = () => {
         </div>
         <div className="p-6 ml-2">
           <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+          <div>
+                <label className="block text-sm font-medium mb-1">Ảnh đại diện</label>
+                {user.Avata && (
+                  <img 
+                    src={user.Avata} 
+                    alt="Avatar preview" 
+                    className="mt-2"
+                    style={{ 
+                      maxWidth: '100px', 
+                      maxHeight: '100px',
+                      borderRadius: '10px' 
+                    }}
+                  />
+                )}
+              </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-gray-500">ID</dt>
               <dd className="mt-1 text-sm text-gray-900">{user.MaND}</dd>

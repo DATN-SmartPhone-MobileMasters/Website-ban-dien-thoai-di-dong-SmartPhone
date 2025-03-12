@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { updateUser } from '../../../service/api'; // Remove resetPassword import
+import { updateUser,uploadImage  } from '../../../service/api'; 
 
 const AccountPage = () => {
   const [userData, setUserData] = useState({
     HoVaTen: '',
+    Avata:'',
     SDT: '',
     Email: '',
     DiaChi: '',
@@ -30,11 +31,29 @@ const AccountPage = () => {
     setUserData({ ...userData, [name]: value });
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await uploadImage(formData);
+      setUserData(prev => ({
+        ...prev,
+        Avata: response.data.imageUrl
+      }));
+    } catch (error) {
+      setError('Tải ảnh đại diện lên thất bại');
+      console.error('Avatar upload error:', error);
+    }
+  };
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
       const response = await updateUser(userData.id, userData);
       if (response.data.message) {
@@ -97,16 +116,37 @@ const AccountPage = () => {
           <div className="w-3/4 bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Thông tin tài khoản</h3>
             <form onSubmit={handleUpdate}>
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Tên Tài Khoản</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">Ảnh đại diện</label>
                 <input
-                  type="text"
-                  name="TaiKhoan"
-                  placeholder="Mời Nhập thông tin tên tài khoản"
+                  type="file"
+                  accept="image/*"
                   className="w-full p-2 border border-gray-300 rounded"
-                  value={userData.TaiKhoan}
-                  onChange={handleChange}
+                  onChange={handleAvatarUpload}
                 />
+                {userData.Avata && (
+                  <img 
+                    src={userData.Avata} 
+                    alt="Avatar preview" 
+                    className="mt-2"
+                    style={{ 
+                      maxWidth: '100px', 
+                      maxHeight: '100px',
+                      borderRadius: '10px' 
+                    }}
+                  />
+                )}
+              </div>
+              <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">Tên Tài Khoản</label>
+                  <input
+                    type="text"
+                    name="TaiKhoan"
+                    placeholder="Mời Nhập thông tin tên tài khoản"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={userData.TaiKhoan}
+                    onChange={handleChange}
+                  />
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Họ & tên</label>
