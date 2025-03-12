@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProducts, fetchBrands } from "../../../service/api";
+import { createProducts, fetchBrands,uploadImage } from "../../../service/api";
 
 const ProductsAdd = () => {
   const [brands, setBrands] = useState([]);
@@ -50,16 +50,37 @@ const ProductsAdd = () => {
       [name]: value,
     });
   };
+  
+  const handleImageUpload = async (e, fieldName) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('image', file);
+  
+    try {
+      const response = await uploadImage(formData);
+      console.log('Image upload response:', response.data); 
+      setProduct(prev => ({
+        ...prev,
+        [fieldName]: response.data.imageUrl
+      }));
+    } catch (error) {
+      console.error('Image upload error:', error); 
+      setError(`Tải ảnh ${fieldName} lên thất bại`);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       await createProducts(product);
       navigate('/admin/products');
     } catch (error) {
-      setError('Không thể thêm sản phẩm.');
+      console.error('Create product error:', error.response?.data); // Hiển thị lỗi từ server
+      setError(error.response?.data?.message || 'Không thể thêm sản phẩm.');
       setLoading(false);
     }
   };
@@ -447,38 +468,56 @@ const ProductsAdd = () => {
             <div className="form-group">
               <label htmlFor="HinhAnh1">Hình Ảnh 1</label>
               <input
-                type="text"
+                type="file"
                 id="HinhAnh1"
-                name="HinhAnh1"
                 className="form-control"
-                value={product.HinhAnh1}
-                onChange={handleChange}
+                onChange={(e) => handleImageUpload(e, 'HinhAnh1')}
+                accept="image/*"
+                required
               />
-              {product.HinhAnh1 && <img src={product.HinhAnh1} alt="Hình Ảnh 1" style={{ marginTop: '10px', maxWidth: '100px', maxHeight: '100px' }} />}
+              {product.HinhAnh1 && (
+                <img 
+                  src={product.HinhAnh1} 
+                  alt="Preview 1" 
+                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                />
+              )}
             </div>
+
             <div className="form-group">
               <label htmlFor="HinhAnh2">Hình Ảnh 2</label>
               <input
-                type="text"
+                type="file"
                 id="HinhAnh2"
-                name="HinhAnh2"
                 className="form-control"
-                value={product.HinhAnh2}
-                onChange={handleChange}
+                onChange={(e) => handleImageUpload(e, 'HinhAnh2')}
+                accept="image/*"
               />
-              {product.HinhAnh2 && <img src={product.HinhAnh2} alt="Hình Ảnh 2" style={{ marginTop: '10px', maxWidth: '100px', maxHeight: '100px' }} />}
+              {product.HinhAnh2 && (
+                <img 
+                  src={product.HinhAnh2} 
+                  alt="Preview 2" 
+                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                />
+              )}
             </div>
+
             <div className="form-group">
               <label htmlFor="HinhAnh3">Hình Ảnh 3</label>
               <input
-                type="text"
+                type="file"
                 id="HinhAnh3"
-                name="HinhAnh3"
                 className="form-control"
-                value={product.HinhAnh3}
-                onChange={handleChange}
+                onChange={(e) => handleImageUpload(e, 'HinhAnh3')}
+                accept="image/*"
               />
-              {product.HinhAnh3 && <img src={product.HinhAnh3} alt="Hình Ảnh 3" style={{ marginTop: '10px', maxWidth: '100px', maxHeight: '100px' }} />}
+              {product.HinhAnh3 && (
+                <img 
+                  src={product.HinhAnh3} 
+                  alt="Preview 3" 
+                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                />
+              )}
             </div>
           </div>
         </div>

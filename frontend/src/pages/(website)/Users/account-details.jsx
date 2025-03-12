@@ -5,6 +5,7 @@ import { getUserById } from '../../../service/api';
 const AccountDetails = () => {
   const [userData, setUserData] = useState({
     HoVaTen: '',
+    Avata:'',
     SDT: '',
     Email: '',
     DiaChi: '',
@@ -72,6 +73,21 @@ const AccountDetails = () => {
           <div className="w-3/4 bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Thông tin tài khoản</h3>
             <div className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium mb-1">Ảnh đại diện</label>
+                {userData.Avata && (
+                  <img 
+                    src={userData.Avata} 
+                    alt="Avatar preview" 
+                    className="mt-2"
+                    style={{ 
+                      maxWidth: '100px', 
+                      maxHeight: '100px',
+                      borderRadius: '10px' 
+                    }}
+                  />
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Tên Tài Khoản</label>
                 <p className="w-full p-2 border border-gray-300 rounded bg-gray-100">

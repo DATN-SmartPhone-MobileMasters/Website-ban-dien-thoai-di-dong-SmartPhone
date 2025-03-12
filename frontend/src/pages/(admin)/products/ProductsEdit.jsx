@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, updateProducts, fetchBrands } from "../../../service/api";
-
+import { uploadImage } from "../../../service/api";
 const ProductsEdit = () => {
   const [brands, setBrands] = useState([]);
   const { id } = useParams();
@@ -74,7 +74,23 @@ const ProductsEdit = () => {
     });
   };
 
-
+  const handleImageUpload = async (e, fieldName) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('image', file);
+  
+    try {
+      const response = await uploadImage(formData);
+      setProduct(prev => ({
+        ...prev,
+        [fieldName]: response.data.imageUrl
+      }));
+    } catch (error) {
+      setError(`Tải ảnh ${fieldName} lên thất bại`);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -492,33 +508,60 @@ const ProductsEdit = () => {
                 </div>
               </div>
 
-              <div className="col-md-6">
-                <label className="form-label">Hình Ảnh</label>
-                <div className="d-flex">
-                  {[1, 2, 3].map((index) => (
-                    <div key={index} className="mb-3 text-center">
-                      <input
-                        type="text"
-                        className="form-control me-2"
-                        name={`HinhAnh${index}`}
-                        value={product[`HinhAnh${index}`]}
-                        onChange={handleChange}
-                        placeholder={`Link ảnh ${index}`}
-                      />
-                      {product[`HinhAnh${index}`] && (
-                        <div className="mt-2">
-                          <img
-                            src={product[`HinhAnh${index}`]}
-                            alt={`Hình Ảnh ${index}`}
-                            style={{ width: "100%", maxHeight: "200px", objectFit: "contain" }}
-                          />
-                          <p className="mt-1 fw-bold">Hình {index}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <div className="form-group">
+              <label htmlFor="HinhAnh1">Hình Ảnh 1</label>
+              <input
+                type="file"
+                id="HinhAnh1"
+                className="form-control"
+                onChange={(e) => handleImageUpload(e, 'HinhAnh1')}
+                accept="image/*"
+                required
+              />
+              {product.HinhAnh1 && (
+                <img 
+                  src={product.HinhAnh1} 
+                  alt="Preview 1" 
+                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                />
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="HinhAnh2">Hình Ảnh 2</label>
+              <input
+                type="file"
+                id="HinhAnh2"
+                className="form-control"
+                onChange={(e) => handleImageUpload(e, 'HinhAnh2')}
+                accept="image/*"
+              />
+              {product.HinhAnh2 && (
+                <img 
+                  src={product.HinhAnh2} 
+                  alt="Preview 2" 
+                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                />
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="HinhAnh3">Hình Ảnh 3</label>
+              <input
+                type="file"
+                id="HinhAnh3"
+                className="form-control"
+                onChange={(e) => handleImageUpload(e, 'HinhAnh3')}
+                accept="image/*"
+              />
+              {product.HinhAnh3 && (
+                <img 
+                  src={product.HinhAnh3} 
+                  alt="Preview 3" 
+                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                />
+              )}
+            </div>
 
             </div>
 
