@@ -80,6 +80,9 @@ const ProductDetail = () => {
 
     localStorage.setItem("cart", JSON.stringify(cartItems));
     alert("Sản phẩm đã được thêm vào giỏ hàng!");
+
+    // Chuyển hướng đến trang giỏ hàng
+    navigate("/cart");
   };
 
   const formatCurrency = (value) => {
