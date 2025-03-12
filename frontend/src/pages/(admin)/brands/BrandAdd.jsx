@@ -1,29 +1,49 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
-import { createBrand, fetchCategories } from "../../../service/api";
+import { createBrand, fetchCategories, uploadImage } from "../../../service/api";
 
 const BrandAdd = () => {
   const {
     register,
     handleSubmit,
+    setValue, 
     formState: { errors },
   } = useForm();
-  const [categories, setCategories] = useState([]); // State lưu danh sách danh mục
+  const [categories, setCategories] = useState([]);
+  const [imageUrl, setImageUrl] = useState("");
   const navigate = useNavigate();
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await uploadImage(formData);
+      setImageUrl(response.data.imageUrl);
+      setValue("HinhAnh", response.data.imageUrl); 
+    } catch (error) {
+      message.error("Tải ảnh lên thất bại");
+    }
+  };
   // Hàm xử lý gửi form
   const onSubmit = async (data) => {
     try {
-      // Gửi dữ liệu đến API thêm mới thương hiệu
-      await createBrand(data);
+      const brandData = {
+        ...data,
+        HinhAnh: imageUrl
+      };
+      
+      await createBrand(brandData);
       message.success("Thêm thương hiệu thành công!");
-      navigate("/admin/brands"); // Chuyển hướng sau khi thêm thành công
+      navigate("/admin/brands");
     } catch (error) {
       message.error("Thêm thương hiệu thất bại!");
-      console.error(error.response); // Log lỗi để debug
+      console.error(error.response);
     }
   };
 
@@ -65,12 +85,22 @@ const BrandAdd = () => {
             <div className="form-group">
               <label htmlFor="HinhAnh">Hình ảnh</label>
               <input
-                type="text"
+                type="file"
                 className="form-control"
-                id="HinhAnh"
-                {...register("HinhAnh", {
-                  required: "Hình ảnh không được bỏ trống",
-                })}
+                onChange={handleImageUpload}
+                accept="image/*"
+                required
+              />
+              {imageUrl && (
+                <img 
+                  src={imageUrl} 
+                  alt="Preview" 
+                  style={{ marginTop: '10px', maxWidth: '150px' }}
+                />
+              )}
+              <input
+                type="hidden"
+                {...register("HinhAnh", { required: "Vui lòng tải lên hình ảnh" })}
               />
               <small className="text-danger">{errors.HinhAnh?.message}</small>
             </div>
