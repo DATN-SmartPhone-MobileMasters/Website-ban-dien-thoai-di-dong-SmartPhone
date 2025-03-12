@@ -1,4 +1,5 @@
 import SanPham from "../models/SanPham.js";
+import { v2 as cloudinary } from 'cloudinary';
 
 // Khởi tạo class
 class SanPhamController {
@@ -86,6 +87,36 @@ class SanPhamController {
       res.status(500).json({
         message: "Lỗi khi cập nhật sản phẩm!",
         error: error.message,
+      });
+    }
+  }
+  async apiUpload(req, res) {
+    try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).json({ success: false, message: 'No files uploaded' });
+      }
+  
+      console.log('Received file:', req.files.image); 
+  
+      const { image } = req.files;
+      const result = await cloudinary.uploader.upload(image.tempFilePath, {
+        folder: 'phone_store',
+        resource_type: 'auto'
+      });
+  
+      console.log('Cloudinary upload result:', result); 
+  
+      res.json({
+        success: true,
+        imageUrl: result.secure_url,
+        publicId: result.public_id
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during upload',
+        error: error.message
       });
     }
   }
