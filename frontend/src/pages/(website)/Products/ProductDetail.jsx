@@ -130,12 +130,6 @@ const ProductDetail = () => {
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
             />
-          <p><strong>Hệ Điều Hành:</strong> {product.HDH}</p>
-          <p><strong>Camera Sau:</strong> {product.CamSau}</p>
-          <p><strong>Camera Trước:</strong> {product.CamTruoc}</p>
-          <p><strong>CPU:</strong> {product.CPU}</p>
-          <p><strong>Cáp sạc:</strong> {product.CapSac}</p>
-          <p><strong>Trạng Thái:</strong> {product.TrangThai}</p>
           </div>
           <div className="d-flex justify-content-center mt-3">
             {[1, 2, 3].map((index) =>
@@ -197,7 +191,12 @@ const ProductDetail = () => {
           <button className="btn btn-success mt-3" onClick={addToCart}>
             🛒 Thêm vào giỏ hàng
           </button>
-         
+          <p><strong>Hệ Điều Hành:</strong> {product.HDH}</p>
+          <p><strong>Camera Sau:</strong> {product.CamSau}</p>
+          <p><strong>Camera Trước:</strong> {product.CamTruoc}</p>
+          <p><strong>CPU:</strong> {product.CPU}</p>
+          <p><strong>Cáp sạc:</strong> {product.CapSac}</p>
+          <p><strong>Trạng Thái:</strong> {product.TrangThai}</p>
         </div>
       </div>
     </div>
