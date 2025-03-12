@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getProducts } from "../../../service/api";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedMemory, setSelectedMemory] = useState({
-    memory: "",
-    price: 0,
-    quantity: 0,
-  });
+  const [selectedMemory, setSelectedMemory] = useState({ memory: "", price: 0, quantity: 0 });
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
+  const [zoomStyle, setZoomStyle] = useState({});
 
   useEffect(() => {
     setLoading(true);
@@ -21,12 +19,9 @@ const ProductDetail = () => {
       .then((response) => {
         const productData = response.data.data;
         setProduct(productData);
+
         if (productData.BoNhoTrong1) {
-          setSelectedMemory({
-            memory: productData.BoNhoTrong1,
-            price: productData.GiaSP1,
-            quantity: productData.SoLuong1,
-          });
+          setSelectedMemory({ memory: productData.BoNhoTrong1, price: productData.GiaSP1, quantity: productData.SoLuong1 });
         }
         if (productData.Mau1) {
           setSelectedColor(productData.Mau1);
@@ -34,6 +29,7 @@ const ProductDetail = () => {
         if (productData.HinhAnh1) {
           setSelectedImage(productData.HinhAnh1);
         }
+
         setLoading(false);
       })
       .catch(() => {
@@ -41,6 +37,49 @@ const ProductDetail = () => {
         setLoading(false);
       });
   }, [id]);
+
+  const addToCart = () => {
+    const authToken = localStorage.getItem("authToken");
+
+    if (!authToken) {
+      alert("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
+      navigate("/login"); // Chuyển hướng đến trang đăng nhập
+      return;
+    }
+
+    if (!product || !selectedMemory.memory || !selectedColor) {
+      alert("Vui lòng chọn bộ nhớ và màu sắc!");
+      return;
+    }
+
+    const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+    const existingItemIndex = cartItems.findIndex(
+      (item) => item.id === product._id && item.memory === selectedMemory.memory && item.color === selectedColor
+    );
+
+    if (existingItemIndex !== -1) {
+      if (cartItems[existingItemIndex].quantity < selectedMemory.quantity) {
+        cartItems[existingItemIndex].quantity += 1;
+      } else {
+        alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
+        return;
+      }
+    } else {
+      cartItems.push({
+        id: product._id,
+        name: product.TenSP,
+        memory: selectedMemory.memory,
+        color: selectedColor,
+        image: selectedImage,
+        quantity: 1,
+        price: selectedMemory.price,
+        maxQuantity: selectedMemory.quantity, // Thêm maxQuantity vào sản phẩm
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cartItems));
+    alert("Sản phẩm đã được thêm vào giỏ hàng!");
+  };
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -50,12 +89,14 @@ const ProductDetail = () => {
     const { left, top, width, height } = e.target.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
-    e.target.style.transformOrigin = `${x}% ${y}%`;
-    e.target.style.transform = "scale(2)";
+    setZoomStyle({
+      transformOrigin: `${x}% ${y}%`,
+      transform: "scale(1.5)",
+    });
   };
 
-  const handleMouseLeave = (e) => {
-    e.target.style.transform = "scale(1)";
+  const handleMouseLeave = () => {
+    setZoomStyle({});
   };
 
   if (loading) return <div className="text-center mt-5">Đang tải...</div>;
@@ -66,12 +107,26 @@ const ProductDetail = () => {
     <div className="container mt-4">
       <div className="row">
         <div className="col-md-6 text-center">
-          <div style={{ width: "400px", height: "400px", overflow: "hidden", borderRadius: "10px" }}>
+          <div
+            style={{
+              width: "400px",
+              height: "400px",
+              overflow: "hidden",
+              borderRadius: "10px",
+              position: "relative",
+            }}
+          >
             <img
               src={selectedImage}
               alt={product.TenSP}
               className="img-fluid rounded shadow-sm"
-              style={{ width: "100%", height: "100%", objectFit: "contain", transition: "transform 0.3s ease-in-out" }}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                transition: "transform 0.2s ease-in-out",
+                ...zoomStyle,
+              }}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
             />
@@ -107,11 +162,7 @@ const ProductDetail = () => {
                   key={index}
                   className={`btn ${selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"}`}
                   onClick={() =>
-                    setSelectedMemory({
-                      memory: product[key],
-                      price: product[`GiaSP${index + 1}`],
-                      quantity: product[`SoLuong${index + 1}`],
-                    })
+                    setSelectedMemory({ memory: product[key], price: product[`GiaSP${index + 1}`], quantity: product[`SoLuong${index + 1}`] })
                   }
                 >
                   {product[key]}
@@ -136,18 +187,11 @@ const ProductDetail = () => {
               ) : null
             )}
           </div>
-        </div>
 
-        <div className="mt-4">
-          <h4>Thông tin sản phẩm</h4>
-          <p><strong>Màn Hình:</strong> {product.ManHinh}</p>
-          <p><strong>Camera:</strong> {product.CamSau} / {product.CamTruoc}</p>
-          <p><strong>Pin:</strong> {product.LoaiPin}</p>
-          <p><strong>CPU:</strong> {product.CPU}</p>
-          <p><strong>Hệ điều hành:</strong> {product.HDH}</p>
-          <p><strong>Mô tả:</strong> {product.MoTa}</p>
+          <button className="btn btn-success mt-3" onClick={addToCart}>
+            🛒 Thêm vào giỏ hàng
+          </button>
         </div>
-
       </div>
     </div>
   );
