@@ -1,156 +1,211 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { getProducts } from "../../../service/api";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { fetchProducts } from "../../../service/api";
+import { Spin, message } from "antd";
 
-const ProductDetail = () => {
-  const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [error, setError] = useState("");
+const ProductList = () => {
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedMemory, setSelectedMemory] = useState({
-    memory: "",
-    price: 0,
-    quantity: 0,
-  });
-  const [selectedColor, setSelectedColor] = useState("");
-  const [selectedImage, setSelectedImage] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
+  const [selectedStorage, setSelectedStorage] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [brands, setBrands] = useState([]);
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(50000000);
+  const [priceRange, setPriceRange] = useState([0, 50000000]);
+  const [showPriceFilter, setShowPriceFilter] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    getProducts();
+  }, []);
+
+  const getProducts = async () => {
     setLoading(true);
-    getProducts(id)
-      .then((response) => {
-        const productData = response.data.data;
-        setProduct(productData);
-        if (productData.BoNhoTrong1) {
-          setSelectedMemory({
-            memory: productData.BoNhoTrong1,
-            price: productData.GiaSP1,
-            quantity: productData.SoLuong1,
-          });
-        }
-        if (productData.Mau1) {
-          setSelectedColor(productData.Mau1);
-        }
-        if (productData.HinhAnh1) {
-          setSelectedImage(productData.HinhAnh1);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Không thể tải chi tiết sản phẩm.");
-        setLoading(false);
-      });
-  }, [id]);
+    try {
+      const response = await fetchProducts();
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+      setProducts(data);
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+      const uniqueBrands = [...new Set(data.map(product => product.TenSP.split(" ")[0]))];
+      setBrands(uniqueBrands);
+
+      const prices = data.map(product => Number(product.GiaSP1) || 0);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      setMinPrice(min);
+      setMaxPrice(max);
+      setPriceRange([min, max]);
+    } catch (error) {
+      message.error("Lỗi khi tải danh sách sản phẩm!");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.target.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    e.target.style.transformOrigin = `${x}% ${y}%`;
-    e.target.style.transform = "scale(2)";
+  const resetPriceFilter = () => {
+    setPriceRange([minPrice, maxPrice]);
   };
 
-  const handleMouseLeave = (e) => {
-    e.target.style.transform = "scale(1)";
-  };
+  const sortedProducts = [...products]
+    .filter((product) =>
+      selectedStorage ? product.BoNhoTrong1 === selectedStorage : true
+    )
+    .filter((product) =>
+      selectedBrand ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase()) : true
+    )
+    .filter((product) =>
+      searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true
+    )
+    .filter((product) => {
+      const price = Number(product.GiaSP1) || 0;
+      return price >= priceRange[0] && price <= priceRange[1];
+    })
+    .sort((a, b) => {
+      const priceA = Number(a.GiaSP1) || 0;
+      const priceB = Number(b.GiaSP1) || 0;
+      if (sortOrder === "asc") return priceA - priceB;
+      if (sortOrder === "desc") return priceB - priceA;
+      return 0;
+    });
 
-  if (loading) return <div className="text-center mt-5">Đang tải...</div>;
-  if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!product) return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
 
   return (
-    <div className="container mt-4">
-      <div className="row">
-        <div className="col-md-6 text-center">
-          <div style={{ width: "400px", height: "400px", overflow: "hidden", borderRadius: "10px" }}>
-            <img
-              src={selectedImage}
-              alt={product.TenSP}
-              className="img-fluid rounded shadow-sm"
-              style={{ width: "100%", height: "100%", objectFit: "contain", transition: "transform 0.3s ease-in-out" }}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-            />
-          </div>
-          <div className="d-flex justify-content-center mt-3">
-            {[1, 2, 3].map((index) =>
-              product[`HinhAnh${index}`] ? (
-                <img
-                  key={index}
-                  src={product[`HinhAnh${index}`]}
-                  alt={product.TenSP}
-                  className={`img-thumbnail mx-2 ${selectedImage === product[`HinhAnh${index}`] ? "border border-primary" : ""}`}
-                  width={80}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setSelectedImage(product[`HinhAnh${index}`])}
+    <div className="bg-gray-100 min-h-screen py-6">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-wrap justify-between mb-4 gap-4">
+          <select
+            className="p-2 border rounded text-sm"
+            value={selectedBrand}
+            onChange={(e) => setSelectedBrand(e.target.value)}
+          >
+            <option value="">Tất cả sản phẩm</option>
+            {brands.map((brand) => (
+              <option key={brand} value={brand}>{brand}</option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            className="p-2 border rounded text-sm"
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+
+          <select
+            className="p-2 border rounded text-sm"
+            value={selectedStorage}
+            onChange={(e) => setSelectedStorage(e.target.value)}
+          >
+            <option value="">Bộ nhớ</option>
+            <option value="64GB">64GB</option>
+            <option value="128GB">128GB</option>
+            <option value="256GB">256GB</option>
+            <option value="512GB">512GB</option>
+            <option value="1TB">1TB</option>
+          </select>
+
+          <select
+            className="p-2 border rounded text-sm"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <option value="">Sắp xếp theo</option>
+            <option value="asc">Giá thấp đến cao</option>
+            <option value="desc">Giá cao đến thấp</option>
+          </select>
+
+          {/* Dropdown lọc khoảng giá */}
+          <div className="relative">
+            <button
+              className="p-2 border rounded text-sm bg-white shadow"
+              onClick={() => setShowPriceFilter(!showPriceFilter)}
+            >
+              Lọc theo giá
+            </button>
+
+            {showPriceFilter && (
+              <div className="absolute left-0 mt-2 w-60 bg-white border rounded shadow-lg p-4 z-10">
+                <label className="text-sm font-medium block mb-2">
+                  Khoảng giá ({priceRange[0].toLocaleString()}₫ - {priceRange[1].toLocaleString()}₫)
+                </label>
+                <input
+                  type="range"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={priceRange[0]}
+                  onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                  className="w-full"
                 />
-              ) : null
+                <input
+                  type="range"
+                  min={minPrice}
+                  max={maxPrice}
+                  value={priceRange[1]}
+                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                  className="w-full"
+                />
+
+                {/* Nút hủy lọc */}
+                <div className="flex justify-between mt-4">
+                  <button
+                    className="text-red-500 text-sm"
+                    onClick={resetPriceFilter}
+                  >
+                    Hủy lọc
+                  </button>
+                  <button
+                    className="text-blue-500 text-sm"
+                    onClick={() => setShowPriceFilter(false)}
+                  >
+                    Đóng
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="col-md-6">
-          <h2>{product.TenSP}</h2>
-          <p className="text-muted">Mã sản phẩm: {product.MaSP}</p>
-          <h4 className="text-danger">{formatCurrency(selectedMemory.price)}</h4>
-          <p>Số lượng: {selectedMemory.quantity}</p>
+        {loading ? (
+          <Spin size="large" />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedProducts.map((product) => (
+              <div key={product.id} className="border p-4 rounded-lg shadow-lg bg-white transition-transform duration-300 transform hover:scale-105">
+                <div className="product-img mb-4">
+                  <Link to={`/products/product_detail/${product._id}`}>
+                    <img
+                      src={product.HinhAnh1}
+                      alt={product.TenSP}
+                      className="object-contain rounded-md w-full h-60 bg-white"
+                    />
+                  </Link>
+                </div>
 
-          <h5>Bộ Nhớ Trong:</h5>
-          <div className="d-flex gap-2">
-            {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((key, index) =>
-              product[key] ? (
-                <button
-                  key={index}
-                  className={`btn ${selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"}`}
-                  onClick={() =>
-                    setSelectedMemory({
-                      memory: product[key],
-                      price: product[`GiaSP${index + 1}`],
-                      quantity: product[`SoLuong${index + 1}`],
-                    })
-                  }
-                >
-                  {product[key]}
-                </button>
-              ) : null
-            )}
+                <h5 className="text-sm text-center">
+                  <Link to={`/products/product_detail/${product.id}`} className="font-semibold">
+                    {product.TenSP} <strong>({product.BoNhoTrong1})</strong>
+                  </Link>
+                </h5>
+                <div className="my-2 text-sm text-center">
+                  <span className="font-semibold text-orange-500">
+                    {product.GiaSP1.toLocaleString()}₫
+                  </span>
+                </div>
+                <div className="mt-4 text-center">
+                  <button className="text-blue-500 hover:text-blue-700">
+                    <i className="fa fa-shopping-cart" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-
-          <h5 className="mt-3">Màu sắc:</h5>
-          <div className="d-flex gap-2">
-            {[product.Mau1, product.Mau2, product.Mau3].map((color, index) =>
-              color ? (
-                <div
-                  key={index}
-                  className={`border p-2 rounded ${selectedColor === color ? "border border-primary border-3" : ""}`}
-                  style={{ width: "40px", height: "40px", backgroundColor: color, cursor: "pointer" }}
-                  onClick={() => {
-                    setSelectedColor(color);
-                    setSelectedImage(product[`HinhAnh${index + 1}`] || product.HinhAnh1);
-                  }}
-                ></div>
-              ) : null
-            )}
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <h4>Thông tin sản phẩm</h4>
-          <p><strong>Màn Hình:</strong> {product.ManHinh}</p>
-          <p><strong>Camera:</strong> {product.CamSau} / {product.CamTruoc}</p>
-          <p><strong>Pin:</strong> {product.LoaiPin}</p>
-          <p><strong>CPU:</strong> {product.CPU}</p>
-          <p><strong>Hệ điều hành:</strong> {product.HDH}</p>
-          <p><strong>Mô tả:</strong> {product.MoTa}</p>
-        </div>
-
+        )}
       </div>
     </div>
   );
 };
 
-export default ProductDetail;
+export default ProductList;
