@@ -20,9 +20,11 @@ apiRouter.put("/danhmucs/:id", DanhMucControl.apiUpdate);
 
 const HoaDonControl = new HoaDonController();
 // API thực hiện các chức năng hóa đơn (chỉ lấy danh sách, chi tiết và chỉnh sửa)
+apiRouter.post("/hoadons", HoaDonControl.apiCreate);
 apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
-apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); // Cập nhật hóa đơn
+apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); 
+apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId);// Cập nhật hóa đơn
 
 const ChiTietHoaDonControl = new ChiTietHoaDonController();
 // API cho chi tiết hóa đơn
@@ -32,13 +34,15 @@ apiRouter.post("/chitiethoadons", ChiTietHoaDonControl.apiCreate); // Thêm mớ
 apiRouter.put("/chitiethoadons/:id", ChiTietHoaDonControl.apiUpdate); // Cập nhật
 apiRouter.delete("/chitiethoadons/:id", ChiTietHoaDonControl.apiDelete); // Xóa
 
-const SanPhamControl = new SanPhamController();
-//api thực hiện các chức năng sản phẩm
-apiRouter.get("/sanphams", SanPhamControl.apiList); //lấy danh sách bản ghi
-apiRouter.get("/sanphams/:id", SanPhamControl.apiDetail); //lấy chi tiết
-apiRouter.delete("/sanphams/:id", SanPhamControl.apiDelete);
-apiRouter.post("/sanphams", SanPhamControl.apiCreate);
-apiRouter.put("/sanphams/:id", SanPhamControl.apiUpdate);
+
+const sanPhamControl = new SanPhamController();
+// API thực hiện các chức năng sản phẩm
+apiRouter.get("/sanphams", sanPhamControl.apiList); // Lấy danh sách sản phẩm
+apiRouter.delete("/sanphams/:id", sanPhamControl.apiDelete);
+apiRouter.get("/sanphams/:id", sanPhamControl.apiDetail);
+apiRouter.post("/sanphams", sanPhamControl.apiCreate);
+apiRouter.put("/sanphams/:id", sanPhamControl.apiUpdate);
+apiRouter.post('/upload', sanPhamControl.apiUpload);
 
 const ThuongHieuControl = new ThuongHieuController();
 // api thương hiệu
