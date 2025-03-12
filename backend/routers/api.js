@@ -39,7 +39,6 @@ apiRouter.get("/sanphams/:id", SanPhamControl.apiDetail); //lấy chi tiết
 apiRouter.delete("/sanphams/:id", SanPhamControl.apiDelete);
 apiRouter.post("/sanphams", SanPhamControl.apiCreate);
 apiRouter.put("/sanphams/:id", SanPhamControl.apiUpdate);
-apiRouter.post('/upload', sanPhamControl.apiUpload);
 
 const ThuongHieuControl = new ThuongHieuController();
 // api thương hiệu
