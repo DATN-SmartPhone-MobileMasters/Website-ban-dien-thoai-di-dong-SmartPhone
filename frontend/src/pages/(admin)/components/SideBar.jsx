@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const SideBar = () => {
+  const userData = JSON.parse(localStorage.getItem('userData'));
   return (
     <>
       {/* Sidebar */}
@@ -21,6 +22,12 @@ const SideBar = () => {
             SP Admin <sup>2</sup>
           </div>
         </Link>
+        {/* Admin Email */}
+        <div className="sidebar-user px-3 py-2 text-center">
+          <span className="text-white small">
+            {userData?.Email}
+          </span>
+        </div>
         {/* Divider */}
         <hr className="sidebar-divider my-0" />
         {/* Nav Item - Trang chủ */}
