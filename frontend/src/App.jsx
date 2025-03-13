@@ -41,7 +41,7 @@ import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
 import Checkcart from "./pages/(website)/Cart/Checkcart";
-import AdminLogin from "./pages/(admin)/Admin-Login";
+import AdminLogin from "./pages/(admin)/Admin-Login/Admin-Login";
 
 function App() {
   const configRouter = createBrowserRouter([
