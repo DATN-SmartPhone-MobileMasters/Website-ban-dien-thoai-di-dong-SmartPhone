@@ -93,14 +93,22 @@ const Cart = () => {
         alert("Mã giảm giá đã kết thúc.");
         return;
       }
-
+  
       const currentDate = new Date();
       const startDate = new Date(promotion.NgayBD);
       const endDate = new Date(promotion.NgayKT);
-
+  
       if (currentDate >= startDate && currentDate <= endDate) {
+        const total = calculateTotal();
+  
+        // Kiểm tra nếu voucher là giảm giá số tiền cố định và tổng tiền bé hơn giá trị voucher
+        if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
+          alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
+          return;
+        }
+  
         if (promotion.LoaiKM === "percentage") {
-          const discountAmount = (calculateTotal() * promotion.GiaTriKM) / 100;
+          const discountAmount = (total * promotion.GiaTriKM) / 100;
           setDiscount(discountAmount);
         } else {
           setDiscount(promotion.GiaTriKM);
