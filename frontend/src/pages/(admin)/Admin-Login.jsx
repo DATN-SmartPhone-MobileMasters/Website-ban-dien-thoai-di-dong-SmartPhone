@@ -80,10 +80,9 @@ const AdminLogin = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="flex justify-end w-4/5 text-sm uppercase">
-        <span className="mx-2">/</span>
         <p>Đăng Nhập Admin</p>
       </div>
-      <div className="flex w-4/5 my-8">
+      <div className="flex justify-center w-full">
         <div className="w-1/2 p-8 bg-white rounded-lg shadow-md">
           <h5 className="text-2xl font-bold mb-6 text-black">Đăng Nhập</h5>
           <form onSubmit={handleSubmit}>
@@ -127,10 +126,9 @@ const AdminLogin = () => {
             </button>
           </form>
         </div>
-        
       </div>
     </div>
-  );
+  );  
 };
 
 export default AdminLogin;
