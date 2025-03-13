@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
-import { loginUsers,updateUser } from '../../../service/api';
+import { loginUsers,updateUser } from './../../service/api';
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
