@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
-import { loginUsers,updateUser } from '../../../service/api';
+import { loginUsers,updateUser,getUserById } from '../../../service/api';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -29,8 +29,8 @@ const LoginForm = () => {
     
         if (response.data.token) {
           const user = response.data.user;
-          
-          if (user.MaQuyen !== 1) {
+          const userDetails = await getUserById(user.id);
+          if (userDetails.data.MaQuyen !== 1) {
             confirmAlert({
               title: 'Lỗi',
               message: 'Chỉ có admin mới có thể đăng nhập',
