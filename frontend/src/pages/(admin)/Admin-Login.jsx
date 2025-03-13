@@ -5,7 +5,7 @@ import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
 import { loginUsers,updateUser } from '../../../service/api';
 
-const LoginForm = () => {
+const AdminLogin = () => {
   const [formData, setFormData] = useState({
     Email: '', 
     MatKhau: ''
@@ -133,4 +133,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default AdminLogin;
