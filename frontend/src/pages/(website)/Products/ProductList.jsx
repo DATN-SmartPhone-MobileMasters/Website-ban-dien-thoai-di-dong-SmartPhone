@@ -191,7 +191,7 @@ const ProductList = () => {
                 </h5>
                 <div className="my-2 text-sm text-center">
                   <span className="font-semibold text-orange-500">
-                    {product.GiaSP1.toLocaleString()}₫
+                    {product.GiaSP1 ? product.GiaSP1.toLocaleString() + "₫" : "Chưa có giá"}
                   </span>
                 </div>
                 <div className="mt-4 text-center">
