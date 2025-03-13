@@ -3,9 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
-import { loginUsers,updateUser,getUserById } from './../../service/api';
+import { loginUsers,updateUser } from '../../../service/api';
 
-const AdminLogin = () => {
+const LoginForm = () => {
   const [formData, setFormData] = useState({
     Email: '', 
     MatKhau: ''
@@ -29,8 +29,8 @@ const AdminLogin = () => {
     
         if (response.data.token) {
           const user = response.data.user;
-          const userDetails = await getUserById(user.id);
-          if (userDetails.data.MaQuyen !== 1) {
+          
+          if (user.MaQuyen !== 1) {
             confirmAlert({
               title: 'Lỗi',
               message: 'Chỉ có admin mới có thể đăng nhập',
@@ -131,4 +131,4 @@ const AdminLogin = () => {
   );  
 };
 
-export default AdminLogin;
+export default LoginForm;
