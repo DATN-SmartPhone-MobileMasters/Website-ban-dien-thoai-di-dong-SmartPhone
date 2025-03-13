@@ -42,13 +42,19 @@ const Cart = () => {
   }, [navigate]);
 
   const removeItemFromCart = (index) => {
-    const newCart = cart.filter((_, i) => i !== index);
-    localStorage.setItem("cart", JSON.stringify(newCart));
-    setCart(newCart);
-
-    const newSelectedItems = { ...selectedItems };
-    delete newSelectedItems[index];
-    setSelectedItems(newSelectedItems);
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?");
+    if (confirmDelete) {
+      const newCart = cart.filter((_, i) => i !== index);
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      setCart(newCart);
+  
+      const newSelectedItems = { ...selectedItems };
+      delete newSelectedItems[index];
+      setSelectedItems(newSelectedItems);
+  
+      // Tải lại trang sau khi xóa
+      window.location.reload();
+    }
   };
 
   const increaseQuantity = (index) => {

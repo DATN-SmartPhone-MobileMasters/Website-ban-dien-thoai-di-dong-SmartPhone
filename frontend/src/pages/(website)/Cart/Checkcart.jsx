@@ -34,19 +34,6 @@ const Checkcart = () => {
     fetchUserData();
   }, []);
 
-  const removeItem = (index) => {
-    const updatedCart = cart.filter((_, i) => i !== index);
-    setCart(updatedCart);
-
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const updatedStoredCart = storedCart.filter((_, i) => i !== index);
-    localStorage.setItem("cart", JSON.stringify(updatedStoredCart));
-
-    if (updatedCart.length === 0) {
-      navigate("/cart");
-    }
-  };
-
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     confirmAlert({
@@ -57,7 +44,7 @@ const Checkcart = () => {
           label: 'Có',
           onClick: async () => {
             setIsSubmitting(true);
-            
+  
             const orderData = {
               userId: userInfo._id,
               products: cart.map(item => ({
@@ -79,11 +66,17 @@ const Checkcart = () => {
               },
               orderNote
             };
-
+  
             try {
               const response = await createOrder(orderData);
               if (response.data) {
+                // Xóa giỏ hàng khỏi localStorage
                 localStorage.removeItem('cart');
+  
+                // Kích hoạt sự kiện cartUpdated để cập nhật Header
+                window.dispatchEvent(new Event("cartUpdated"));
+  
+                // Chuyển hướng đến trang xác nhận đơn hàng
                 navigate(`/profile-receipt/${response.data._id}`);
               }
             } catch (error) {
@@ -109,6 +102,17 @@ const Checkcart = () => {
   return (
     <div className="container mt-4 p-3 border rounded bg-light shadow-sm">
       <form onSubmit={handleSubmitOrder}>
+        {/* Nút quay lại giỏ hàng */}
+        <div className="mb-4">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => navigate("/cart")}
+          >
+            Sửa sản phẩm đã chọn
+          </button>
+        </div>
+
         <h2 className="text-center">🛒 Thông tin thanh toán</h2>
         
         {userInfo.HoVaTen && (
@@ -155,13 +159,6 @@ const Checkcart = () => {
                     <p className="mb-1 fw-bold text-primary">Giá: {formatCurrency(item.price)} VND</p>
                     <p className="mb-1">Số lượng: {item.quantity}</p>
                   </div>
-                  <button 
-                    type="button" 
-                    className="btn btn-danger ms-3" 
-                    onClick={() => removeItem(index)}
-                  >
-                    Xóa
-                  </button>
                 </div>
               </div>
             ))}
