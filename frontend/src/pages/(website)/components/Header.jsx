@@ -55,11 +55,17 @@ const Header = () => {
     if (userData) {
       await updateUser(userData.id, { TrangThai: 0 });
     }
+    
+    // Xóa thông tin đăng nhập và giỏ hàng
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
+    localStorage.removeItem('cart'); // Xóa giỏ hàng khi đăng xuất
+  
     setIsLoggedIn(false);
     setUserData(null);
-    window.location.href = '/'; 
+    setCartCount(0); // Đặt số lượng sản phẩm trong giỏ hàng về 0
+  
+    window.location.href = '/'; // Chuyển hướng về trang chủ
   };
 
   return (
