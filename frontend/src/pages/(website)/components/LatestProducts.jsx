@@ -34,7 +34,6 @@ const LatestProducts = () => {
     }
   };
 
-
   const handleCardClick = (id) => {
     navigate(`/products/${id}`);
   };
@@ -78,7 +77,7 @@ const LatestProducts = () => {
                         {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
                       </span>
                       <span style={{ color: "red", fontWeight: "bold", display: "block" }}>
-                        {product.GiaSP1.toLocaleString()} VNĐ
+                        {product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá"}
                       </span>
                     </>
                   }
