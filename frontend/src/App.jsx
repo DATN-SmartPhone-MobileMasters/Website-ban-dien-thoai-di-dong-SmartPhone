@@ -41,12 +41,18 @@ import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
 import Checkcart from "./pages/(website)/Cart/Checkcart";
+import AdminLogin from "./pages/(admin)/Admin-Login";
+
 
 function App() {
   const configRouter = createBrowserRouter([
     {
       element: <LayoutAdmin />,
       children: [
+        {
+          path: "/admin/login",
+          element: <AdminLogin />,
+        },
         {
           path: "/admin/dashboard",
           element: <DashBoard />,
@@ -100,7 +106,7 @@ function App() {
           element: <UserList />,
         },
         {
-          path: "/admin/accounts/:id",
+          path: "/admin/accounts-details/:id",
           element: <UserDetails />,
         },
         {

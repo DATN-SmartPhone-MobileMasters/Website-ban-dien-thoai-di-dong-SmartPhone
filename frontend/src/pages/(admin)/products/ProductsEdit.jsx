@@ -516,7 +516,6 @@ const ProductsEdit = () => {
                 className="form-control"
                 onChange={(e) => handleImageUpload(e, 'HinhAnh1')}
                 accept="image/*"
-                required
               />
               {product.HinhAnh1 && (
                 <img 

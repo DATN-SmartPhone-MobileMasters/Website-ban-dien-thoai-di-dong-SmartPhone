@@ -40,9 +40,10 @@ export const resetPassword = async (data) => axios.post(`${API_URL}/users/reset-
 
 //hoadon
 export const createOrder = async (data) => axios.post(`${API_URL}/hoadons`, data);
-export const fetchOrders = async () => axios.get(`${API_URL}/hoadons`);
+export const fetchOrders = async () => axios.get(`${API_URL}/hoadons?timestamp=${Date.now()}`);
 export const fetchOrdersByUserId = async (userId) => axios.get(`${API_URL}/hoadons/user/${userId}`); // New function
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
+export const updateOrder = async (id, data) => axios.put(`${API_URL}/hoadons/${id}`, data);
 
 // Comments
 export const fetchComments = async () => axios.get(`${API_URL}/comments`);

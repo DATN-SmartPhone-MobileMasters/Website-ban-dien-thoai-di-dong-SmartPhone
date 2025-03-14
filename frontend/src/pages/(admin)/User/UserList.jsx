@@ -1,50 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { fetchUsers, deleteUser } from '../../../service/api';
+import { fetchUsers,fetchOrdersByUserId, deleteUser } from '../../../service/api';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const navigate = useNavigate();
 
  useEffect(() => {
     fetchUsers()
       .then((res) => setUsers(res.data || []))
       .catch(console.error);
-      setUsers([]);
   }, []);
 
 
   const handleDelete = async (id) => {
-    confirmAlert({
-      title: 'Xác nhận xóa',
-      message: 'Bạn có chắc muốn xoá tài khoản này?',
-      buttons: [
-        {
-          label: 'Có',
-          onClick: async () => {
-            try {
-              await deleteUser(id); 
-              setUsers(users.filter((user) => user._id !== id));
-            } catch (e) {
-              console.error(e);
-            }
+    try {
+      const ordersResponse = await fetchOrdersByUserId(id);
+      const hasOrders = ordersResponse.data.data?.length > 0;
+  
+      confirmAlert({
+        title: 'Xác nhận xóa',
+        message: hasOrders 
+          ? 'Tài khoản này có đơn hàng. Bạn có chắc muốn xoá tài khoản và tất cả đơn hàng liên quan?' 
+          : 'Bạn có chắc muốn xoá tài khoản này?',
+        buttons: [
+          {
+            label: 'Có',
+            onClick: async () => {
+              try {
+                await deleteUser(id); // This now deletes user + orders (backend)
+                setUsers(users.filter((user) => user._id !== id));
+              } catch (e) {
+                console.error(e);
+              }
+            },
           },
-        },
-        {
-          label: 'Không',
-          onClick: () => {},
-        },
-      ],
-      closeOnEscape: true,
-      closeOnClickOutside: true,
-    });
+          {
+            label: 'Không',
+            onClick: () => {},
+          },
+        ],
+        closeOnEscape: true,
+        closeOnClickOutside: true,
+      });
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra đơn hàng:", error);
+    }
   };
 
-  const handleViewDetails = (id) => {
-    navigate(`/admin/accounts/${id}`);
-  };
 
    if (!users || users.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
@@ -85,12 +89,10 @@ const UserList = () => {
                     <td>{user.GioiTinh}</td>
                     <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
                     <td className="space-x-2">
-                      <button
-                        onClick={() => handleViewDetails(user._id)}
-                        className="btn btn-info ml-2"
-                      >
-                        Chi Tiết
-                      </button>
+                    <Link to={`/admin/accounts-details/${user._id}`} className="text-blue-500 hover:underline">
+                        <button className="btn btn-info ml-2">Chi tiết
+                          </button>
+                        </Link>
                       <button
                         onClick={() => handleDelete(user._id)}
                         className="btn btn-danger ml-2"

@@ -1,6 +1,8 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 const API_URL = "http://localhost:5000/api";
 
 const Orderdetail = () => {
@@ -21,18 +23,31 @@ const Orderdetail = () => {
   }, [id]);
 
   const handleStatusChange = async (newStatus) => {
-    if (window.confirm("Bạn có chắc chắn muốn thay đổi trạng thái?")) {
-      try {
-        await axios.put(`${API_URL}/hoadons/${id}`, {
-          paymentStatus: newStatus,
-        });
-        alert("Cập nhật trạng thái thành công!");
-        navigate("/admin/orders");
-      } catch (error) {
-        console.error("Lỗi khi cập nhật trạng thái:", error);
-        alert("Có lỗi xảy ra khi cập nhật trạng thái!");
-      }
-    }
+    confirmAlert({
+      title: "Xác nhận thay đổi trạng thái",
+      message: "Bạn có chắc chắn muốn thay đổi trạng thái?",
+      buttons: [
+        {
+          label: "Có",
+          onClick: async () => {
+            try {
+              await axios.put(`${API_URL}/hoadons/${id}`, {
+                paymentStatus: newStatus,
+              });
+              alert("Cập nhật trạng thái thành công!");
+              navigate("/admin/orders");
+            } catch (error) {
+              console.error("Lỗi khi cập nhật trạng thái:", error);
+              alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+            }
+          },
+        },
+        {
+          label: "Không",
+          onClick: () => {}, // Do nothing if "No" is clicked
+        },
+      ],
+    });
   };
 
   if (!hoaDon) {
@@ -111,30 +126,48 @@ const Orderdetail = () => {
         <div className="mt-6 p-4 bg-gray-100 rounded">
           <h3 className="text-lg font-semibold mb-3">Cập nhật trạng thái</h3>
           <div className="flex gap-2 flex-wrap">
-            <button
-              className="px-4 py-2 bg-yellow-500 text-white rounded"
-              onClick={() => handleStatusChange("Chờ xử lý")}
-            >
-              ⏳ Chờ xử lý
-            </button>
-            <button
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-              onClick={() => handleStatusChange(" Đang Giao")}
-            >
-              🚚Đang Giao
-            </button>
-            <button
-              className="px-4 py-2 bg-green-500 text-white rounded"
-              onClick={() => handleStatusChange(" Hoàn thành")}
-            >
-              ✅ Hoàn thành
-            </button>
-            <button
-              className="px-4 py-2 bg-red-500 text-white rounded"
-              onClick={() => handleStatusChange(" Huỷ Đơn")}
-            >
-              ❌Huỷ Đơn
-            </button>
+            {hoaDon.paymentStatus === "Chờ xử lý" && (
+              <>
+                <button
+                  className="px-4 py-2 bg-yellow-500 text-white rounded"
+                  onClick={() => handleStatusChange("Đã Xác Nhận")}
+                >
+                  ✅Xác Nhận
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                  onClick={() => handleStatusChange("Huỷ Đơn")}
+                >
+                  ❌Huỷ Đơn
+                </button>
+              </>
+            )}
+
+            {hoaDon.paymentStatus === "Đã Xác Nhận" && (
+              <>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                  onClick={() => handleStatusChange("Đang Giao")}
+                >
+                  🚚Đang Giao
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                  onClick={() => handleStatusChange("Huỷ Đơn")}
+                >
+                  ❌Huỷ Đơn
+                </button>
+              </>
+            )}
+
+            {hoaDon.paymentStatus === "Đang Giao" && (
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded"
+                onClick={() => handleStatusChange("Hoàn thành")}
+              >
+                ✅ Hoàn thành
+              </button>
+            )}
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import Users from "../models/Users.js";
+import HoaDon from "../models/HoaDon.js";
 import Joi from 'joi';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -29,16 +30,19 @@ class UsersController {
 
   async apiDelete(req, res) {
     try {
-      const user = await Users.findByIdAndDelete(req.params.id);
-      if (user) {
-        res.json({ message: 'Xoá Thành Công' });
-      } else {
-        res.status(404).json({ message: 'Không thấy tài khoản' });
+      const id = req.params.id;
+      const user = await Users.findByIdAndDelete(id);
+      if (!user) {
+        return res.status(404).json({ message: "Không tìm thấy người dùng" });
       }
+
+      await HoaDon.deleteMany({ userId: new mongoose.Types.ObjectId(id) }); 
+      res.status(200).json({ message: "Xoá người dùng và đơn hàng thành công" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
+  
 
   async apiSignUp(req, res) {
     const signUpSchema = Joi.object({
