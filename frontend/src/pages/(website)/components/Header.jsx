@@ -9,7 +9,7 @@ import {
   FaUser,
   FaUserPlus,
 } from "react-icons/fa";
-import { updateUser } from '../../../service/api';
+import { getUserById } from '../../../service/api'; // Import the getUserById function from api.js
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,22 +50,44 @@ const Header = () => {
   }, []);
 
   // Xử lý đăng xuất
-  const handleLogout = async () => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (userData) {
-      await updateUser(userData.id, { TrangThai: 0 });
+  const checkUserExists = async (userId) => {
+    try {
+      const user = await getUserById(userId); 
+      return user.data;
+    } catch (error) {
+      return null; 
     }
-    
-    // Xóa thông tin đăng nhập và giỏ hàng
+  };
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    const storedUserData = localStorage.getItem("userData");
+  
+    if (authToken && storedUserData) {
+      setIsLoggedIn(true);
+      const parsedUserData = JSON.parse(storedUserData);
+      setUserData(parsedUserData);
+  
+      // Kiểm tra định kỳ mỗi 2 phút
+      const interval = setInterval(async () => {
+        const user = await checkUserExists(parsedUserData.id);
+        if (!user) {
+          handleAutoLogout();
+        }
+      }, 10000); // 2 phút
+  
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  const handleAutoLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
-    localStorage.removeItem('cart'); // Xóa giỏ hàng khi đăng xuất
-  
+    localStorage.removeItem('cart');
     setIsLoggedIn(false);
     setUserData(null);
-    setCartCount(0); // Đặt số lượng sản phẩm trong giỏ hàng về 0
-  
-    window.location.href = '/'; // Chuyển hướng về trang chủ
+    setCartCount(0);
+    window.location.href = '/login'; // Chuyển hướng đến trang đăng nhập
   };
 
   return (
