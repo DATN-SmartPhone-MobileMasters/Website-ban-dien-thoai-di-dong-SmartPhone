@@ -1,22 +1,38 @@
 import mongoose from 'mongoose';
 
 const HoaDonSchema = new mongoose.Schema({
-  MaHD: { type: String, required: true }, // Mã hóa đơn
-  MaND: { 
-    type: mongoose.Schema.Types.ObjectId, // Đảm bảo là ObjectId
-    ref: 'NguoiDung', // Tham chiếu đến model 'NguoiDung'
-    required: true,
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  NgayLap: { type: Date, default: Date.now }, // Ngày lập hóa đơn
-  NguoiNhan: { type: String, required: true }, // Người nhận
-  SDT: { type: String, required: true }, // Số điện thoại
-  DiaChi: { type: String, required: true }, // Địa chỉ giao hàng
-  PhuongThucTT: { type: String, required: true }, // Phương thức thanh toán
-  TongTien: { type: Number, required: true }, // Tổng tiền hóa đơn
-  TrangThai: { type: String, default: 'Chờ xử lý' }, // Trạng thái hóa đơn
-  NgayNhanHang: { type: Date }, // Ngày nhận hàng dự kiến
+  products: [{
+    productId: { type: String, required: true },
+    image: { type: String, required: true },
+    name: { type: String, required: true },
+    memory: { type: String, required: true },
+    color: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true }
+  }],
+  total: { type: Number, required: true },
+  discount: { type: Number, default: 0 },
+  additionalDiscount: { type: Number, default: 0 },
+  shippingInfo: {
+    name: String,
+    phone: String,
+    address: String
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Chờ xử lý', 'Đã Xác Nhận',' Đang Giao', ' Hoàn thành',' Huỷ Đơn'],
+    default: 'Chờ xử lý'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-// Đặt tên model là 'HoaDon'
-const hoadon = mongoose.model('HoaDon', HoaDonSchema);
-export default hoadon;
+const HoaDon = mongoose.model('HoaDon', HoaDonSchema);
+export default HoaDon;

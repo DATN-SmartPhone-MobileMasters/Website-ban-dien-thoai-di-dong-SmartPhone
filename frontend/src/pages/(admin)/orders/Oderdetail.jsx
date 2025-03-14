@@ -109,25 +109,29 @@ const Orderdetail = () => {
           <div className="flex gap-2 flex-wrap">
             <button
               className="px-4 py-2 bg-yellow-500 text-white rounded"
-              onClick={() => handleStatusChange("Chờ xử lý")}
+              onClick={() => handleStatusChange(" Đã Xác Nhận")}
+              disabled={hoaDon.paymentStatus === ' Huỷ Đơn'}
             >
               ⏳ Chờ xử lý
             </button>
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded"
-              onClick={() => handleStatusChange(" Đang Giao")}
+              onClick={() => handleStatusChange(" Đã Xác Nhận")}
+              disabled={hoaDon.paymentStatus !== ' Chờ xử lý' }
             >
                🚚Đang Giao
             </button>
             <button
               className="px-4 py-2 bg-green-500 text-white rounded"
               onClick={() => handleStatusChange(" Hoàn thành")}
+              disabled={hoaDon.paymentStatus !== ' Đang Giao'}
             >
               ✅ Hoàn thành
             </button>
             <button
               className="px-4 py-2 bg-red-500 text-white rounded"
               onClick={() => handleStatusChange(" Huỷ Đơn")}
+              disabled={hoaDon.paymentStatus !== 'Chờ xử lý'}
             >
               ❌Huỷ Đơn
             </button>
