@@ -86,13 +86,13 @@ const Header = () => {
       const parsedUserData = JSON.parse(storedUserData);
       setUserData(parsedUserData);
   
-      // Kiểm tra định kỳ mỗi 2 phút
+      // Kiểm tra định kỳ
       const interval = setInterval(async () => {
         const user = await checkUserExists(parsedUserData.id);
         if (!user) {
           handleAutoLogout();
         }
-      }, 300); 
+      }, 10000); 
   
       return () => clearInterval(interval);
     }
