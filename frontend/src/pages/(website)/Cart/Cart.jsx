@@ -20,32 +20,46 @@ const Cart = () => {
       navigate("/login");
       return;
     }
-
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
-
-    const initialSelection = storedCart.reduce((acc, item, index) => {
-      acc[index] = true;
-      return acc;
-    }, {});
-    setSelectedItems(initialSelection);
-
-    const getPromotions = async () => {
-      try {
-        const response = await fetchPromotion();
-        setPromotions(response.data.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách khuyến mãi:", error);
+  
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+  
+    const updateCart = () => {
+      if (userId) {
+        const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+        setCart(storedCart);
+  
+        const initialSelection = storedCart.reduce((acc, item, index) => {
+          acc[index] = true;
+          return acc;
+        }, {});
+        setSelectedItems(initialSelection);
       }
     };
-    getPromotions();
+  
+    // Cập nhật giỏ hàng khi component được tạo
+    updateCart();
+  
+    // Lắng nghe sự kiện cartUpdated
+    window.addEventListener("cartUpdated", updateCart);
+  
+    // Dọn dẹp sự kiện khi component bị hủy
+    return () => {
+      window.removeEventListener("cartUpdated", updateCart);
+    };
   }, [navigate]);
 
   const removeItemFromCart = (index) => {
     const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?");
     if (confirmDelete) {
       const newCart = cart.filter((_, i) => i !== index);
-      localStorage.setItem("cart", JSON.stringify(newCart));
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.id;
+  
+      if (userId) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+      }
+  
       setCart(newCart);
   
       const newSelectedItems = { ...selectedItems };
@@ -56,23 +70,35 @@ const Cart = () => {
       window.location.reload();
     }
   };
-
+  
   const increaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity < newCart[index].maxQuantity) {
       newCart[index].quantity += 1;
-      localStorage.setItem("cart", JSON.stringify(newCart));
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.id;
+  
+      if (userId) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+      }
+  
       setCart(newCart);
     } else {
       alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
     }
   };
-
+  
   const decreaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity > 1) {
       newCart[index].quantity -= 1;
-      localStorage.setItem("cart", JSON.stringify(newCart));
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.id;
+  
+      if (userId) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+      }
+  
       setCart(newCart);
     }
   };
