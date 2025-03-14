@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
@@ -47,12 +47,20 @@ import AdminLogin from "./pages/(admin)/Admin-Login";
 function App() {
   const configRouter = createBrowserRouter([
     {
+      path: "/admin/login",
+      element: <AdminLogin />,
+    },
+    {
       element: <LayoutAdmin />,
+      loader: () => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw redirect("/admin/login"); 
+        }
+        return null;
+      },
       children: [
-        {
-          path: "/admin/login",
-          element: <AdminLogin />,
-        },
+        
         {
           path: "/admin/dashboard",
           element: <DashBoard />,
@@ -106,7 +114,7 @@ function App() {
           element: <UserList />,
         },
         {
-          path: "/admin/accounts/:id",
+          path: "/admin/accounts-details/:id",
           element: <UserDetails />,
         },
         {
