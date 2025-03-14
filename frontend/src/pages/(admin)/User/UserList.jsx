@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { fetchUsers,fetchOrdersByUserId, deleteUser } from '../../../service/api';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const navigate = useNavigate();
 
  useEffect(() => {
     fetchUsers()
@@ -50,9 +49,6 @@ const UserList = () => {
     }
   };
 
-  const handleViewDetails = (id) => {
-    navigate(`/admin/accounts/${id}`);
-  };
 
    if (!users || users.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
@@ -93,18 +89,17 @@ const UserList = () => {
                     <td>{user.GioiTinh}</td>
                     <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
                     <td className="space-x-2">
-                      <button
-                        onClick={() => handleViewDetails(user._id)}
-                        className="btn btn-info ml-2"
-                      >
-                        Chi Tiết
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        className="btn btn-danger ml-2"
-                      >
-                        Xoá
-                      </button>
+                      <Link to={`/admin/accounts-details/${user._id}`} className="text-blue-500 hover:underline">
+                        <button className="btn btn-info ml-2">Chi tiết</button>
+                      </Link>
+                      {user.MaQuyen === 0 && (
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          className="btn btn-danger ml-2"
+                        >
+                          Xoá
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
