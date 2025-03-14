@@ -50,6 +50,24 @@ const Header = () => {
   }, []);
 
   // Xử lý đăng xuất
+  const handleLogout = async () => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      await updateUser(userData.id, { TrangThai: 0 });
+    }
+    
+    // Xóa thông tin đăng nhập và giỏ hàng
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('cart'); // Xóa giỏ hàng khi đăng xuất
+  
+    setIsLoggedIn(false);
+    setUserData(null);
+    setCartCount(0); // Đặt số lượng sản phẩm trong giỏ hàng về 0
+  
+    window.location.href = '/'; // Chuyển hướng về trang chủ
+  };
+
   const checkUserExists = async (userId) => {
     try {
       const user = await getUserById(userId); 
