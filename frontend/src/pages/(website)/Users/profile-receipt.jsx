@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { fetchOrdersByUserId,updateOrder  } from '../../../service/api';
+import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
@@ -19,6 +19,7 @@ const ProfileReceipt = () => {
       setUserData(parsedUserData);
     }
   }, []);
+
   const handleCancelOrder = async (orderId) => {
     confirmAlert({
       title: 'Xác nhận huỷ đơn hàng',
@@ -63,12 +64,13 @@ const ProfileReceipt = () => {
       ]
     });
   };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (userData.id) {
           const response = await fetchOrdersByUserId(userData.id);
-          setOrders(response.data.data); 
+          setOrders(response.data.data);
         }
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -121,7 +123,7 @@ const ProfileReceipt = () => {
           </div>
 
           {/* Right Container */}
-          <div className="w-3/4 bg-white p-8 rounded-lg shadow-md">
+          <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">
@@ -143,17 +145,18 @@ const ProfileReceipt = () => {
                       <td className="py-2 px-4 border">{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="py-2 px-4 border">
                         <Link to={`/profile-receipt-details/${order._id}`} className="text-blue-500 hover:underline">
-                          Xem chi tiết
+                        <button className="px-4 py-2 bg-blue-500 text-white rounded">Chi tiết
+                          </button>
                         </Link>
                       </td>
                       <td className="py-2 px-4 border">{order.paymentStatus}</td>
                       <td className="py-2 px-4 border">
-                        {order.paymentStatus === 'Chờ xử lý'||order.paymentStatus === 'Đã Xác Nhận' && (
+                        {(order.paymentStatus === 'Chờ xử lý' || order.paymentStatus === 'Đã Xác Nhận') && (
                           <button
                             onClick={() => handleCancelOrder(order._id)}
-                            className="text-red-500 hover:underline"
+                            className="px-4 py-2 bg-red-500 text-white rounded"
                           >
-                            Huỷ Đơn Hàng
+                            Huỷ
                           </button>
                         )}
                       </td>

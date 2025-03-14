@@ -106,7 +106,7 @@ function App() {
           element: <UserList />,
         },
         {
-          path: "/admin/accounts/:id",
+          path: "/admin/accounts-details/:id",
           element: <UserDetails />,
         },
         {
