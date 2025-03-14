@@ -29,16 +29,19 @@ class UsersController {
 
   async apiDelete(req, res) {
     try {
-      const user = await Users.findByIdAndDelete(req.params.id);
-      if (user) {
-        res.json({ message: 'Xoá Thành Công' });
-      } else {
-        res.status(404).json({ message: 'Không thấy tài khoản' });
+      const id = req.params.id;
+      // Delete the user
+      const user = await User.findByIdAndDelete(id);
+      if (!user) {
+        return res.status(404).json({ message: "Không tìm thấy người dùng" });
       }
+      await HoaDon.deleteMany({ userId: id }); 
+      res.status(200).json({ message: "Xoá người dùng và đơn hàng thành công" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   }
+  
 
   async apiSignUp(req, res) {
     const signUpSchema = Joi.object({
