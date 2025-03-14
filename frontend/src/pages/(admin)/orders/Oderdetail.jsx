@@ -1,8 +1,8 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { confirmAlert } from 'react-confirm-alert'; 
-import 'react-confirm-alert/src/react-confirm-alert.css';
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 const API_URL = "http://localhost:5000/api";
 
 const Orderdetail = () => {
@@ -24,15 +24,15 @@ const Orderdetail = () => {
 
   const handleStatusChange = async (newStatus) => {
     confirmAlert({
-      title: 'Xác nhận thay đổi trạng thái',
-      message: 'Bạn có chắc chắn muốn thay đổi trạng thái?',
+      title: "Xác nhận thay đổi trạng thái",
+      message: "Bạn có chắc chắn muốn thay đổi trạng thái?",
       buttons: [
         {
-          label: 'Có',
+          label: "Có",
           onClick: async () => {
             try {
               await axios.put(`${API_URL}/hoadons/${id}`, {
-                paymentStatus: newStatus
+                paymentStatus: newStatus,
               });
               alert("Cập nhật trạng thái thành công!");
               navigate("/admin/orders");
@@ -40,13 +40,13 @@ const Orderdetail = () => {
               console.error("Lỗi khi cập nhật trạng thái:", error);
               alert("Có lỗi xảy ra khi cập nhật trạng thái!");
             }
-          }
+          },
         },
         {
-          label: 'Không',
-          onClick: () => {} // Do nothing if "No" is clicked
-        }
-      ]
+          label: "Không",
+          onClick: () => {}, // Do nothing if "No" is clicked
+        },
+      ],
     });
   };
 
@@ -57,7 +57,7 @@ const Orderdetail = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Chi tiết hóa đơn</h1>
-      
+
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-3">Thông tin khách hàng</h2>
@@ -81,8 +81,12 @@ const Orderdetail = () => {
           <h2 className="text-xl font-semibold mb-3">Chi tiết đơn hàng</h2>
           <div className="mb-4">
             <p className="font-medium">Mã HĐ: {hoaDon._id}</p>
-            <p className="font-medium">Ngày đặt: {new Date(hoaDon.createdAt).toLocaleDateString()}</p>
-            <p className="font-medium">Tổng tiền: {hoaDon.total?.toLocaleString()}đ</p>
+            <p className="font-medium">
+              Ngày đặt: {new Date(hoaDon.createdAt).toLocaleDateString()}
+            </p>
+            <p className="font-medium">
+              Tổng tiền: {hoaDon.total?.toLocaleString()}đ
+            </p>
             <p className="font-medium">Trạng thái: {hoaDon.paymentStatus}</p>
           </div>
 
@@ -101,8 +105,8 @@ const Orderdetail = () => {
                 <tr key={index} className="border-b">
                   <td className="p-2">
                     <div className="flex items-center">
-                      <img 
-                        src={product.image} 
+                      <img
+                        src={product.image}
                         alt={product.name}
                         className="w-12 h-12 object-cover mr-2"
                       />
@@ -122,7 +126,7 @@ const Orderdetail = () => {
         <div className="mt-6 p-4 bg-gray-100 rounded">
           <h3 className="text-lg font-semibold mb-3">Cập nhật trạng thái</h3>
           <div className="flex gap-2 flex-wrap">
-            {hoaDon.paymentStatus === 'Chờ xử lý' && (
+            {hoaDon.paymentStatus === "Chờ xử lý" && (
               <>
                 <button
                   className="px-4 py-2 bg-yellow-500 text-white rounded"
@@ -138,8 +142,8 @@ const Orderdetail = () => {
                 </button>
               </>
             )}
-            
-            {hoaDon.paymentStatus === 'Đã Xác Nhận' && (
+
+            {hoaDon.paymentStatus === "Đã Xác Nhận" && (
               <>
                 <button
                   className="px-4 py-2 bg-blue-500 text-white rounded"
@@ -155,8 +159,8 @@ const Orderdetail = () => {
                 </button>
               </>
             )}
-            
-            {hoaDon.paymentStatus === 'Đang Giao' && (
+
+            {hoaDon.paymentStatus === "Đang Giao" && (
               <button
                 className="px-4 py-2 bg-green-500 text-white rounded"
                 onClick={() => handleStatusChange("Hoàn thành")}
@@ -166,7 +170,6 @@ const Orderdetail = () => {
             )}
           </div>
         </div>
-
 
         <div className="mt-6">
           <Link
