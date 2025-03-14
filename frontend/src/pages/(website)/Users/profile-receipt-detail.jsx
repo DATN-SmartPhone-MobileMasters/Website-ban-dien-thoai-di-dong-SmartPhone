@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { fetchOrdersByUserId } from '../../../service/api'; // Changed to fetchOrdersByUserId
+
+import { fetchOrdersByUserId } from '../../../service/api'; 
+
 
 const ProfileReceiptDetails = () => {
   const [orders, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({ Email: '', id: '' });
-  const { id: orderId } = useParams(); // Rename to `orderId` for clarity
-
+  const { id: orderId } = useParams(); 
+  
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
     if (storedUserData) {
