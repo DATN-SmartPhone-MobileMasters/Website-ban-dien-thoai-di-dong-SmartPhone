@@ -9,7 +9,7 @@ import {
   FaUser,
   FaUserPlus,
 } from "react-icons/fa";
-import { getUserById } from '../../../service/api'; // Import the getUserById function from api.js
+import { updateUser,getUserById } from '../../../service/api'; // Import the getUserById function from api.js
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
