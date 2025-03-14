@@ -20,15 +20,15 @@ const Cart = () => {
       navigate("/login");
       return;
     }
-  
+
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
-  
+
     const updateCart = () => {
       if (userId) {
         const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
         setCart(storedCart);
-  
+
         const initialSelection = storedCart.reduce((acc, item, index) => {
           acc[index] = true;
           return acc;
@@ -36,13 +36,25 @@ const Cart = () => {
         setSelectedItems(initialSelection);
       }
     };
-  
+
     // Cập nhật giỏ hàng khi component được tạo
     updateCart();
-  
+
     // Lắng nghe sự kiện cartUpdated
     window.addEventListener("cartUpdated", updateCart);
-  
+
+    // Fetch danh sách khuyến mãi
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetchPromotion();
+        setPromotions(response.data.data);
+      } catch (error) {
+        console.error("Error fetching promotions:", error);
+      }
+    };
+
+    fetchPromotions();
+
     // Dọn dẹp sự kiện khi component bị hủy
     return () => {
       window.removeEventListener("cartUpdated", updateCart);
@@ -55,50 +67,50 @@ const Cart = () => {
       const newCart = cart.filter((_, i) => i !== index);
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
       }
-  
+
       setCart(newCart);
-  
+
       const newSelectedItems = { ...selectedItems };
       delete newSelectedItems[index];
       setSelectedItems(newSelectedItems);
-  
+
       // Tải lại trang sau khi xóa
       window.location.reload();
     }
   };
-  
+
   const increaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity < newCart[index].maxQuantity) {
       newCart[index].quantity += 1;
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
       }
-  
+
       setCart(newCart);
     } else {
       alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
     }
   };
-  
+
   const decreaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity > 1) {
       newCart[index].quantity -= 1;
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
       }
-  
+
       setCart(newCart);
     }
   };
@@ -119,20 +131,20 @@ const Cart = () => {
         alert("Mã giảm giá đã kết thúc.");
         return;
       }
-  
+
       const currentDate = new Date();
       const startDate = new Date(promotion.NgayBD);
       const endDate = new Date(promotion.NgayKT);
-  
+
       if (currentDate >= startDate && currentDate <= endDate) {
         const total = calculateTotal();
-  
+
         // Kiểm tra nếu voucher là giảm giá số tiền cố định và tổng tiền bé hơn giá trị voucher
         if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
           alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
           return;
         }
-  
+
         if (promotion.LoaiKM === "percentage") {
           const discountAmount = (total * promotion.GiaTriKM) / 100;
           setDiscount(discountAmount);
