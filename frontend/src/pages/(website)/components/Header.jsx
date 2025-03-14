@@ -92,7 +92,7 @@ const Header = () => {
         if (!user) {
           handleAutoLogout();
         }
-      }, 10000); // 2 phút
+      }, 300); 
   
       return () => clearInterval(interval);
     }
