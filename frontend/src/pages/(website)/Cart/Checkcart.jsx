@@ -70,8 +70,13 @@ const Checkcart = () => {
             try {
               const response = await createOrder(orderData);
               if (response.data) {
-                // Xóa giỏ hàng khỏi localStorage
-                localStorage.removeItem('cart');
+                // Xóa giỏ hàng khỏi localStorage dựa trên userId
+                const userData = JSON.parse(localStorage.getItem("userData"));
+                const userId = userData?.id;
+  
+                if (userId) {
+                  localStorage.removeItem(`cart_${userId}`);
+                }
   
                 // Kích hoạt sự kiện cartUpdated để cập nhật Header
                 window.dispatchEvent(new Event("cartUpdated"));
