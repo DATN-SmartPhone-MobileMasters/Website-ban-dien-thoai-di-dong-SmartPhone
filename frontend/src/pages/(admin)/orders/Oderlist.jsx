@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { message } from "antd";
 import { fetchOrders } from "../../../service/api";
 
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
-
+  const location = useLocation();
   useEffect(() => {
     const getHoaDons = async () => {
       try {
@@ -17,7 +17,7 @@ const OrderList = () => {
       }
     };
     getHoaDons();
-  }, []);
+  }, [location.key]);
 
   return (
     <div>
