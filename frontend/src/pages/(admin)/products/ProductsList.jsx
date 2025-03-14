@@ -98,6 +98,11 @@ const ProductsList = () => {
   };
 
   const columns = [
+    {
+      title: "STT",
+      key: "stt",
+      render: (text, record, index) => index + 1, // index bắt đầu từ 0, nên cộng thêm 1
+    },
     { title: "Tên sản phẩm", dataIndex: "TenSP", key: "TenSP" },
     { title: "Bộ nhớ", dataIndex: "BoNhoTrong1", key: "BoNhoTrong1" },
     { title: "Trạng thái", dataIndex: "TrangThai", key: "TrangThai" },
