@@ -3,9 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import bcrypt from 'bcryptjs';
-import { loginUsers,updateUser,getUserById } from '../../../service/api';
+import { loginUsers,updateUser,getUserById } from './../../service/api';
 
-const LoginForm = () => {
+const AdminLogin = () => {
   const [formData, setFormData] = useState({
     Email: '', 
     MatKhau: ''
@@ -131,4 +131,4 @@ const LoginForm = () => {
   );  
 };
 
-export default LoginForm;
+export default AdminLogin;

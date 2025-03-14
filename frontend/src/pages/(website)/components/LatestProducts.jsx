@@ -1,74 +1,94 @@
-import React from "react";
-import { Link } from "react-router-dom";
-
-const products = [
-  {
-    id: 1,
-    name: "Google Pixel (128GB, Black)",
-    image: "./src/./img/product_img_1.png",
-    price: 1100,
-    oldPrice: 1400,
-    discount: "20% off",
-  },
-  {
-    id: 2,
-    name: "HTC U Ultra (64GB, Blue)",
-    image: "./src/./img/product_img_2.png",
-    price: 1200,
-    oldPrice: 1700,
-    discount: "10% off",
-  },
-  {
-    id: 3,
-    name: "Samsung Galaxy Note 8",
-    image: "./src/./img/product_img_3.png",
-    price: 1500,
-    oldPrice: 2000,
-    discount: "40% off",
-  },
-  {
-    id: 4,
-    name: "Vivo V5 Plus (Matte Black)",
-    image: "./src/./img/product_img_4.png",
-    price: 1500,
-    oldPrice: 2000,
-    discount: "15% off",
-  },
-];
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { fetchProducts } from "../../../service/api";
+import { Card, Spin, message } from "antd";
 
 const LatestProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getLatestProducts();
+  }, []);
+
+  const getLatestProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetchProducts();
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+
+      // Lọc chỉ lấy các sản phẩm có chữ "iPhone"
+      const filteredProducts = data.filter(product =>
+        product.TenSP.toLowerCase().includes("iphone")
+      );
+
+      setProducts(prevProducts => {
+        let newProducts = [...prevProducts, ...filteredProducts].slice(-8); // Giữ tối đa 8 sản phẩm
+        return newProducts;
+      });
+    } catch (error) {
+      message.error("Lỗi khi lấy sản phẩm mới nhất!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCardClick = (id) => {
+    navigate(`/products/${id}`);
+  };
+
   return (
-    <div className="container mx-auto p-4">
-      <h3 className="text-xl font-semibold text-center mb-6">Sản phẩm mới nhất</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <div key={product.id} className="border p-4 rounded-lg shadow-lg flex flex-col h-full bg-white">
-            <div className="flex justify-center">
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-md" />
-            </div>
-            <div className="text-center mt-4 flex-grow">
-              <h5 className="text-lg font-semibold">
-                <Link to={`/product/${product.id}`} className="hover:text-blue-500">
-                  {product.name}
+    <div style={{ width: "100%", textAlign: "center", padding: "20px 0" }}>
+      <h2>Sản phẩm iPhone mới nhất</h2>
+      {loading ? (
+        <Spin />
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)", // Mỗi hàng 4 sản phẩm
+            gap: "20px",
+            justifyContent: "center",
+            maxWidth: "900px",
+            margin: "0 auto"
+          }}
+        >
+          {products.length > 0 ? (
+            products.map((product) => (
+              <Card
+                key={product._id}
+                hoverable
+                style={{ width: 220, textAlign: "center", cursor: "pointer" }}
+                onClick={() => handleCardClick(product._id)}
+              >
+                <Link to={`/products/product_detail/${product._id}`} onClick={(e) => e.stopPropagation()}>
+                  <img
+                    src={product.HinhAnh1}
+                    alt={product.TenSP}
+                    style={{ height: 150, objectFit: "contain", width: "100%", backgroundColor: "#f8f8f8" }}
+                  />
                 </Link>
-              </h5>
-              <div className="mt-2">
-                <span className="text-lg font-bold text-orange-500">${product.price}</span>
-                <span className="text-sm text-gray-500 line-through ml-2">${product.oldPrice}</span>
-              </div>
-              <span className="text-sm text-red-500">{product.discount}</span>
-            </div>
-            <div className="flex justify-center mt-4 space-x-3">
-              <button className="text-red-500 hover:text-red-700">
-                <i className="fa fa-heart text-xl"></i>
-              </button>
-              <button className="text-blue-500 hover:text-blue-700">
-                <i className="fa fa-shopping-cart text-xl"></i>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+                <Card.Meta
+                  title={product.TenSP}
+                  description={
+                    <>
+                      <span style={{ color: "#555", fontSize: "14px" }}>
+                        {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
+                      </span>
+                      <span style={{ color: "red", fontWeight: "bold", display: "block" }}>
+                        {product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá"}
+                      </span>
+                    </>
+                  }
+                />
+              </Card>
+            ))
+          ) : (
+            <p>Không có sản phẩm iPhone nào.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

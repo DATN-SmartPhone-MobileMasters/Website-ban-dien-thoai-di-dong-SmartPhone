@@ -1,104 +1,85 @@
-import React from "react";
-import { Link } from "react-router-dom";
-
-const products = [
-  {
-    id: 1,
-    name: "Apple iPhone 6",
-    variant: "(32 GB, Gold)",
-    image: "product_img_5.png",
-    price: 1700,
-    oldPrice: 2000,
-    discount: "20% off",
-  },
-  {
-    id: 2,
-    name: "Apple iPhone 7",
-    variant: "(32 GB, Black)",
-    image: "product_img_6.png",
-    price: 1700,
-    oldPrice: 2000,
-    discount: "20% off",
-  },
-  {
-    id: 3,
-    name: "Apple iPhone 6S",
-    variant: "(32 GB, Gold)",
-    image: "product_img_7.png",
-    price: 1700,
-    oldPrice: 2000,
-    discount: "20% off",
-  },
-  {
-    id: 4,
-    name: "Apple iPhone X",
-    variant: "(64GB, Grey)",
-    image: "product_img_8.png",
-    price: 1700,
-    oldPrice: 2000,
-    discount: "20% off",
-  },
-];
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchProducts } from "../../../service/api";
+import { Card, Spin, message } from "antd";
 
 const SellerProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getSellerProducts();
+  }, []);
+
+  const getSellerProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetchProducts();
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+
+      // Lọc bỏ sản phẩm có tên chứa "iphone"
+      const filteredProducts = data.filter(product => !product.TenSP.toLowerCase().includes("iphone"));
+
+      // Giữ lại tối đa 8 sản phẩm mới nhất
+      const latestProducts = filteredProducts.slice(-8);
+
+      setProducts(latestProducts);
+    } catch (error) {
+      message.error("Lỗi khi lấy danh sách sản phẩm!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
-    <div className="container mx-auto p-4">
-      <div className="w-full">
-        <div className="box">
-          <div className="box-head mb-6">
-            <h3 className="text-xl font-semibold">Sản phẩm bán chạy</h3>
-          </div>
-          <div className="box-body">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="product-block border p-4 rounded-lg shadow-lg flex flex-col h-full transition-transform duration-300 hover:scale-105"
-                >
-                  <div className="product-img mb-4">
-                    <Link to={`/product/${product.id}`}>
-                      <img
-                        src={`./src/./img/${product.image}`}
-                        alt={product.name}
-                        className="w-full h-48 object-cover rounded-md"
-                      />
-                    </Link>
-                  </div>
-                  <div className="product-content">
-                    <h5>
-                      <Link
-                        to={`/product/${product.id}`}
-                        className="product-title text-lg font-medium hover:text-blue-500"
-                      >
-                        {product.name} <strong>{product.variant}</strong>
-                      </Link>
-                    </h5>
-                    <div className="product-meta flex items-center space-x-2 my-2">
-                      <span className="product-price text-xl text-orange-500">
-                        ${product.price}
-                      </span>
-                      <span className="discounted-price text-gray-500 line-through">
-                        ${product.oldPrice}
-                      </span>
-                      <span className="offer-price text-red-500 text-sm">
-                        {product.discount}
-                      </span>
-                    </div>
-                    <div className="shopping-btn flex items-center space-x-2 mt-4">
-                      <button className="product-btn btn-like text-red-500 hover:text-red-700">
-                        <i className="fa fa-heart" />
-                      </button>
-                      <button className="product-btn btn-cart text-blue-500 hover:text-blue-700">
-                        <i className="fa fa-shopping-cart" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+    <div style={{ width: "100%", textAlign: "center", padding: "20px 0" }}>
+      <h2>Các sản phẩm khác</h2>
+      {loading ? (
+        <Spin />
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "20px",
+            justifyContent: "center",
+            maxWidth: "900px",
+            margin: "0 auto"
+          }}
+        >
+          {products.length > 0 ? (
+            products.map((product) => (
+              <Card
+                key={product._id}
+                hoverable
+                style={{ width: 220, textAlign: "center", cursor: "pointer" }}
+                cover={
+                  <img
+                    src={product.HinhAnh1}
+                    alt={product.TenSP}
+                    style={{
+                      height: 150,
+                      objectFit: "contain",
+                      width: "100%",
+                      backgroundColor: "#f8f8f8",
+                    }}
+                    onClick={() => navigate(`/products/product_detail/${product._id}`)}
+                  />
+                }
+              >
+                <Card.Meta
+                  title={product.TenSP}
+                  description={<span style={{ color: "red", fontWeight: "bold" }}>{product.GiaSP1.toLocaleString()} VNĐ</span>}
+                />
+              </Card>
+            ))
+          ) : (
+            <p>Không có sản phẩm nào phù hợp.</p>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
