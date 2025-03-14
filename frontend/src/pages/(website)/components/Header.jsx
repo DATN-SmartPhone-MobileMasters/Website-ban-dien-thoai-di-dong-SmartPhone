@@ -9,13 +9,16 @@ import {
   FaUser,
   FaUserPlus,
 } from "react-icons/fa";
+import { updateUser } from '../../../service/api';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [cartCount, setCartCount] = useState(0); // State để lưu số lượng sản phẩm trong giỏ hàng
 
+  // Kiểm tra đăng nhập và lấy thông tin người dùng
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
     const storedUserData = localStorage.getItem("userData");
@@ -26,13 +29,43 @@ const Header = () => {
     }
   }, []);
 
-  // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
+  // Lấy số lượng sản phẩm trong giỏ hàng khi component được tạo
+  useEffect(() => {
+    const updateCartCount = () => {
+      const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+      const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+      setCartCount(totalItems);
+    };
+  
+    // Cập nhật số lượng sản phẩm khi component được tạo
+    updateCartCount();
+  
+    // Lắng nghe sự kiện cartUpdated
+    window.addEventListener("cartUpdated", updateCartCount);
+  
+    // Dọn dẹp sự kiện khi component bị hủy
+    return () => {
+      window.removeEventListener("cartUpdated", updateCartCount);
+    };
+  }, []);
+
+  // Xử lý đăng xuất
+  const handleLogout = async () => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    if (userData) {
+      await updateUser(userData.id, { TrangThai: 0 });
+    }
+    
+    // Xóa thông tin đăng nhập và giỏ hàng
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('cart'); // Xóa giỏ hàng khi đăng xuất
+  
     setIsLoggedIn(false);
     setUserData(null);
-    window.location.href = "/";
+    setCartCount(0); // Đặt số lượng sản phẩm trong giỏ hàng về 0
+  
+    window.location.href = '/'; // Chuyển hướng về trang chủ
   };
 
   return (
@@ -102,10 +135,10 @@ const Header = () => {
                   <>
                     <li>
                       <Link
-                        to="/account"
+                        to={`/account-details/${userData.id}`}
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
                       >
-                        <FaUser />
+                        <FaUser /> 
                         Thông Tin Tài Khoản
                       </Link>
                     </li>
@@ -153,7 +186,7 @@ const Header = () => {
         >
           <FaShoppingCart size={20} />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">
-            1
+            {cartCount} {/* Hiển thị số lượng sản phẩm trong giỏ hàng */}
           </span>
         </Link>
       </div>
@@ -167,44 +200,11 @@ const Header = () => {
                 Trang chủ
               </Link>
             </li>
-
-            {/* Dropdown Mega Menu */}
-            <li
-              className="relative group py-4 cursor-pointer"
-              onMouseEnter={() => setIsOpen(true)}
-              onMouseLeave={() => setIsOpen(false)}
-            >
-              <Link to="/products" className="text-white">
-                Sảm Phẩm
+            <li>
+              <Link to="/products" className="py-4 inline-block text-white">
+                Sản phẩm
               </Link>
-
-              {isOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute left-0 top-full w-80 bg-white shadow-lg rounded-lg overflow-hidden z-10"
-                >
-                  <div className="grid grid-cols-2 gap-4 p-4">
-                    {[
-                      { name: "Điện thoại", path: "/products/dienthoai" },
-                      { name: "Phụ kiện", path: "/products/phukien" },
-                      { name: "Ốp lưng", path: "/products/oplung" },
-                    ].map((item, index) => (
-                      <Link
-                        key={index}
-                        to={item.path}
-                        className="block p-3 rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition duration-200"
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
             </li>
-
             <li>
               <Link to="/about" className="py-4 inline-block text-white">
                 Thông tin

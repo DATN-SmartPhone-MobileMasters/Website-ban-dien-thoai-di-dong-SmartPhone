@@ -1,123 +1,298 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { fetchPromotion } from "../../../service/api";
 
 const Cart = () => {
+  const [cart, setCart] = useState([]);
+  const [selectedItems, setSelectedItems] = useState({});
+  const [voucher, setVoucher] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [promotions, setPromotions] = useState([]);
+  const navigate = useNavigate();
+
+  const formatCurrency = (value) => {
+    return value.toLocaleString("vi-VN");
+  };
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      navigate("/login");
+      return;
+    }
+
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    setCart(storedCart);
+
+    const initialSelection = storedCart.reduce((acc, item, index) => {
+      acc[index] = true;
+      return acc;
+    }, {});
+    setSelectedItems(initialSelection);
+
+    const getPromotions = async () => {
+      try {
+        const response = await fetchPromotion();
+        setPromotions(response.data.data);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách khuyến mãi:", error);
+      }
+    };
+    getPromotions();
+  }, [navigate]);
+
+  const removeItemFromCart = (index) => {
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?");
+    if (confirmDelete) {
+      const newCart = cart.filter((_, i) => i !== index);
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      setCart(newCart);
+  
+      const newSelectedItems = { ...selectedItems };
+      delete newSelectedItems[index];
+      setSelectedItems(newSelectedItems);
+  
+      // Tải lại trang sau khi xóa
+      window.location.reload();
+    }
+  };
+
+  const increaseQuantity = (index) => {
+    const newCart = [...cart];
+    if (newCart[index].quantity < newCart[index].maxQuantity) {
+      newCart[index].quantity += 1;
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      setCart(newCart);
+    } else {
+      alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
+    }
+  };
+
+  const decreaseQuantity = (index) => {
+    const newCart = [...cart];
+    if (newCart[index].quantity > 1) {
+      newCart[index].quantity -= 1;
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      setCart(newCart);
+    }
+  };
+
+  const calculateTotal = () => {
+    return cart.reduce((total, item, index) => {
+      if (selectedItems[index]) {
+        return total + item.price * item.quantity;
+      }
+      return total;
+    }, 0);
+  };
+
+  const applyVoucher = () => {
+    const promotion = promotions.find((promo) => promo.MaKM === voucher);
+    if (promotion) {
+      if (promotion.TrangThai === 1) {
+        alert("Mã giảm giá đã kết thúc.");
+        return;
+      }
+  
+      const currentDate = new Date();
+      const startDate = new Date(promotion.NgayBD);
+      const endDate = new Date(promotion.NgayKT);
+  
+      if (currentDate >= startDate && currentDate <= endDate) {
+        const total = calculateTotal();
+  
+        // Kiểm tra nếu voucher là giảm giá số tiền cố định và tổng tiền bé hơn giá trị voucher
+        if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
+          alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
+          return;
+        }
+  
+        if (promotion.LoaiKM === "percentage") {
+          const discountAmount = (total * promotion.GiaTriKM) / 100;
+          setDiscount(discountAmount);
+        } else {
+          setDiscount(promotion.GiaTriKM);
+        }
+        alert("Áp dụng mã giảm giá thành công!");
+      } else {
+        alert("Mã giảm giá không còn hiệu lực.");
+      }
+    } else {
+      alert("Mã giảm giá không hợp lệ.");
+    }
+  };
+
+  const handleSelectItem = (index) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const calculateFinalTotal = () => {
+    const total = calculateTotal();
+    let finalTotal = total - discount;
+
+    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
+    if (finalTotal > 50000000) {
+      finalTotal *= 0.95;
+    }
+
+    return finalTotal;
+  };
+
+  const calculateOriginalTotal = () => {
+    return cart.reduce((total, item, index) => {
+      if (selectedItems[index]) {
+        return total + item.price * item.quantity;
+      }
+      return total;
+    }, 0);
+  };
+
+  const calculateDiscountAmount = () => {
+    const total = calculateTotal();
+    let discountAmount = discount;
+
+    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
+    if (total - discount > 50000000) {
+      discountAmount += (total - discount) * 0.05;
+    }
+
+    return discountAmount;
+  };
+
+  const calculateAdditionalDiscount = () => {
+    const total = calculateTotal();
+    if (total - discount > 50000000) {
+      return (total - discount) * 0.05;
+    }
+    return 0;
+  };
+
+  const handleVoucherChange = (e) => {
+    setVoucher(e.target.value);
+    if (e.target.value === "") {
+      setDiscount(0); // Xóa giảm giá khi xóa mã giảm giá
+    }
+  };
+
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 w-4/5 mx-auto">
-      <div className="mb-6 border-b pb-4 flex items-center justify-center flex-col ">
-        <h2 className="text-2xl font-bold">Giỏ Hàng</h2>
-        <p>
-          <span className="text-blue-500 font-semibold">2</span> sản phẩm trong
-          giỏ hàng của bạn
-        </p>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3"></th>
-              <th className="p-3 text-left">Sản phẩm</th>
-              <th className="p-3">Đơn giá</th>
-              <th className="p-3 text-center">Số lượng</th>
-              <th className="p-3">Thành tiền</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              {
-                id: 1,
-                name: "iPhone 13 Pro 128GB",
-                color: "Đỏ",
-                price: "30.750.000đ",
-                image: "images/iPhone_13.jpg",
-              },
-              {
-                id: 2,
-                name: "iPhone 11 Pro 128GB",
-                color: "Xanh",
-                price: "17.000.000đ",
-                image: "images/iphone11.png",
-              },
-            ].map((item) => (
-              <tr key={item.id} className="border-b">
-                <td className="p-3 text-center">
-                  <input type="checkbox" className="form-checkbox" />
-                </td>
-                <td className="p-3 flex items-center space-x-3">
+    <div className="container mt-4">
+      <h2>🛒 Giỏ hàng của bạn</h2>
+      {cart.length === 0 ? (
+        <div className="alert alert-warning">Giỏ hàng trống.</div>
+      ) : (
+        <>
+          {cart.map((item, index) => (
+            <div key={index} className="card mb-3">
+              <div className="card-body">
+                <div className="d-flex align-items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems[index] || false}
+                    onChange={() => handleSelectItem(index)}
+                    className="form-check-input me-3"
+                    style={{ width: "20px", height: "20px" }}
+                  />
                   <img
                     src={item.image}
-                    alt=""
-                    className="w-16 h-16 object-cover"
+                    alt={item.name}
+                    className="img-thumbnail me-3"
+                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
                   />
-                  <div>
-                    <p>{item.name}</p>
-                    <p className="text-gray-500">Màu sắc: {item.color}</p>
+                  <div className="flex-grow-1">
+                    <h5 className="card-title">{item.name}</h5>
+                    <p className="card-text">Bộ nhớ: {item.memory}</p>
+                    <p className="card-text">
+                      Màu sắc:{" "}
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: "20px",
+                          height: "20px",
+                          backgroundColor: item.color,
+                          border: "1px solid #ccc",
+                          borderRadius: "4px",
+                          marginLeft: "8px",
+                        }}
+                      ></span>
+                    </p>
+                    <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
+                    <p className="card-text">Số lượng tối đa: {item.maxQuantity}</p>
                   </div>
-                </td>
-                <td className="p-3 ">{item.price}</td>
-                <td className="p-3 ">
-                  <div className="flex items-center justify-center space-x-2">
-                    <button className="px-3 py-1 bg-gray-300 rounded">-</button>
-                    <input
-                      type="number"
-                      max="10"
-                      min="1"
-                      defaultValue="1"
-                      className="w-12 text-center border rounded"
-                    />
-                    <button className="px-3 py-1 bg-gray-300 rounded">+</button>
+                  <div className="d-flex align-items-center">
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => decreaseQuantity(index)}
+                      disabled={item.quantity <= 1}
+                    >
+                      -
+                    </button>
+                    <span className="mx-2">{item.quantity}</span>
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => increaseQuantity(index)}
+                      disabled={item.quantity >= item.maxQuantity}
+                    >
+                      +
+                    </button>
                   </div>
-                </td>
-                <td className="p-3  text-red-500">{item.price}</td>
-                <td className="p-3  text-gray-500 cursor-pointer">
-                  <i className="far fa-trash-alt"></i>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex flex-wrap justify-between items-center mt-6">
-        <Link className="text-blue-500" to="/products">
-          <i className="fas fa-long-arrow-alt-left"></i> Tiếp tục mua hàng
-        </Link>
-
-        <div className="bg-gray-100 p-4 rounded-lg w-full md:w-1/3 mt-4 md:mt-0">
-          <div className="mb-4 flex">
-            <input
-              type="text"
-              className="flex-1 p-2 border rounded-l"
-              placeholder="Nhập mã ưu đãi"
-            />
-            <button className="px-4 bg-blue-500 text-white rounded-r">
-              Áp dụng
-            </button>
+                  <button
+                    className="btn btn-danger ms-3"
+                    onClick={() => removeItemFromCart(index)}
+                  >
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="mt-4">
+            <h4>Tổng tiền: {formatCurrency(calculateOriginalTotal())} VND</h4>
+            {discount > 0 && (
+              <h4 className="text-danger">
+                Giảm giá từ voucher: -{formatCurrency(discount)} VND
+              </h4>
+            )}
+            {calculateAdditionalDiscount() > 0 && (
+              <h4 className="text-danger">
+                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())} VND
+              </h4>
+            )}
+            {calculateFinalTotal() < calculateOriginalTotal() && (
+              <>
+                <h4 className="text-success">
+                  Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())} VND
+                </h4>
+              </>
+            )}
+            <div className="input-group mb-3">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Nhập mã giảm giá"
+                value={voucher}
+                onChange={handleVoucherChange}
+              />
+              <button className="btn btn-primary" onClick={applyVoucher}>
+                Áp dụng
+              </button>
+            </div>
+            <Link
+              to="/checkcart"
+              state={{
+                cart: cart.filter((_, index) => selectedItems[index]),
+                total: calculateFinalTotal(),
+                discount: discount,
+                additionalDiscount: calculateAdditionalDiscount(),
+              }}
+            >
+              <button className="btn btn-success">Thanh toán</button>
+            </Link>
           </div>
-          <ul>
-            <li className="flex justify-between border-b py-2">
-              <span className="text-gray-600">Tạm tính</span>
-              <span>47.750.000đ</span>
-            </li>
-            <li className="flex justify-between py-2">
-              <span className="text-gray-600">Giảm giá</span>
-              <span>0đ</span>
-            </li>
-          </ul>
-          <div className="flex justify-between font-bold text-red-500 py-2">
-            <span>Tổng cộng</span>
-            <span>47.750.000đ</span>
-          </div>
-        </div>
-      </div>
-      <div className="flex mt-3 justify-end mr-4">
-        <Link
-          className="text-white mr-3 px-6 py-2 bg-green-500 rounded hover:transition duration-300 ease-in-out"
-          to="/products"
-        >
-          Mua hàng
-        </Link>
-      </div>
+        </>
+      )}
     </div>
   );
 };

@@ -2,10 +2,10 @@ import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
-import ProductsList from "./pages/(admin)/products/ProductsList";
-import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
+import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
+import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
 import CategoryList from "./pages/(admin)/categorys/CategoryList";
 import CategoryAdd from "./pages/(admin)/categorys/CategoryAdd";
 import CategoryUpdate from "./pages/(admin)/categorys/CategoryUpdate";
@@ -27,19 +27,32 @@ import "font-awesome/css/font-awesome.min.css";
 import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
-import LoginForm from "./pages/(website)/Users/login-form";
-import SignupForm from "./pages/(website)/Users/signup-form";
+import LoginForm from './pages/(website)/Users/login-form';
+import SignupForm from './pages/(website)/Users/signup-form';
 import ForgotPassword from "./pages/(website)/Users/forgot-password";
 import ResetPassword from "./pages/(website)/Users/reset-password";
+import AccountPage from "./pages/(website)/Users/account";
+import ProfileResetPasswordPage from "./pages/(website)/Users/profile-reset-password";
+import AccountDetails from "./pages/(website)/Users/account-details";
+import ProfileReceipt from "./pages/(website)/Users/profile-receipt";
+import ProfileReceiptDetails from "./pages/(website)/Users/profile-receipt-detail";
 import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
+import Checkcart from "./pages/(website)/Cart/Checkcart";
+import AdminLogin from "./pages/(admin)/Admin-Login";
+
+
 function App() {
   const configRouter = createBrowserRouter([
     {
       element: <LayoutAdmin />,
       children: [
+        {
+          path: "/admin/login",
+          element: <AdminLogin />,
+        },
         {
           path: "/admin/dashboard",
           element: <DashBoard />,
@@ -57,21 +70,20 @@ function App() {
           element: <CategoryUpdate />,
         },
         {
-          path: "/admin/products",
-          element: <ProductsList />,
+          path: "/admin/products/add",
+          element: <ProductsAdd />,
         },
         {
           path: "/admin/products/edit/:id",
           element: <ProductsEdit />,
         },
-
         {
-          path: "/admin/products/add",
-          element: <ProductsAdd />,
+          path: "/admin/products/:id",
+          element: <ProductsDetail />,
         },
         {
-          path: "/admin/products/detail/:id",
-          element: <ProductsDetail />,
+          path: "/admin/products",
+          element: <ProductsList />,
         },
         {
           path: "/admin/brands",
@@ -131,6 +143,10 @@ function App() {
       element: <LayoutWebsite />,
       children: [
         {
+          path: "/checkcart",
+          element: <Checkcart />,
+        },
+        {
           path: "/",
           element: <HomePage />,
         },
@@ -139,8 +155,8 @@ function App() {
           element: <ProductList />,
         },
         {
-          path: "/products/product_detail/1",
-          element: <ProductDetail />,
+          path: "/products/product_detail/:id",
+          element: <ProductDetail/>,
         },
         {
           path: "/login",
@@ -157,6 +173,26 @@ function App() {
         {
           path: "/reset-password",
           element: <ResetPassword />,
+        },
+        {
+          path: "/account-details/:id",
+          element: <AccountDetails />,
+        },
+        {
+          path: "/account/:id",
+          element: <AccountPage />,
+        },
+        {
+          path: "/profile-receipt/:id",
+          element: <ProfileReceipt />,
+        },
+        {
+          path: "/profile-receipt-details/:id",
+          element: <ProfileReceiptDetails />,
+        },
+        {
+          path: "/profile-reset-password/:id",
+          element: <ProfileResetPasswordPage />,
         },
         {
           path: "/cart",
