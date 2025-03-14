@@ -24,7 +24,7 @@ const Orderdetail = () => {
     if (window.confirm("Bạn có chắc chắn muốn thay đổi trạng thái?")) {
       try {
         await axios.put(`${API_URL}/hoadons/${id}`, {
-          paymentStatus: newStatus
+          paymentStatus: newStatus,
         });
         alert("Cập nhật trạng thái thành công!");
         navigate("/admin/orders");
@@ -42,7 +42,7 @@ const Orderdetail = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Chi tiết hóa đơn</h1>
-      
+
       <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-3">Thông tin khách hàng</h2>
@@ -66,8 +66,12 @@ const Orderdetail = () => {
           <h2 className="text-xl font-semibold mb-3">Chi tiết đơn hàng</h2>
           <div className="mb-4">
             <p className="font-medium">Mã HĐ: {hoaDon._id}</p>
-            <p className="font-medium">Ngày đặt: {new Date(hoaDon.createdAt).toLocaleDateString()}</p>
-            <p className="font-medium">Tổng tiền: {hoaDon.total?.toLocaleString()}đ</p>
+            <p className="font-medium">
+              Ngày đặt: {new Date(hoaDon.createdAt).toLocaleDateString()}
+            </p>
+            <p className="font-medium">
+              Tổng tiền: {hoaDon.total?.toLocaleString()}đ
+            </p>
             <p className="font-medium">Trạng thái: {hoaDon.paymentStatus}</p>
           </div>
 
@@ -86,8 +90,8 @@ const Orderdetail = () => {
                 <tr key={index} className="border-b">
                   <td className="p-2">
                     <div className="flex items-center">
-                      <img 
-                        src={product.image} 
+                      <img
+                        src={product.image}
                         alt={product.name}
                         className="w-12 h-12 object-cover mr-2"
                       />
@@ -117,7 +121,7 @@ const Orderdetail = () => {
               className="px-4 py-2 bg-blue-500 text-white rounded"
               onClick={() => handleStatusChange(" Đang Giao")}
             >
-               🚚Đang Giao
+              🚚Đang Giao
             </button>
             <button
               className="px-4 py-2 bg-green-500 text-white rounded"
@@ -139,7 +143,7 @@ const Orderdetail = () => {
             to="/admin/orders"
             className="px-4 py-2 bg-blue-500 text-white rounded inline-block hover:bg-blue-600"
           >
-           🔙 Quay lại danh sách
+            🔙 Quay lại danh sách
           </Link>
         </div>
       </div>

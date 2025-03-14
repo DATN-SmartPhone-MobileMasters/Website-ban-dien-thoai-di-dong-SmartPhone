@@ -52,8 +52,8 @@ const OrderList = () => {
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
                       <td>{hoaDon.shippingInfo.name || "Không có"}</td>
-                      <td>{hoaDon.shippingInfo.phone|| "Không có"}</td>
-                      <td>{hoaDon.shippingInfo.address||"Không có"}</td>
+                      <td>{hoaDon.shippingInfo.phone || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo.address || "Không có"}</td>
                       <td>{hoaDon.total || "Không có"}</td>
                       <td>{hoaDon.paymentStatus || "Không có"}</td>
                       <td>
