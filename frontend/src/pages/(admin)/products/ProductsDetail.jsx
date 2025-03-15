@@ -13,29 +13,30 @@ const ProductsDetail = () => {
     quantity: 0,
   });
 
-  useEffect(() => {
-    setLoading(true);
+  // Trong ProductsDetail.js
+useEffect(() => {
+  setLoading(true);
 
-    getProducts(id)
-      .then((response) => {
-        const productData = response.data.data;
-        setProduct(productData);
+  getProducts(id)
+    .then((response) => {
+      const productData = response.data.data;
+      setProduct(productData);
 
-        if (productData.BoNhoTrong1) {
-          setSelectedMemory({
-            memory: productData.BoNhoTrong1,
-            price: productData.GiaSP1,
-            quantity: productData.SoLuong1,
-          });
-        }
+      if (productData.BoNhoTrong1) {
+        setSelectedMemory({
+          memory: productData.BoNhoTrong1,
+          price: productData.GiaSP1,
+          quantity: productData.SoLuong1,
+        });
+      }
 
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Không thể tải chi tiết sản phẩm.");
-        setLoading(false);
-      });
-  }, [id]);
+      setLoading(false);
+    })
+    .catch(() => {
+      setError("Không thể tải chi tiết sản phẩm.");
+      setLoading(false);
+    });
+}, [id]);
 
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];

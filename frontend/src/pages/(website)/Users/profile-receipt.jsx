@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
+import axios from 'axios';
+
+const API_URL = "http://localhost:5000/api"; // Thay thế bằng API URL của bạn
 
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
@@ -20,7 +23,47 @@ const ProfileReceipt = () => {
     }
   }, []);
 
-  const handleCancelOrder = async (orderId) => {
+  const updateProductQuantities = async (products, action) => {
+    for (const product of products) {
+      try {
+        // Lấy thông tin sản phẩm hiện tại
+        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
+
+        // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
+        let updatedQuantity1 = data.data.SoLuong1;
+        let updatedQuantity2 = data.data.SoLuong2;
+        let updatedQuantity3 = data.data.SoLuong3;
+
+        if (product.memory === data.data.BoNhoTrong1) {
+          updatedQuantity1 =
+            action === "subtract"
+              ? data.data.SoLuong1 - product.quantity
+              : data.data.SoLuong1 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong2) {
+          updatedQuantity2 =
+            action === "subtract"
+              ? data.data.SoLuong2 - product.quantity
+              : data.data.SoLuong2 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong3) {
+          updatedQuantity3 =
+            action === "subtract"
+              ? data.data.SoLuong3 - product.quantity
+              : data.data.SoLuong3 + product.quantity;
+        }
+
+        // Cập nhật số lượng sản phẩm
+        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
+          SoLuong1: updatedQuantity1,
+          SoLuong2: updatedQuantity2,
+          SoLuong3: updatedQuantity3,
+        });
+      } catch (error) {
+        console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
+      }
+    }
+  };
+
+  const handleCancelOrder = async (orderId, products) => {
     confirmAlert({
       title: 'Xác nhận huỷ đơn hàng',
       message: 'Bạn có chắc chắn muốn huỷ đơn hàng này?',
@@ -29,9 +72,16 @@ const ProfileReceipt = () => {
           label: 'Có',
           onClick: async () => {
             try {
+              // Cập nhật trạng thái đơn hàng thành "Huỷ Đơn"
               await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
+
+              // Trả lại số lượng sản phẩm
+              await updateProductQuantities(products, "add");
+
+              // Cập nhật lại danh sách đơn hàng
               const response = await fetchOrdersByUserId(userData.id);
               setOrders(response.data.data);
+
               confirmAlert({
                 title: 'Thành công',
                 message: 'Huỷ đơn hàng thành công!',
@@ -145,15 +195,14 @@ const ProfileReceipt = () => {
                       <td className="py-2 px-4 border">{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="py-2 px-4 border">
                         <Link to={`/profile-receipt-details/${order._id}`} className="text-blue-500 hover:underline">
-                        <button className="px-4 py-2 bg-blue-500 text-white rounded">Chi tiết
-                          </button>
+                          <button className="px-4 py-2 bg-blue-500 text-white rounded">Chi tiết</button>
                         </Link>
                       </td>
                       <td className="py-2 px-4 border">{order.paymentStatus}</td>
                       <td className="py-2 px-4 border">
                         {(order.paymentStatus === 'Chờ xử lý' || order.paymentStatus === 'Đã Xác Nhận') && (
                           <button
-                            onClick={() => handleCancelOrder(order._id)}
+                            onClick={() => handleCancelOrder(order._id, order.products)}
                             className="px-4 py-2 bg-red-500 text-white rounded"
                           >
                             Huỷ
