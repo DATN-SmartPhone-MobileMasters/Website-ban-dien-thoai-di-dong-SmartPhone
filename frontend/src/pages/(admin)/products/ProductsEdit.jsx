@@ -395,6 +395,7 @@ const ProductsEdit = () => {
                     required
                   >
                     <option value="">Chọn màu</option>
+                    <option value="Hết Hàng">Hết Hàng</option>
                     <option value="black">Black</option>
                     <option value="silver">Silver</option>
                     <option value="white">White</option>
@@ -427,6 +428,7 @@ const ProductsEdit = () => {
                     required
                   >
                     <option value="">Chọn màu</option>
+                    <option value="Hết Hàng">Hết Hàng</option>
                     <option value="black">Black</option>
                     <option value="silver">Silver</option>
                     <option value="white">White</option>
@@ -459,6 +461,7 @@ const ProductsEdit = () => {
                     required
                   >
                     <option value="">Chọn màu</option>
+                    <option value="Hết Hàng">Hết Hàng</option>
                     <option value="black">Black</option>
                     <option value="silver">Silver</option>
                     <option value="white">White</option>
