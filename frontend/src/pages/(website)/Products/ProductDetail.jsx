@@ -13,7 +13,7 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
-  const [storedCart, setStoredCart] = useState([]);
+  const [isColorAvailable, setIsColorAvailable] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -53,6 +53,17 @@ const ProductDetail = () => {
       price: product[`GiaSP${memoryIndex}`],
       quantity: product[`SoLuong${memoryIndex}`],
     });
+  };
+
+  const handleColorSelection = (color, image) => {
+    if (color === "Hết Hàng") {
+      setIsColorAvailable(false);
+      alert("Màu này đã hết hàng!");
+    } else {
+      setIsColorAvailable(true);
+    }
+    setSelectedColor(color);
+    setSelectedImage(image || product.HinhAnh1);
   };
 
   const addToCart = () => {
@@ -216,20 +227,23 @@ const ProductDetail = () => {
                   style={{ 
                     width: selectedColor === color ? "50px" : "40px", 
                     height: selectedColor === color ? "50px" : "40px",
-                    backgroundColor: color, 
+                    backgroundColor: color === "Hết Hàng" ? "gray" : color, 
                     cursor: "pointer",
                     transition: "all 0.3s ease-in-out", 
                   }}
                   onClick={() => {
-                    setSelectedColor(color);
-                    setSelectedImage(product[`HinhAnh${index + 1}`] || product.HinhAnh1);
+                    handleColorSelection(color, product[`HinhAnh${index + 1}`] || product.HinhAnh1);
                   }}
                 ></div>
               ) : null
             )}
           </div>
 
-          <button className="btn btn-success mt-3" onClick={addToCart}>
+          <button 
+            className="btn btn-success mt-3" 
+            onClick={addToCart} 
+            disabled={!isColorAvailable || selectedColor === "Hết Hàng"}
+          >
             🛒 Thêm vào giỏ hàng
           </button>
         </div>
