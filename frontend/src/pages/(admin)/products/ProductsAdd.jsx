@@ -157,7 +157,7 @@ const ProductsAdd = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="SoLuong1" style={{ color: 'red' }}>Số Lượng Bộ Nhớ 1</label>
+                  <label htmlFor="SoLuong1">Số Lượng Bộ Nhớ 1</label>
                   <input
                     type="number"
                     id="SoLuong1"
@@ -186,7 +186,7 @@ const ProductsAdd = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="SoLuong2" style={{ color: 'aqua' }}>Số Lượng Bộ Nhớ 2</label>
+                  <label htmlFor="SoLuong2">Số Lượng Bộ Nhớ 2</label>
                   <input
                     type="number"
                     id="SoLuong2"
@@ -215,7 +215,7 @@ const ProductsAdd = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="SoLuong3" style={{ color: 'lime' }}>Số Lượng Bộ Nhớ 3</label>
+                  <label htmlFor="SoLuong3">Số Lượng Bộ Nhớ 3</label>
                   <input
                     type="number"
                     id="SoLuong3"
@@ -336,39 +336,6 @@ const ProductsAdd = () => {
                   )}
                 </div>
                 <div className="form-group">
-                <label htmlFor="SoLuongMau1_1" style={{ color: 'red' }}>Số Lượng Màu 1.1</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau1_1"
-                    name="SoLuongMau1_1"
-                    className="form-control"
-                    value={product.SoLuongMau1_1}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau2_1" style={{ color: 'aqua' }}>Số Lượng Màu 2.1</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau2_1"
-                    name="SoLuongMau2_1"
-                    className="form-control"
-                    value={product.SoLuongMau2_1}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau3_1" style={{ color: 'lime' }}>Số Lượng Màu 3.1</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau3_1"
-                    name="SoLuongMau3_1"
-                    className="form-control"
-                    value={product.SoLuongMau3_1}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
                   <label htmlFor="Mau2">Màu 2</label>
                   <select
                     id="Mau2"
@@ -389,39 +356,6 @@ const ProductsAdd = () => {
                   )}
                 </div>
                 <div className="form-group">
-                  <label htmlFor="SoLuongMau1_2" style={{ color: 'red' }}>Số Lượng Màu 1.2</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau1_2"
-                    name="SoLuongMau1_2"
-                    className="form-control"
-                    value={product.SoLuongMau1_2}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau2_2" style={{ color: 'aqua' }}>Số Lượng Màu 2.2</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau2_2"
-                    name="SoLuongMau2_2"
-                    className="form-control"
-                    value={product.SoLuongMau2_2}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau3_2" style={{ color: 'lime' }}>Số Lượng Màu 3.2</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau3_2"
-                    name="SoLuongMau3_2"
-                    className="form-control"
-                    value={product.SoLuongMau3_2}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
                   <label htmlFor="Mau3">Màu 3</label>
                   <select
                     id="Mau3"
@@ -440,39 +374,6 @@ const ProductsAdd = () => {
                   {product.Mau3 && (
                     <div style={{ marginTop: '10px', height: '30px', width: '30px', backgroundColor: product.Mau3 }}></div>
                   )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau1_3" style={{ color: 'red' }}>Số Lượng Màu 1.3</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau1_3"
-                    name="SoLuongMau1_3"
-                    className="form-control"
-                    value={product.SoLuongMau1_3}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau2_3" style={{ color: 'aqua' }}>Số Lượng Màu 2.3</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau2_3"
-                    name="SoLuongMau2_3"
-                    className="form-control"
-                    value={product.SoLuongMau2_3}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="SoLuongMau3_3" style={{ color: 'lime' }}>Số Lượng Màu 3.3</label>
-                  <input
-                    type="number"
-                    id="SoLuongMau3_3"
-                    name="SoLuongMau3_3"
-                    className="form-control"
-                    value={product.SoLuongMau3_3}
-                    onChange={handleChange}
-                  />
                 </div>
                 <div className="form-group">
                   <label htmlFor="CamSau">Camera Sau</label>
