@@ -91,18 +91,18 @@ const ProductsEdit = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    updateProducts(id, product)
-      .then(() => {
-        alert("Cập nhật sản phẩm thành công!");
-        navigate("/admin/products");
-      })
-      .catch(() => {
-        setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
-      });
-  };
-
+  // Trong ProductsEdit.js
+const handleSubmit = (e) => {
+  e.preventDefault();
+  updateProducts(id, product)
+    .then(() => {
+      alert("Cập nhật sản phẩm thành công!");
+      navigate("/admin/products");
+    })
+    .catch(() => {
+      setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
+    });
+};
   if (loading) {
     return (
       <div className="text-center mt-5">
