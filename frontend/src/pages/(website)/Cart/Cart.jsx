@@ -37,13 +37,8 @@ const Cart = () => {
       }
     };
 
-    // Cập nhật giỏ hàng khi component được tạo
     updateCart();
-
-    // Lắng nghe sự kiện cartUpdated
     window.addEventListener("cartUpdated", updateCart);
-
-    // Fetch danh sách khuyến mãi
     const fetchPromotions = async () => {
       try {
         const response = await fetchPromotion();
@@ -55,7 +50,6 @@ const Cart = () => {
 
     fetchPromotions();
 
-    // Dọn dẹp sự kiện khi component bị hủy
     return () => {
       window.removeEventListener("cartUpdated", updateCart);
     };
@@ -77,27 +71,28 @@ const Cart = () => {
       const newSelectedItems = { ...selectedItems };
       delete newSelectedItems[index];
       setSelectedItems(newSelectedItems);
-
-      // Tải lại trang sau khi xóa
       window.location.reload();
     }
   };
 
   const increaseQuantity = (index) => {
     const newCart = [...cart];
-    if (newCart[index].quantity < newCart[index].maxQuantity) {
-      newCart[index].quantity += 1;
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      const userId = userData?.id;
-
-      if (userId) {
-        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
-      }
-
-      setCart(newCart);
-    } else {
-      alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
+    const newQuantity = newCart[index].quantity + 1;
+  
+    if (newQuantity > newCart[index].totalQuantity) {
+      alert("Đã đạt đến giới hạn sản phẩm.");
+      return;
     }
+  
+    newCart[index].quantity = newQuantity;
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+  
+    if (userId) {
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+    }
+  
+    setCart(newCart);
   };
 
   const decreaseQuantity = (index) => {
@@ -139,7 +134,6 @@ const Cart = () => {
       if (currentDate >= startDate && currentDate <= endDate) {
         const total = calculateTotal();
 
-        // Kiểm tra nếu voucher là giảm giá số tiền cố định và tổng tiền bé hơn giá trị voucher
         if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
           alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
           return;
@@ -171,7 +165,6 @@ const Cart = () => {
     const total = calculateTotal();
     let finalTotal = total - discount;
 
-    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
     if (finalTotal > 50000000) {
       finalTotal *= 0.95;
     }
@@ -192,7 +185,6 @@ const Cart = () => {
     const total = calculateTotal();
     let discountAmount = discount;
 
-    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
     if (total - discount > 50000000) {
       discountAmount += (total - discount) * 0.05;
     }
@@ -211,7 +203,7 @@ const Cart = () => {
   const handleVoucherChange = (e) => {
     setVoucher(e.target.value);
     if (e.target.value === "") {
-      setDiscount(0); // Xóa giảm giá khi xóa mã giảm giá
+      setDiscount(0); 
     }
   };
 
@@ -257,7 +249,7 @@ const Cart = () => {
             ></span>
           </p>
           <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
-          <p className="card-text">Số lượng màu: {item.maxQuantity}</p>
+          <p className="card-text">Tổng Số lượng: {item.totalQuantity}</p>
         </div>
         <div className="d-flex align-items-center">
           <button

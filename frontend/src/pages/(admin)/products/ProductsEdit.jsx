@@ -36,15 +36,6 @@ const ProductsEdit = () => {
     HinhAnh1: "",
     HinhAnh2: "",
     HinhAnh3: "",
-    SoLuongMau1_1: "",
-    SoLuongMau1_2: "",
-    SoLuongMau1_3: "",
-    SoLuongMau2_1: "",
-    SoLuongMau2_2: "",
-    SoLuongMau2_3: "",
-    SoLuongMau3_1: "",
-    SoLuongMau3_2: "",
-    SoLuongMau3_3: "",
   });
 
   const [error, setError] = useState("");
@@ -413,62 +404,9 @@ const ProductsEdit = () => {
                   {product.Mau1.trim() === "" && (
                     <div className="text-danger mt-1">Không được bỏ trống</div>
                   )}
+                </div>
 
-                  <div className="mb-3">
-                    <label className="form-label" style={{ color: "red" }}>
-                      Số Lượng Màu 1.1
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="SoLuongMau1_1"
-                      value={product.SoLuongMau1_1}
-                      onChange={handleChange}
-                      required
-                      disabled={product.TrangThai === "Hết hàng"}
-                    />
-                    {!product.SoLuongMau1_1 && product.SoLuongMau1_1 !== 0 && (
-                      <div className="text-danger mt-1">Không được bỏ trống</div>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label" style={{ color: "aqua" }}>
-                      Số Lượng Màu 2.1
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="SoLuongMau2_1"
-                      value={product.SoLuongMau2_1}
-                      onChange={handleChange}
-                      required
-                      disabled={product.TrangThai === "Hết hàng"}
-                    />
-                    {!product.SoLuongMau2_1 && product.SoLuongMau2_1 !== 0 && (
-                      <div className="text-danger mt-1">Không được bỏ trống</div>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label" style={{ color: "lime" }}>
-                      Số Lượng Màu 3.1
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      name="SoLuongMau3_1"
-                      value={product.SoLuongMau3_1}
-                      onChange={handleChange}
-                      required
-                      disabled={product.TrangThai === "Hết hàng"}
-                    />
-                    {!product.SoLuongMau3_1 && product.SoLuongMau3_1 !== 0 && (
-                      <div className="text-danger mt-1">Không được bỏ trống</div>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
+                <div className="mb-3">
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <label className="form-label">Màu 2</label>
                     <div
@@ -496,60 +434,6 @@ const ProductsEdit = () => {
                     <option value="purple">Purple</option>
                   </select>
                   {product.Mau2.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "red" }}>
-                    Số Lượng Màu 1.2
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuongMau1_2"
-                    value={product.SoLuongMau1_2}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuongMau1_2 && product.SoLuongMau1_2 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "aqua" }}>
-                    Số Lượng Màu 2.2
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuongMau2_2"
-                    value={product.SoLuongMau2_2}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuongMau2_2 && product.SoLuongMau2_2 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "lime" }}>
-                    Số Lượng Màu 3.2
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuongMau3_2"
-                    value={product.SoLuongMau3_2}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuongMau3_2 && product.SoLuongMau3_2 !== 0 && (
                     <div className="text-danger mt-1">Không được bỏ trống</div>
                   )}
                 </div>
@@ -584,62 +468,6 @@ const ProductsEdit = () => {
                   {product.Mau3.trim() === "" && (
                     <div className="text-danger mt-1">Không được bỏ trống</div>
                   )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "red" }}>
-                    Số Lượng Màu 1.3
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuongMau1_3"
-                    value={product.SoLuongMau1_3}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuongMau1_3 && product.SoLuongMau1_3 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "aqua" }}>
-                    Số Lượng Màu 2.3
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuongMau2_3"
-                    value={product.SoLuongMau2_3}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuongMau2_3 && product.SoLuongMau2_3 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "lime" }}>
-                    Số Lượng Màu 3.3
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuongMau3_3"
-                    value={product.SoLuongMau3_3}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuongMau3_3 && product.SoLuongMau3_3 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
                 </div>
 
                 <div className="mb-3">

@@ -11,7 +11,6 @@ const ProductsDetail = () => {
     memory: "",
     price: 0,
     quantity: 0,
-    colorQuantities: {}, // Lưu số lượng màu sắc tương ứng
   });
 
   useEffect(() => {
@@ -22,17 +21,11 @@ const ProductsDetail = () => {
         const productData = response.data.data;
         setProduct(productData);
 
-        // Chọn bộ nhớ đầu tiên mặc định nếu có dữ liệu
         if (productData.BoNhoTrong1) {
           setSelectedMemory({
             memory: productData.BoNhoTrong1,
             price: productData.GiaSP1,
             quantity: productData.SoLuong1,
-            colorQuantities: {
-              Mau1: productData.SoLuongMau1_1,
-              Mau2: productData.SoLuongMau1_2,
-              Mau3: productData.SoLuongMau1_3,
-            },
           });
         }
 
@@ -46,17 +39,12 @@ const ProductsDetail = () => {
 
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];
-    const memoryIndex = memoryKey.slice(-1); // Lấy số cuối của key (1, 2, 3)
+    const memoryIndex = memoryKey.slice(-1); 
 
     setSelectedMemory({
       memory: memory,
       price: product[`GiaSP${memoryIndex}`],
       quantity: product[`SoLuong${memoryIndex}`],
-      colorQuantities: {
-        Mau1: product[`SoLuongMau${memoryIndex}_1`],
-        Mau2: product[`SoLuongMau${memoryIndex}_2`],
-        Mau3: product[`SoLuongMau${memoryIndex}_3`],
-      },
     });
   };
 
@@ -144,7 +132,7 @@ const ProductsDetail = () => {
                         selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"
                       }`}
                       onClick={() => handleMemorySelection(key)}
-                      style={{ height: "38px" }} // Cố định chiều cao
+                      style={{ height: "38px" }} 
                     >
                       {product[key]}
                     </button>
@@ -186,9 +174,6 @@ const ProductsDetail = () => {
                           e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
                         }}
                       />
-                      <span>
-                        Số lượng: {selectedMemory.colorQuantities[`Mau${index + 1}`] || 0}
-                      </span>
                     </div>
                   )
                 )}
