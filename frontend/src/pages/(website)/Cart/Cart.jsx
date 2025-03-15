@@ -223,69 +223,69 @@ const Cart = () => {
       ) : (
         <>
           {cart.map((item, index) => (
-            <div key={index} className="card mb-3">
-              <div className="card-body">
-                <div className="d-flex align-items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems[index] || false}
-                    onChange={() => handleSelectItem(index)}
-                    className="form-check-input me-3"
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="img-thumbnail me-3"
-                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                  />
-                  <div className="flex-grow-1">
-                    <h5 className="card-title">{item.name}</h5>
-                    <p className="card-text">Bộ nhớ: {item.memory}</p>
-                    <p className="card-text">
-                      Màu sắc:{" "}
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: "20px",
-                          height: "20px",
-                          backgroundColor: item.color,
-                          border: "1px solid #ccc",
-                          borderRadius: "4px",
-                          marginLeft: "8px",
-                        }}
-                      ></span>
-                    </p>
-                    <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
-                    <p className="card-text">Số lượng tối đa: {item.maxQuantity}</p>
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() => decreaseQuantity(index)}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span className="mx-2">{item.quantity}</span>
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() => increaseQuantity(index)}
-                      disabled={item.quantity >= item.maxQuantity}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    className="btn btn-danger ms-3"
-                    onClick={() => removeItemFromCart(index)}
-                  >
-                    Xóa
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+  <div key={index} className="card mb-3">
+    <div className="card-body">
+      <div className="d-flex align-items-center">
+        <input
+          type="checkbox"
+          checked={selectedItems[index] || false}
+          onChange={() => handleSelectItem(index)}
+          className="form-check-input me-3"
+          style={{ width: "20px", height: "20px" }}
+        />
+        <img
+          src={item.image}
+          alt={item.name}
+          className="img-thumbnail me-3"
+          style={{ width: "100px", height: "100px", objectFit: "cover" }}
+        />
+        <div className="flex-grow-1">
+          <h5 className="card-title">{item.name}</h5>
+          <p className="card-text">Bộ nhớ: {item.memory}</p>
+          <p className="card-text">
+            Màu sắc:{" "}
+            <span
+              style={{
+                display: "inline-block",
+                width: "20px",
+                height: "20px",
+                backgroundColor: item.color,
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                marginLeft: "8px",
+              }}
+            ></span>
+          </p>
+          <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
+          <p className="card-text">Số lượng màu: {item.maxQuantity}</p>
+        </div>
+        <div className="d-flex align-items-center">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => decreaseQuantity(index)}
+            disabled={item.quantity <= 1}
+          >
+            -
+          </button>
+          <span className="mx-2">{item.quantity}</span>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => increaseQuantity(index)}
+            disabled={item.quantity >= item.maxQuantity}
+          >
+            +
+          </button>
+        </div>
+        <button
+          className="btn btn-danger ms-3"
+          onClick={() => removeItemFromCart(index)}
+        >
+          Xóa
+        </button>
+      </div>
+    </div>
+  </div>
+))}
           <div className="mt-4">
             <h4>Tổng tiền: {formatCurrency(calculateOriginalTotal())} VND</h4>
             {discount > 0 && (

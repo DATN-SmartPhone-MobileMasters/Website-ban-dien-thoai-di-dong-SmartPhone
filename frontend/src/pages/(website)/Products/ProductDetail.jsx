@@ -13,6 +13,7 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
+  const [colorQuantities, setColorQuantities] = useState({}); // Lưu số lượng màu sắc tương ứng
 
   useEffect(() => {
     setLoading(true);
@@ -23,6 +24,11 @@ const ProductDetail = () => {
 
         if (productData.BoNhoTrong1) {
           setSelectedMemory({ memory: productData.BoNhoTrong1, price: productData.GiaSP1, quantity: productData.SoLuong1 });
+          setColorQuantities({
+            Mau1: productData.SoLuongMau1_1,
+            Mau2: productData.SoLuongMau1_2,
+            Mau3: productData.SoLuongMau1_3,
+          });
         }
         if (productData.Mau1) {
           setSelectedColor(productData.Mau1);
@@ -38,6 +44,24 @@ const ProductDetail = () => {
         setLoading(false);
       });
   }, [id]);
+
+  const handleMemorySelection = (memoryKey) => {
+    const memory = product[memoryKey];
+    const memoryIndex = memoryKey.slice(-1); // Lấy số cuối của key (1, 2, 3)
+
+    setSelectedMemory({
+      memory: memory,
+      price: product[`GiaSP${memoryIndex}`],
+      quantity: product[`SoLuong${memoryIndex}`],
+    });
+
+    // Cập nhật số lượng màu sắc tương ứng
+    setColorQuantities({
+      Mau1: product[`SoLuongMau${memoryIndex}_1`],
+      Mau2: product[`SoLuongMau${memoryIndex}_2`],
+      Mau3: product[`SoLuongMau${memoryIndex}_3`],
+    });
+  };
 
   const addToCart = () => {
     const authToken = localStorage.getItem("authToken");
@@ -66,8 +90,14 @@ const ProductDetail = () => {
       (item) => item.id === product._id && item.memory === selectedMemory.memory && item.color === selectedColor
     );
   
+    // Lấy số lượng màu tương ứng với bộ nhớ và màu sắc đã chọn
+    const memoryIndex = selectedMemory.memory === product.BoNhoTrong1 ? 1 : selectedMemory.memory === product.BoNhoTrong2 ? 2 : 3;
+    const colorIndex = selectedColor === product.Mau1 ? 1 : selectedColor === product.Mau2 ? 2 : 3;
+    const quantityKey = `SoLuongMau${memoryIndex}_${colorIndex}`;
+    const maxQuantity = product[quantityKey] || 0;
+  
     if (existingItemIndex !== -1) {
-      if (cartItems[existingItemIndex].quantity < selectedMemory.quantity) {
+      if (cartItems[existingItemIndex].quantity < maxQuantity) {
         cartItems[existingItemIndex].quantity += 1;
       } else {
         alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
@@ -82,7 +112,7 @@ const ProductDetail = () => {
         image: selectedImage,
         quantity: 1,
         price: selectedMemory.price,
-        maxQuantity: selectedMemory.quantity,
+        maxQuantity: maxQuantity, // Lưu số lượng màu tương ứng
       });
     }
   
@@ -170,7 +200,14 @@ const ProductDetail = () => {
           <h2>{product.TenSP}</h2>
           <p className="text-muted">Mã sản phẩm: {product.MaSP}</p>
           <h4 className="text-danger">{formatCurrency(selectedMemory.price)}</h4>
-          <p>Số lượng: {selectedMemory.quantity}</p>
+          <p>Tổng Số lượng: {selectedMemory.quantity}</p>
+
+          {/* Hiển thị số lượng màu sắc khi chọn màu */}
+          {selectedColor && (
+            <div className="alert alert-info">
+              Số lượng màu: {colorQuantities[`Mau${["Mau1", "Mau2", "Mau3"].findIndex((mau) => product[mau] === selectedColor) + 1}`] || 0}
+            </div>
+          )}
 
           <h5>Bộ Nhớ Trong:</h5>
           <div className="d-flex gap-2">
@@ -179,9 +216,7 @@ const ProductDetail = () => {
                 <button
                   key={index}
                   className={`btn ${selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"}`}
-                  onClick={() =>
-                    setSelectedMemory({ memory: product[key], price: product[`GiaSP${index + 1}`], quantity: product[`SoLuong${index + 1}`] })
-                  }
+                  onClick={() => handleMemorySelection(key)}
                 >
                   {product[key]}
                 </button>
@@ -195,8 +230,14 @@ const ProductDetail = () => {
               color ? (
                 <div
                   key={index}
-                  className={`border p-2 rounded ${selectedColor === color ? "border border-primary border-3" : ""}`}
-                  style={{ width: "40px", height: "40px", backgroundColor: color, cursor: "pointer" }}
+                  className={`border p-2 rounded ${selectedColor === color ? "border border-primary border-3 shadow-lg" : "border-secondary"}`}
+                  style={{ 
+                    width: selectedColor === color ? "50px" : "40px", // Phóng to khi chọn
+                    height: selectedColor === color ? "50px" : "40px", // Phóng to khi chọn
+                    backgroundColor: color, 
+                    cursor: "pointer",
+                    transition: "all 0.3s ease-in-out", // Thêm hiệu ứng chuyển động mượt mà
+                  }}
                   onClick={() => {
                     setSelectedColor(color);
                     setSelectedImage(product[`HinhAnh${index + 1}`] || product.HinhAnh1);
