@@ -13,11 +13,12 @@ const Cart = () => {
   const formatCurrency = (value) => {
     return value.toLocaleString("vi-VN");
   };
+
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
         const response = await fetchPromotion();
-        setPromotions(response.data); // Cập nhật danh sách mã giảm giá
+        setPromotions(response.data);
       } catch (error) {
         console.error("Lỗi khi lấy mã giảm giá:", error);
       }
@@ -50,14 +51,8 @@ const Cart = () => {
       }
     };
 
-
-    // Cập nhật giỏ hàng khi component được tạo
     updateCart();
-
-    // Lắng nghe sự kiện cartUpdated
     window.addEventListener("cartUpdated", updateCart);
-
-    // Dọn dẹp sự kiện khi component bị hủy
 
     return () => {
       window.removeEventListener("cartUpdated", updateCart);
@@ -83,32 +78,28 @@ const Cart = () => {
       delete newSelectedItems[index];
       setSelectedItems(newSelectedItems);
 
-
       window.location.reload();
     }
   };
 
   const increaseQuantity = (index) => {
     const newCart = [...cart];
-
-
     const newQuantity = newCart[index].quantity + 1;
-  
+
     if (newQuantity > newCart[index].totalQuantity) {
       alert("Đã đạt đến giới hạn sản phẩm.");
       return;
     }
-  
+
     newCart[index].quantity = newQuantity;
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
-  
+
     if (userId) {
       localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
     }
-  
-    setCart(newCart);
 
+    setCart(newCart);
   };
 
   const decreaseQuantity = (index) => {
@@ -135,10 +126,7 @@ const Cart = () => {
     }, 0);
   };
 
-
   const applyVoucher = async () => {
-    console.log("Giá trị của promotions:", promotions);
-
     if (!promotions?.data || !Array.isArray(promotions.data)) {
       alert("Không thể lấy danh sách mã giảm giá.");
       return;
@@ -147,12 +135,10 @@ const Cart = () => {
     const promotion = promotions.data.find((promo) => promo.MaKM === voucher);
 
     if (!promotion) {
-
       alert("Mã giảm giá không hợp lệ.");
       return;
     }
 
-    // Kiểm tra trạng thái, nếu đã sử dụng thì không thể áp dụng nữa
     if (promotion.TrangThai === 1) {
       alert("Mã giảm giá này đã được sử dụng.");
       return;
@@ -169,7 +155,6 @@ const Cart = () => {
 
     const total = calculateTotal();
 
-    // Nếu mã là dạng "fixed" nhưng tổng tiền không đủ để áp dụng
     if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
       alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
       return;
@@ -184,13 +169,9 @@ const Cart = () => {
 
     setDiscount(discountAmount);
     alert("Áp dụng mã giảm giá thành công!");
-    console.log(promotion._id);
 
-    // 🔥 **Thêm đoạn cập nhật trạng thái voucher sau khi áp dụng thành công**
     try {
       await updateVoucherStatus(promotion._id);
-      console.log("Promotion ID:", promotion._id);
-
       console.log("Voucher đã bị khóa sau khi sử dụng");
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái voucher:", error.message);
@@ -215,26 +196,6 @@ const Cart = () => {
     return finalTotal;
   };
 
-  const calculateOriginalTotal = () => {
-    return cart.reduce((total, item, index) => {
-      if (selectedItems[index]) {
-        return total + item.price * item.quantity;
-      }
-      return total;
-    }, 0);
-  };
-
-  const calculateDiscountAmount = () => {
-    const total = calculateTotal();
-    let discountAmount = discount;
-
-    if (total - discount > 50000000) {
-      discountAmount += (total - discount) * 0.05;
-    }
-
-    return discountAmount;
-  };
-
   const calculateAdditionalDiscount = () => {
     const total = calculateTotal();
     if (total - discount > 50000000) {
@@ -246,7 +207,7 @@ const Cart = () => {
   const handleVoucherChange = (e) => {
     setVoucher(e.target.value);
     if (e.target.value === "") {
-      setDiscount(0); 
+      setDiscount(0);
     }
   };
 
@@ -258,73 +219,72 @@ const Cart = () => {
       ) : (
         <>
           {cart.map((item, index) => (
-
-  <div key={index} className="card mb-3">
-    <div className="card-body">
-      <div className="d-flex align-items-center">
-        <input
-          type="checkbox"
-          checked={selectedItems[index] || false}
-          onChange={() => handleSelectItem(index)}
-          className="form-check-input me-3"
-          style={{ width: "20px", height: "20px" }}
-        />
-        <img
-          src={item.image}
-          alt={item.name}
-          className="img-thumbnail me-3"
-          style={{ width: "100px", height: "100px", objectFit: "cover" }}
-        />
-        <div className="flex-grow-1">
-          <h5 className="card-title">{item.name}</h5>
-          <p className="card-text">Bộ nhớ: {item.memory}</p>
-          <p className="card-text">
-            Màu sắc:{" "}
-            <span
-              style={{
-                display: "inline-block",
-                width: "20px",
-                height: "20px",
-                backgroundColor: item.color,
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-                marginLeft: "8px",
-              }}
-            ></span>
-          </p>
-          <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
-          <p className="card-text">Tổng Số lượng: {item.totalQuantity}</p>
-        </div>
-        <div className="d-flex align-items-center">
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => decreaseQuantity(index)}
-            disabled={item.quantity <= 1}
-          >
-            -
-          </button>
-          <span className="mx-2">{item.quantity}</span>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => increaseQuantity(index)}
-            disabled={item.quantity >= item.maxQuantity}
-          >
-            +
-          </button>
-        </div>
-        <button
-          className="btn btn-danger ms-3"
-          onClick={() => removeItemFromCart(index)}
-        >
-          Xóa
-        </button>
-      </div>
-    </div>
-  </div>
-))}
+            <div key={index} className="card mb-3">
+              <div className="card-body">
+                <div className="d-flex align-items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems[index] || false}
+                    onChange={() => handleSelectItem(index)}
+                    className="form-check-input me-3"
+                    style={{ width: "20px", height: "20px" }}
+                  />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="img-thumbnail me-3"
+                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                  />
+                  <div className="flex-grow-1">
+                    <h5 className="card-title">{item.name}</h5>
+                    <p className="card-text">Bộ nhớ: {item.memory}</p>
+                    <p className="card-text">
+                      Màu sắc:{" "}
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: "20px",
+                          height: "20px",
+                          backgroundColor: item.color,
+                          border: "1px solid #ccc",
+                          borderRadius: "4px",
+                          marginLeft: "8px",
+                        }}
+                      ></span>
+                    </p>
+                    <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
+                    <p className="card-text">Tổng Số lượng: {item.totalQuantity}</p>
+                  </div>
+                  <div className="d-flex align-items-center">
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => decreaseQuantity(index)}
+                      disabled={item.quantity <= 1}
+                    >
+                      -
+                    </button>
+                    <span className="mx-2">{item.quantity}</span>
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={() => increaseQuantity(index)}
+                      disabled={item.quantity >= item.maxQuantity}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    className="btn btn-danger ms-3"
+                    onClick={() => removeItemFromCart(index)}
+                  >
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
 
           <div className="mt-4">
-            <h4>Tổng tiền: {formatCurrency(calculateOriginalTotal())} VND</h4>
+            <h4>Tổng tiền: {formatCurrency(calculateTotal())} VND</h4>
             {discount > 0 && (
               <h4 className="text-danger">
                 Giảm giá từ voucher: -{formatCurrency(discount)} VND
@@ -332,18 +292,12 @@ const Cart = () => {
             )}
             {calculateAdditionalDiscount() > 0 && (
               <h4 className="text-danger">
-                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())}{" "}
-                VND
+                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())} VND
               </h4>
             )}
-            {calculateFinalTotal() < calculateOriginalTotal() && (
-              <>
-                <h4 className="text-success">
-                  Tổng tiền sau giảm giá:{" "}
-                  {formatCurrency(calculateFinalTotal())} VND
-                </h4>
-              </>
-            )}
+            <h4 className="text-success">
+              Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())} VND
+            </h4>
             <div className="input-group mb-3">
               <input
                 type="text"
@@ -360,7 +314,8 @@ const Cart = () => {
               to="/checkcart"
               state={{
                 cart: cart.filter((_, index) => selectedItems[index]),
-                total: calculateFinalTotal(),
+                total: calculateTotal(),
+                finalTotal: calculateFinalTotal(),
                 discount: discount,
                 additionalDiscount: calculateAdditionalDiscount(),
               }}
