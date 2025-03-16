@@ -10,6 +10,7 @@ const Checkcart = () => {
   const {
     cart: initialCart,
     total,
+    finalTotal,
     discount,
     additionalDiscount,
   } = location.state || {};
@@ -61,7 +62,7 @@ const Checkcart = () => {
                 quantity: item.quantity,
                 price: item.price,
               })),
-              total: total - discount - additionalDiscount,
+              total: finalTotal,
               discount,
               additionalDiscount,
               shippingInfo: {
@@ -75,7 +76,6 @@ const Checkcart = () => {
             try {
               const response = await createOrder(orderData);
               if (response.data) {
-
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 const userId = userData?.id;
 
@@ -83,9 +83,8 @@ const Checkcart = () => {
                   localStorage.removeItem(`cart_${userId}`);
                 }
 
-
                 window.dispatchEvent(new Event("cartUpdated"));
-  
+
                 navigate(`/profile-receipt/${response.data._id}`);
               }
             } catch (error) {
@@ -190,6 +189,12 @@ const Checkcart = () => {
             Tổng tiền: <strong>{formatCurrency(total)} VND</strong>
           </p>
 
+          {discount > 0 && (
+            <p className="text-danger fs-6">
+              Giảm giá từ voucher: -{formatCurrency(discount)} VND
+            </p>
+          )}
+
           {additionalDiscount > 0 && (
             <p className="text-danger fs-6">
               Giảm thêm 5%: -{formatCurrency(additionalDiscount)} VND
@@ -197,8 +202,7 @@ const Checkcart = () => {
           )}
 
           <h4 className="text-success mt-3">
-            Tổng tiền sau giảm giá: {formatCurrency(total - additionalDiscount)}{" "}
-            VND
+            Tổng tiền sau giảm giá: {formatCurrency(finalTotal)} VND
           </h4>
         </div>
 
