@@ -1,77 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { updateUser,uploadImage  } from '../../../service/api'; 
+import { updateUser, uploadImage, getUserById } from '../../../service/api';
+import { Form, Input, Button, Upload, Radio, message } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 
 const AccountPage = () => {
-  const [userData, setUserData] = useState({
-    HoVaTen: '',
-    Avata:'',
-    SDT: '',
-    Email: '',
-    DiaChi: '',
-    NgaySinh: '',
-    TaiKhoan:'',
-    GioiTinh: '',
-  });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [avatar, setAvatar] = useState('');
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem('userData');
-    if (storedUserData) {
-      const parsedUserData = JSON.parse(storedUserData);
-      setUserData(parsedUserData);
-    }
-  }, []);
+    const fetchUserData = async () => {
+      try {
+        const storedUser = localStorage.getItem('userData');
+        if (!storedUser) {
+          message.error('Lỗi, Không tìm thấy tài khoản người dùng');
+          return;
+        }
+        
+        const { id } = JSON.parse(storedUser);
+        setUserId(id);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUserData({ ...userData, [name]: value });
-  };
+        const response = await getUserById(id);
+        const userData = response.data;
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-      const response = await uploadImage(formData);
-      setUserData(prev => ({
-        ...prev,
-        Avata: response.data.imageUrl
-      }));
-    } catch (error) {
-      setError('Tải ảnh đại diện lên thất bại');
-      console.error('Avatar upload error:', error);
-    }
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    try {
-      const response = await updateUser(userData.id, userData);
-      if (response.data.message) {
-        confirmAlert({
-          title: 'Thành công',
-          message: 'Cập nhật thông tin thành công!',
-          buttons: [{ label: 'OK', onClick: () => {} }],
-        });
+        form.setFieldsValue(userData);
+        setAvatar(userData.Avata);
+      } catch (error) {
+        message.error('Lỗi, Không tìm thấy data tài khoản người dùng');
       }
+    };
+
+    fetchUserData();
+  }, [form]);
+
+  const handleAvatarUpload = async ({ file }) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await uploadImage(formData);
+      setAvatar(response.data.imageUrl);
+      message.success('Upload avatar thành công');
     } catch (error) {
-      setError('Có lỗi xảy ra. Vui lòng thử lại sau.');
+      message.error('Upload avatar thất bại');
+    }
+  };
+
+  const onFinish = async (values) => {
+    try {
+      setLoading(true);
+      await updateUser(userId, { ...values, Avata: avatar });
+
+      const updatedUser = { ...values, id: userId, Avata: avatar };
+      localStorage.setItem('userData', JSON.stringify(updatedUser));
+
       confirmAlert({
-        title: 'Lỗi',
-        message: error.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.',
-        buttons: [{ label: 'OK', onClick: () => {} }],
+        title: 'Thành Công',
+        message: 'Update thành công',
+        buttons: [{ label: 'OK', onClick: () => navigate(`/account-details/${userId}`) }]
       });
+    } catch (error) {
+      message.error('Update thất bại');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -79,154 +74,107 @@ const AccountPage = () => {
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto py-8">
         <div className="flex">
-          {/* Left Container */}
+          {/* Left Sidebar */}
           <div className="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
             <div className="flex items-center mb-4">
-              <span className="text-black font-semibold">{userData.Email}</span>
+              <span className="text-black font-semibold">
+                {form.getFieldValue('Email')}
+              </span>
             </div>
             <ul className="space-y-2">
-            <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/account-details/${userData.id}`} className="flex items-center gap-2">
+              <li className="flex items-center p-2 hover:bg-gray-200 rounded">
+                <Link to={`/account-details/${userId}`} className="flex items-center gap-2">
                   <i className="fa fa-user mr-2"></i>
                   <span>Thông tin tài khoản</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/account/${userData.id}`} className="flex items-center gap-2">
+                <Link to={`/account/${userId}`} className="flex items-center gap-2">
                   <i className="fa fa-edit mr-2"></i>
-                  <span>Cập nhập thông tin tài khoản</span>
+                  <span>Update tài khoản</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/profile-receipt/${userData.id}`} className="flex items-center gap-2">
+                <Link to={`/profile-receipt/${userId}`} className="flex items-center gap-2">
                   <i className="fas fa-money-check mr-2"></i>
-                  <span>Quản lý đơn hàng</span>
+                  <span>Thông tin đơn hàng</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/profile-reset-password/${userData.id}`} className="flex items-center gap-2">
+                <Link to={`/profile-reset-password/${userId}`} className="flex items-center gap-2">
                   <i className="fas fa-lock mr-2"></i>
-                  <span>Đổi mật khẩu</span>
+                  <span>Thay đổi mật khẩu</span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Right Container */}
+          {/* Right Content */}
           <div className="w-3/4 bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-light mb-6">Thông tin tài khoản</h3>
-            <form onSubmit={handleUpdate}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Ảnh đại diện</label>
-                <input
-                  type="file"
+            <h3 className="text-2xl font-light mb-6">Update Tài Khoản</h3>
+            <Form form={form} onFinish={onFinish} layout="vertical">
+              <Form.Item label="Avatar">
+                <Upload
                   accept="image/*"
-                  className="w-full p-2 border border-gray-300 rounded"
+                  beforeUpload={() => false}
                   onChange={handleAvatarUpload}
-                />
-                {userData.Avata && (
+                  showUploadList={false}
+                >
+                  <Button icon={<UploadOutlined />}>Upload Avatar</Button>
+                </Upload>
+                {avatar && (
                   <img 
-                    src={userData.Avata} 
-                    alt="Avatar preview" 
+                    src={avatar} 
+                    alt="Avatar" 
                     className="mt-2"
                     style={{ 
                       maxWidth: '100px', 
-                      maxHeight: '100px',
                       borderRadius: '10px' 
                     }}
                   />
                 )}
-              </div>
-              <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">Tên Tài Khoản</label>
-                  <input
-                    type="text"
-                    name="TaiKhoan"
-                    placeholder="Mời Nhập thông tin tên tài khoản"
-                    className="w-full p-2 border border-gray-300 rounded"
-                    value={userData.TaiKhoan}
-                    onChange={handleChange}
-                  />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Họ & tên</label>
-                <input
-                  type="text"
-                  name="HoVaTen"
-                  placeholder="Mời Nhập thông tin họ tên"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  value={userData.HoVaTen}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Số điện thoại</label>
-                <input
-                  type="number"
-                  name="SDT"
-                  placeholder="Mời Nhập thông tin số điện thoại"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  value={userData.SDT}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Địa chỉ giao hàng</label>
-                <input
-                  type="text"
-                  name="DiaChi"
-                  placeholder="Mời Nhập thông tin địa chỉ"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  value={userData.DiaChi}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Giới tính</label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="GioiTinh"
-                      value="Nam"
-                      checked={userData.GioiTinh === 'Nam'}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    Nam
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="GioiTinh"
-                      value="Nữ"
-                      checked={userData.GioiTinh === 'Nữ'}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    Nữ
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="GioiTinh"
-                      value="Khác"
-                      checked={userData.GioiTinh === 'Khác'}
-                      onChange={handleChange}
-                      className="mr-2"
-                    />
-                    Khác
-                  </label>
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-                disabled={isLoading}
+              </Form.Item>
+
+              <Form.Item label="Tên Tài Khoản" name="TaiKhoan" rules={[{ required: true }]}>
+                <Input placeholder="Mời Nhập Thông Tin " />
+              </Form.Item>
+
+              <Form.Item label="Họ và Tên" name="HoVaTen" rules={[{ required: true }]}>
+                <Input placeholder="Mời Nhập Thông Tin  " />
+              </Form.Item>
+
+              <Form.Item 
+                label="Số Điện Thoại" 
+                name="SDT" 
+                rules={[
+                  { required: true },
+                  { pattern: /^[0-9]+$/, message: 'Sai định dạng' }
+                ]}
               >
-                {isLoading ? 'Đang cập nhật...' : 'Cập nhật'}
-              </button>
-            </form>
+                <Input placeholder="Mời Nhập Thông Tin  " />
+              </Form.Item>
+
+              <Form.Item label="Địa Chỉ" name="DiaChi">
+                <Input placeholder="Mời Nhập Thông Tin " />
+              </Form.Item>
+
+              <Form.Item label="Giới Tính" name="GioiTinh">
+                <Radio.Group>
+                  <Radio value="Nam">Nam</Radio>
+                  <Radio value="Nữ">Nữ</Radio>
+                  <Radio value="Khác">Khác</Radio>
+                </Radio.Group>
+              </Form.Item>
+
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading}
+                className="w-full bg-blue-500 hover:bg-blue-600"
+              >
+                Cập Nhập 
+              </Button>
+            </Form>
           </div>
         </div>
       </div>
