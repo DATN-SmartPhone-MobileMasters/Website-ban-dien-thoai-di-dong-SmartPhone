@@ -50,6 +50,7 @@ const Cart = () => {
       }
     };
 
+
     // Cập nhật giỏ hàng khi component được tạo
     updateCart();
 
@@ -57,6 +58,7 @@ const Cart = () => {
     window.addEventListener("cartUpdated", updateCart);
 
     // Dọn dẹp sự kiện khi component bị hủy
+
     return () => {
       window.removeEventListener("cartUpdated", updateCart);
     };
@@ -81,26 +83,32 @@ const Cart = () => {
       delete newSelectedItems[index];
       setSelectedItems(newSelectedItems);
 
-      // Tải lại trang sau khi xóa
+
       window.location.reload();
     }
   };
 
   const increaseQuantity = (index) => {
     const newCart = [...cart];
-    if (newCart[index].quantity < newCart[index].maxQuantity) {
-      newCart[index].quantity += 1;
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      const userId = userData?.id;
 
-      if (userId) {
-        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
-      }
 
-      setCart(newCart);
-    } else {
-      alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
+    const newQuantity = newCart[index].quantity + 1;
+  
+    if (newQuantity > newCart[index].totalQuantity) {
+      alert("Đã đạt đến giới hạn sản phẩm.");
+      return;
     }
+  
+    newCart[index].quantity = newQuantity;
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+  
+    if (userId) {
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+    }
+  
+    setCart(newCart);
+
   };
 
   const decreaseQuantity = (index) => {
@@ -127,6 +135,7 @@ const Cart = () => {
     }, 0);
   };
 
+
   const applyVoucher = async () => {
     console.log("Giá trị của promotions:", promotions);
 
@@ -138,6 +147,7 @@ const Cart = () => {
     const promotion = promotions.data.find((promo) => promo.MaKM === voucher);
 
     if (!promotion) {
+
       alert("Mã giảm giá không hợp lệ.");
       return;
     }
@@ -198,7 +208,6 @@ const Cart = () => {
     const total = calculateTotal();
     let finalTotal = total - discount;
 
-    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
     if (finalTotal > 50000000) {
       finalTotal *= 0.95;
     }
@@ -219,7 +228,6 @@ const Cart = () => {
     const total = calculateTotal();
     let discountAmount = discount;
 
-    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
     if (total - discount > 50000000) {
       discountAmount += (total - discount) * 0.05;
     }
@@ -238,7 +246,7 @@ const Cart = () => {
   const handleVoucherChange = (e) => {
     setVoucher(e.target.value);
     if (e.target.value === "") {
-      setDiscount(0); // Xóa giảm giá khi xóa mã giảm giá
+      setDiscount(0); 
     }
   };
 
@@ -250,77 +258,71 @@ const Cart = () => {
       ) : (
         <>
           {cart.map((item, index) => (
-            <div key={index} className="card mb-3">
-              <div className="card-body">
-                <div className="d-flex align-items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems[index] || false}
-                    onChange={() => handleSelectItem(index)}
-                    className="form-check-input me-3"
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="img-thumbnail me-3"
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                      objectFit: "cover",
-                    }}
-                  />
-                  <div className="flex-grow-1">
-                    <h5 className="card-title">{item.name}</h5>
-                    <p className="card-text">Bộ nhớ: {item.memory}</p>
-                    <p className="card-text">
-                      Màu sắc:{" "}
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: "20px",
-                          height: "20px",
-                          backgroundColor: item.color,
-                          border: "1px solid #ccc",
-                          borderRadius: "4px",
-                          marginLeft: "8px",
-                        }}
-                      ></span>
-                    </p>
-                    <p className="card-text">
-                      Giá: {formatCurrency(item.price)} VND
-                    </p>
-                    <p className="card-text">
-                      Số lượng tối đa: {item.maxQuantity}
-                    </p>
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() => decreaseQuantity(index)}
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <span className="mx-2">{item.quantity}</span>
-                    <button
-                      className="btn btn-outline-secondary"
-                      onClick={() => increaseQuantity(index)}
-                      disabled={item.quantity >= item.maxQuantity}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    className="btn btn-danger ms-3"
-                    onClick={() => removeItemFromCart(index)}
-                  >
-                    Xóa
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+
+  <div key={index} className="card mb-3">
+    <div className="card-body">
+      <div className="d-flex align-items-center">
+        <input
+          type="checkbox"
+          checked={selectedItems[index] || false}
+          onChange={() => handleSelectItem(index)}
+          className="form-check-input me-3"
+          style={{ width: "20px", height: "20px" }}
+        />
+        <img
+          src={item.image}
+          alt={item.name}
+          className="img-thumbnail me-3"
+          style={{ width: "100px", height: "100px", objectFit: "cover" }}
+        />
+        <div className="flex-grow-1">
+          <h5 className="card-title">{item.name}</h5>
+          <p className="card-text">Bộ nhớ: {item.memory}</p>
+          <p className="card-text">
+            Màu sắc:{" "}
+            <span
+              style={{
+                display: "inline-block",
+                width: "20px",
+                height: "20px",
+                backgroundColor: item.color,
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                marginLeft: "8px",
+              }}
+            ></span>
+          </p>
+          <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
+          <p className="card-text">Tổng Số lượng: {item.totalQuantity}</p>
+        </div>
+        <div className="d-flex align-items-center">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => decreaseQuantity(index)}
+            disabled={item.quantity <= 1}
+          >
+            -
+          </button>
+          <span className="mx-2">{item.quantity}</span>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => increaseQuantity(index)}
+            disabled={item.quantity >= item.maxQuantity}
+          >
+            +
+          </button>
+        </div>
+        <button
+          className="btn btn-danger ms-3"
+          onClick={() => removeItemFromCart(index)}
+        >
+          Xóa
+        </button>
+      </div>
+    </div>
+  </div>
+))}
+
           <div className="mt-4">
             <h4>Tổng tiền: {formatCurrency(calculateOriginalTotal())} VND</h4>
             {discount > 0 && (

@@ -22,6 +22,7 @@ const Orderdetail = () => {
     fetchData();
   }, [id]);
 
+  // Trong Orderdetail.js
   const handleStatusChange = async (newStatus) => {
     confirmAlert({
       title: "Xác nhận thay đổi trạng thái",
@@ -34,6 +35,17 @@ const Orderdetail = () => {
               await axios.put(`${API_URL}/hoadons/${id}`, {
                 paymentStatus: newStatus,
               });
+  
+              // Nếu trạng thái là "Đã Xác Nhận", trừ số lượng sản phẩm
+              if (newStatus === "Đã Xác Nhận") {
+                await updateProductQuantities(hoaDon.products, "subtract");
+              }
+  
+              // Nếu trạng thái là "Huỷ Đơn", trả lại số lượng sản phẩm
+              if (newStatus === "Huỷ Đơn") {
+                await updateProductQuantities(hoaDon.products, "add");
+              }
+  
               alert("Cập nhật trạng thái thành công!");
               navigate("/admin/orders");
             } catch (error) {
@@ -48,6 +60,46 @@ const Orderdetail = () => {
         },
       ],
     });
+  };
+  
+  const updateProductQuantities = async (products, action) => {
+    for (const product of products) {
+      try {
+        // Lấy thông tin sản phẩm hiện tại
+        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
+  
+        // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
+        let updatedQuantity1 = data.data.SoLuong1;
+        let updatedQuantity2 = data.data.SoLuong2;
+        let updatedQuantity3 = data.data.SoLuong3;
+  
+        if (product.memory === data.data.BoNhoTrong1) {
+          updatedQuantity1 =
+            action === "subtract"
+              ? data.data.SoLuong1 - product.quantity
+              : data.data.SoLuong1 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong2) {
+          updatedQuantity2 =
+            action === "subtract"
+              ? data.data.SoLuong2 - product.quantity
+              : data.data.SoLuong2 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong3) {
+          updatedQuantity3 =
+            action === "subtract"
+              ? data.data.SoLuong3 - product.quantity
+              : data.data.SoLuong3 + product.quantity;
+        }
+  
+        // Cập nhật số lượng sản phẩm
+        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
+          SoLuong1: updatedQuantity1,
+          SoLuong2: updatedQuantity2,
+          SoLuong3: updatedQuantity3,
+        });
+      } catch (error) {
+        console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
+      }
+    }
   };
 
   if (!hoaDon) {
