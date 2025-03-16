@@ -169,6 +169,7 @@ const DashBoard = () => {
               <h6 className="m-0 font-weight-bold text-primary">
                 Revenue Sources
               </h6>
+
               <div className="dropdown no-arrow">
                 <a
                   className="dropdown-toggle"
@@ -201,10 +202,7 @@ const DashBoard = () => {
             </div>
             {/* Card Body */}
             <div className="card-body">
-              <div className="max-w-xs">
-                <TopProducts />
-              </div>
-
+              <TopProducts />
               <div className="chart-pie pt-4 pb-2">
                 <canvas id="myPieChart" />
               </div>
