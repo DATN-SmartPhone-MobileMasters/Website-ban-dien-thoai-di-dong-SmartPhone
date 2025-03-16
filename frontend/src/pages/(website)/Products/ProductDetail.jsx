@@ -102,7 +102,7 @@ const ProductDetail = () => {
       cartItems[existingItemIndex].quantity = newQuantity;
     } else {
       if (1 > selectedMemory.quantity) {
-        alert("Đã đạt đến giới hạn sản phẩm.");
+        alert("Sản phẩm đã hết.");
         return;
       }
       cartItems.push({
