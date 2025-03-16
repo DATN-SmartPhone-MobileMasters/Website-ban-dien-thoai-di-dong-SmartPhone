@@ -24,6 +24,7 @@ apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
 apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); 
 apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId);// Cập nhật hóa đơn
+apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
 
 const sanPhamControl = new SanPhamController();
 // API thực hiện các chức năng sản phẩm

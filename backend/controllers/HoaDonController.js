@@ -94,6 +94,28 @@ class HoaDonController {
       });
     }
   }
+  async apiDelete(req, res) {
+    try {
+      const id = req.params.id;
+      const deletedHoaDon = await hoadon.findByIdAndDelete(id);
+      
+      if (!deletedHoaDon) {
+        return res.status(404).json({
+          message: "Không tìm thấy hóa đơn để xóa",
+        });
+      }
+  
+      res.status(200).json({
+        message: "Xóa hóa đơn thành công",
+        data: deletedHoaDon,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi xóa hóa đơn",
+        error: error.message,
+      });
+    }
+  }
 }
 
 export default HoaDonController;

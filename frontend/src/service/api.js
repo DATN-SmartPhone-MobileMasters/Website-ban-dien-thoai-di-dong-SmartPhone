@@ -44,6 +44,7 @@ export const fetchOrdersByUserId = async (userId) =>
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
 export const updateOrder = async (id, data) =>
   axios.put(`${API_URL}/hoadons/${id}`, data);
+export const deleteOrder = async (id) => axios.delete(`${API_URL}/hoadons/${id}`);
 
 // Comments
 export const fetchComments = async () => axios.get(`${API_URL}/comments`);
