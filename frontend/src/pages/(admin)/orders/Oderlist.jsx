@@ -74,7 +74,7 @@ const OrderList = () => {
                         >
                           👁️Xem chi tiết
                         </Link>
-                        {hoaDon.paymentStatus === "Huỷ Đơn" && (
+                        {(hoaDon.paymentStatus === "Huỷ Đơn" || hoaDon.paymentStatus === "Hoàn thành") && (
                           <button
                             onClick={() => handleDelete(hoaDon._id)}
                             className="btn btn-danger ml-2"
