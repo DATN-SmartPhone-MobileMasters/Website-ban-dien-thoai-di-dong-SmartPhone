@@ -55,17 +55,23 @@ const TopProducts = () => {
             Sản phẩm được mua nhiều nhất
           </h6>
         </div>
-        <div className="card-body d-flex flex-wrap justify-content-start gap-3">
+        <div className="card-body">
           {topProducts.length > 0 ? (
             <div
-              className="d-flex flex-wrap justify-content-start gap-4"
-              style={{ width: "100%" }}
+              className="d-flex flex-wrap justify-content-start"
+              style={{ gap: "16px", width: "100%" }}
             >
               {topProducts.map((product, index) => (
                 <div
                   key={index}
                   className="d-flex align-items-center gap-3"
-                  style={{ width: "250px" }}
+                  style={{
+                    flex: "1 1 calc(25% - 16px)", // Mỗi card chiếm 25% chiều rộng (trừ đi khoảng cách)
+                    minWidth: "200px", // Đảm bảo card không quá nhỏ
+                    padding: "12px",
+                    border: "2px solid #ddd",
+                    borderRadius: "10px",
+                  }}
                 >
                   <img
                     src={product.image}
@@ -77,9 +83,14 @@ const TopProducts = () => {
                       borderRadius: "8px",
                     }}
                   />
-                  <p className="font-weight-bold" style={{ margin: 0 }}>
-                    {product.name}
-                  </p>
+                  <div>
+                    <p className="font-weight-bold" style={{ margin: 0 }}>
+                      {product.name}
+                    </p>
+                    <p style={{ margin: 0, color: "#666" }}>
+                      Số lượng: {product.quantity}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
