@@ -235,7 +235,7 @@ const UpdatePromotion = () => {
               >
                 <option value="">Chọn trạng thái</option>
                 <option value="0">Đang diễn ra</option>
-                <option value="1">Kết thúc</option>
+                <option value="1">Đã sử dụng</option>
                 <option value="2">Chưa bắt đầu</option>
               </select>
               {errors.TrangThai && (

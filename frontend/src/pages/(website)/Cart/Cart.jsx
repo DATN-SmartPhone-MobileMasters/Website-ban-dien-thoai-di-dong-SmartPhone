@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { fetchPromotion } from "../../../service/api";
+import { fetchPromotion, updateVoucherStatus } from "../../../service/api";
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
@@ -13,6 +13,18 @@ const Cart = () => {
   const formatCurrency = (value) => {
     return value.toLocaleString("vi-VN");
   };
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetchPromotion();
+        setPromotions(response.data); // Cập nhật danh sách mã giảm giá
+      } catch (error) {
+        console.error("Lỗi khi lấy mã giảm giá:", error);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
 
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
@@ -26,7 +38,8 @@ const Cart = () => {
 
     const updateCart = () => {
       if (userId) {
-        const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+        const storedCart =
+          JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
         setCart(storedCart);
 
         const initialSelection = storedCart.reduce((acc, item, index) => {
@@ -37,18 +50,14 @@ const Cart = () => {
       }
     };
 
-    updateCart();
-    window.addEventListener("cartUpdated", updateCart);
-    const fetchPromotions = async () => {
-      try {
-        const response = await fetchPromotion();
-        setPromotions(response.data.data);
-      } catch (error) {
-        console.error("Error fetching promotions:", error);
-      }
-    };
 
-    fetchPromotions();
+    // Cập nhật giỏ hàng khi component được tạo
+    updateCart();
+
+    // Lắng nghe sự kiện cartUpdated
+    window.addEventListener("cartUpdated", updateCart);
+
+    // Dọn dẹp sự kiện khi component bị hủy
 
     return () => {
       window.removeEventListener("cartUpdated", updateCart);
@@ -56,7 +65,9 @@ const Cart = () => {
   }, [navigate]);
 
   const removeItemFromCart = (index) => {
-    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?");
+    const confirmDelete = window.confirm(
+      "Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+    );
     if (confirmDelete) {
       const newCart = cart.filter((_, i) => i !== index);
       const userData = JSON.parse(localStorage.getItem("userData"));
@@ -71,12 +82,16 @@ const Cart = () => {
       const newSelectedItems = { ...selectedItems };
       delete newSelectedItems[index];
       setSelectedItems(newSelectedItems);
+
+
       window.location.reload();
     }
   };
 
   const increaseQuantity = (index) => {
     const newCart = [...cart];
+
+
     const newQuantity = newCart[index].quantity + 1;
   
     if (newQuantity > newCart[index].totalQuantity) {
@@ -93,6 +108,7 @@ const Cart = () => {
     }
   
     setCart(newCart);
+
   };
 
   const decreaseQuantity = (index) => {
@@ -119,38 +135,65 @@ const Cart = () => {
     }, 0);
   };
 
-  const applyVoucher = () => {
-    const promotion = promotions.find((promo) => promo.MaKM === voucher);
-    if (promotion) {
-      if (promotion.TrangThai === 1) {
-        alert("Mã giảm giá đã kết thúc.");
-        return;
-      }
 
-      const currentDate = new Date();
-      const startDate = new Date(promotion.NgayBD);
-      const endDate = new Date(promotion.NgayKT);
+  const applyVoucher = async () => {
+    console.log("Giá trị của promotions:", promotions);
 
-      if (currentDate >= startDate && currentDate <= endDate) {
-        const total = calculateTotal();
+    if (!promotions?.data || !Array.isArray(promotions.data)) {
+      alert("Không thể lấy danh sách mã giảm giá.");
+      return;
+    }
 
-        if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
-          alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
-          return;
-        }
+    const promotion = promotions.data.find((promo) => promo.MaKM === voucher);
 
-        if (promotion.LoaiKM === "percentage") {
-          const discountAmount = (total * promotion.GiaTriKM) / 100;
-          setDiscount(discountAmount);
-        } else {
-          setDiscount(promotion.GiaTriKM);
-        }
-        alert("Áp dụng mã giảm giá thành công!");
-      } else {
-        alert("Mã giảm giá không còn hiệu lực.");
-      }
-    } else {
+    if (!promotion) {
+
       alert("Mã giảm giá không hợp lệ.");
+      return;
+    }
+
+    // Kiểm tra trạng thái, nếu đã sử dụng thì không thể áp dụng nữa
+    if (promotion.TrangThai === 1) {
+      alert("Mã giảm giá này đã được sử dụng.");
+      return;
+    }
+
+    const currentDate = new Date();
+    const startDate = new Date(promotion.NgayBD);
+    const endDate = new Date(promotion.NgayKT);
+
+    if (currentDate < startDate || currentDate > endDate) {
+      alert("Mã giảm giá không còn hiệu lực.");
+      return;
+    }
+
+    const total = calculateTotal();
+
+    // Nếu mã là dạng "fixed" nhưng tổng tiền không đủ để áp dụng
+    if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
+      alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
+      return;
+    }
+
+    let discountAmount = 0;
+    if (promotion.LoaiKM === "percentage") {
+      discountAmount = (total * promotion.GiaTriKM) / 100;
+    } else {
+      discountAmount = promotion.GiaTriKM;
+    }
+
+    setDiscount(discountAmount);
+    alert("Áp dụng mã giảm giá thành công!");
+    console.log(promotion._id);
+
+    // 🔥 **Thêm đoạn cập nhật trạng thái voucher sau khi áp dụng thành công**
+    try {
+      await updateVoucherStatus(promotion._id);
+      console.log("Promotion ID:", promotion._id);
+
+      console.log("Voucher đã bị khóa sau khi sử dụng");
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái voucher:", error.message);
     }
   };
 
@@ -215,6 +258,7 @@ const Cart = () => {
       ) : (
         <>
           {cart.map((item, index) => (
+
   <div key={index} className="card mb-3">
     <div className="card-body">
       <div className="d-flex align-items-center">
@@ -278,6 +322,7 @@ const Cart = () => {
     </div>
   </div>
 ))}
+
           <div className="mt-4">
             <h4>Tổng tiền: {formatCurrency(calculateOriginalTotal())} VND</h4>
             {discount > 0 && (
@@ -287,13 +332,15 @@ const Cart = () => {
             )}
             {calculateAdditionalDiscount() > 0 && (
               <h4 className="text-danger">
-                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())} VND
+                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())}{" "}
+                VND
               </h4>
             )}
             {calculateFinalTotal() < calculateOriginalTotal() && (
               <>
                 <h4 className="text-success">
-                  Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())} VND
+                  Tổng tiền sau giảm giá:{" "}
+                  {formatCurrency(calculateFinalTotal())} VND
                 </h4>
               </>
             )}

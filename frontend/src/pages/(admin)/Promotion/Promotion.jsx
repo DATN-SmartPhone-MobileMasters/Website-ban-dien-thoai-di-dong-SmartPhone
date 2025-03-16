@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -10,20 +9,22 @@ const Promotion = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const getPromotions = async () => {
-      try {
-        const response = await fetchPromotion();
-        setPromotions(response.data.data);
-      } catch (error) {
-        setError("Có lỗi khi lấy dữ liệu.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const getPromotions = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchPromotion();
+      setPromotions(response.data.data);
+    } catch (error) {
+      setError("Có lỗi khi lấy dữ liệu.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     getPromotions();
   }, []);
+
   const handleDelete = (id) => {
     confirmAlert({
       title: "Xác nhận xóa",
@@ -42,9 +43,7 @@ const Promotion = () => {
             }
           },
         },
-        {
-          label: "Không",
-        },
+        { label: "Không" },
       ],
     });
   };
@@ -52,13 +51,13 @@ const Promotion = () => {
   const getStatusLabel = (status) => {
     switch (status) {
       case 0:
-        return "Đang diễn ra";
+        return "🔵 Đang diễn ra";
       case 1:
-        return "Kết thúc";
+        return "🔴 Đã sử dụng";
       case 2:
-        return "Chưa bắt đầu";
+        return "🟡 Chưa bắt đầu";
       default:
-        return "Không xác định";
+        return "⚪ Không xác định";
     }
   };
 
@@ -66,9 +65,14 @@ const Promotion = () => {
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 text-gray-800">Danh Sách Khuyến Mãi</h1>
-        <Link className="btn btn-primary" to="/admin/vouchers/add">
-          Thêm Khuyến Mãi
-        </Link>
+        <div>
+          <button className="btn btn-secondary me-2" onClick={getPromotions}>
+            🔄 Làm mới
+          </button>
+          <Link className="btn btn-primary" to="/admin/vouchers/add">
+            ➕ Thêm Khuyến Mãi
+          </Link>
+        </div>
       </div>
       <p className="mb-4">
         Đây là danh sách tất cả các khuyến mãi trong hệ thống.
@@ -128,7 +132,11 @@ const Promotion = () => {
                         <td>
                           {new Date(promotion.NgayKT).toLocaleDateString()}
                         </td>
-                        <td>{getStatusLabel(promotion.TrangThai)}</td>
+                        <td>
+                          <span className="badge bg-info">
+                            {getStatusLabel(promotion.TrangThai)}
+                          </span>
+                        </td>
                         <td className="d-flex justify-content-center gap-3">
                           <Link
                             to={`/admin/vouchers/edit/${promotion._id}`}
