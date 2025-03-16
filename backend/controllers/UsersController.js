@@ -35,9 +35,7 @@ class UsersController {
       if (!user) {
         return res.status(404).json({ message: "Không tìm thấy người dùng" });
       }
-
-      await HoaDon.deleteMany({ userId: new mongoose.Types.ObjectId(id) }); 
-      res.status(200).json({ message: "Xoá người dùng và đơn hàng thành công" });
+      res.status(200).json({ message: "Xoá người dùng thành công" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
