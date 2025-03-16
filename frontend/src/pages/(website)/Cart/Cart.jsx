@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { fetchPromotion } from "../../../service/api";
+import { fetchPromotion, updateVoucherStatus } from "../../../service/api";
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
@@ -13,6 +13,18 @@ const Cart = () => {
   const formatCurrency = (value) => {
     return value.toLocaleString("vi-VN");
   };
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetchPromotion();
+        setPromotions(response.data); // Cập nhật danh sách mã giảm giá
+      } catch (error) {
+        console.error("Lỗi khi lấy mã giảm giá:", error);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
 
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
@@ -20,15 +32,16 @@ const Cart = () => {
       navigate("/login");
       return;
     }
-  
+
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
-  
+
     const updateCart = () => {
       if (userId) {
-        const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+        const storedCart =
+          JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
         setCart(storedCart);
-  
+
         const initialSelection = storedCart.reduce((acc, item, index) => {
           acc[index] = true;
           return acc;
@@ -36,13 +49,13 @@ const Cart = () => {
         setSelectedItems(initialSelection);
       }
     };
-  
+
     // Cập nhật giỏ hàng khi component được tạo
     updateCart();
-  
+
     // Lắng nghe sự kiện cartUpdated
     window.addEventListener("cartUpdated", updateCart);
-  
+
     // Dọn dẹp sự kiện khi component bị hủy
     return () => {
       window.removeEventListener("cartUpdated", updateCart);
@@ -50,55 +63,57 @@ const Cart = () => {
   }, [navigate]);
 
   const removeItemFromCart = (index) => {
-    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?");
+    const confirmDelete = window.confirm(
+      "Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+    );
     if (confirmDelete) {
       const newCart = cart.filter((_, i) => i !== index);
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
       }
-  
+
       setCart(newCart);
-  
+
       const newSelectedItems = { ...selectedItems };
       delete newSelectedItems[index];
       setSelectedItems(newSelectedItems);
-  
+
       // Tải lại trang sau khi xóa
       window.location.reload();
     }
   };
-  
+
   const increaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity < newCart[index].maxQuantity) {
       newCart[index].quantity += 1;
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
       }
-  
+
       setCart(newCart);
     } else {
       alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
     }
   };
-  
+
   const decreaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity > 1) {
       newCart[index].quantity -= 1;
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
       }
-  
+
       setCart(newCart);
     }
   };
@@ -112,39 +127,63 @@ const Cart = () => {
     }, 0);
   };
 
-  const applyVoucher = () => {
-    const promotion = promotions.find((promo) => promo.MaKM === voucher);
-    if (promotion) {
-      if (promotion.TrangThai === 1) {
-        alert("Mã giảm giá đã kết thúc.");
-        return;
-      }
-  
-      const currentDate = new Date();
-      const startDate = new Date(promotion.NgayBD);
-      const endDate = new Date(promotion.NgayKT);
-  
-      if (currentDate >= startDate && currentDate <= endDate) {
-        const total = calculateTotal();
-  
-        // Kiểm tra nếu voucher là giảm giá số tiền cố định và tổng tiền bé hơn giá trị voucher
-        if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
-          alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
-          return;
-        }
-  
-        if (promotion.LoaiKM === "percentage") {
-          const discountAmount = (total * promotion.GiaTriKM) / 100;
-          setDiscount(discountAmount);
-        } else {
-          setDiscount(promotion.GiaTriKM);
-        }
-        alert("Áp dụng mã giảm giá thành công!");
-      } else {
-        alert("Mã giảm giá không còn hiệu lực.");
-      }
-    } else {
+  const applyVoucher = async () => {
+    console.log("Giá trị của promotions:", promotions);
+
+    if (!promotions?.data || !Array.isArray(promotions.data)) {
+      alert("Không thể lấy danh sách mã giảm giá.");
+      return;
+    }
+
+    const promotion = promotions.data.find((promo) => promo.MaKM === voucher);
+
+    if (!promotion) {
       alert("Mã giảm giá không hợp lệ.");
+      return;
+    }
+
+    // Kiểm tra trạng thái, nếu đã sử dụng thì không thể áp dụng nữa
+    if (promotion.TrangThai === 1) {
+      alert("Mã giảm giá này đã được sử dụng.");
+      return;
+    }
+
+    const currentDate = new Date();
+    const startDate = new Date(promotion.NgayBD);
+    const endDate = new Date(promotion.NgayKT);
+
+    if (currentDate < startDate || currentDate > endDate) {
+      alert("Mã giảm giá không còn hiệu lực.");
+      return;
+    }
+
+    const total = calculateTotal();
+
+    // Nếu mã là dạng "fixed" nhưng tổng tiền không đủ để áp dụng
+    if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
+      alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
+      return;
+    }
+
+    let discountAmount = 0;
+    if (promotion.LoaiKM === "percentage") {
+      discountAmount = (total * promotion.GiaTriKM) / 100;
+    } else {
+      discountAmount = promotion.GiaTriKM;
+    }
+
+    setDiscount(discountAmount);
+    alert("Áp dụng mã giảm giá thành công!");
+    console.log(promotion._id);
+
+    // 🔥 **Thêm đoạn cập nhật trạng thái voucher sau khi áp dụng thành công**
+    try {
+      await updateVoucherStatus(promotion._id);
+      console.log("Promotion ID:", promotion._id);
+
+      console.log("Voucher đã bị khóa sau khi sử dụng");
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái voucher:", error.message);
     }
   };
 
@@ -225,7 +264,11 @@ const Cart = () => {
                     src={item.image}
                     alt={item.name}
                     className="img-thumbnail me-3"
-                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      objectFit: "cover",
+                    }}
                   />
                   <div className="flex-grow-1">
                     <h5 className="card-title">{item.name}</h5>
@@ -244,8 +287,12 @@ const Cart = () => {
                         }}
                       ></span>
                     </p>
-                    <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
-                    <p className="card-text">Số lượng tối đa: {item.maxQuantity}</p>
+                    <p className="card-text">
+                      Giá: {formatCurrency(item.price)} VND
+                    </p>
+                    <p className="card-text">
+                      Số lượng tối đa: {item.maxQuantity}
+                    </p>
                   </div>
                   <div className="d-flex align-items-center">
                     <button
@@ -283,13 +330,15 @@ const Cart = () => {
             )}
             {calculateAdditionalDiscount() > 0 && (
               <h4 className="text-danger">
-                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())} VND
+                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())}{" "}
+                VND
               </h4>
             )}
             {calculateFinalTotal() < calculateOriginalTotal() && (
               <>
                 <h4 className="text-success">
-                  Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())} VND
+                  Tổng tiền sau giảm giá:{" "}
+                  {formatCurrency(calculateFinalTotal())} VND
                 </h4>
               </>
             )}

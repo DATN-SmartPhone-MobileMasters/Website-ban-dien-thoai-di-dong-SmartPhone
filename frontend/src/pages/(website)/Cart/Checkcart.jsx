@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 import { getUserById, createOrder } from "../../../service/api";
 
 const Checkcart = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cart: initialCart, total, discount, additionalDiscount } = location.state || {};
+  const {
+    cart: initialCart,
+    total,
+    discount,
+    additionalDiscount,
+  } = location.state || {};
   const [userInfo, setUserInfo] = useState({});
   const [cart, setCart] = useState(initialCart || []);
-  const [orderNote, setOrderNote] = useState('');
+  const [orderNote, setOrderNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatCurrency = (value) => {
@@ -28,7 +33,7 @@ const Checkcart = () => {
           console.error("Lỗi khi lấy thông tin người dùng:", error);
         }
       } else {
-        console.error("Không có dữ liệu"); 
+        console.error("Không có dữ liệu");
       }
     };
     fetchUserData();
@@ -37,24 +42,24 @@ const Checkcart = () => {
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     confirmAlert({
-      title: 'Xác nhận đặt hàng',
-      message: 'Bạn có chắc chắn muốn đặt hàng không?',
+      title: "Xác nhận đặt hàng",
+      message: "Bạn có chắc chắn muốn đặt hàng không?",
       buttons: [
         {
-          label: 'Có',
+          label: "Có",
           onClick: async () => {
             setIsSubmitting(true);
-  
+
             const orderData = {
               userId: userInfo._id,
-              products: cart.map(item => ({
+              products: cart.map((item) => ({
                 productId: item.id,
                 image: item.image,
                 name: item.name,
                 memory: item.memory,
                 color: item.color,
                 quantity: item.quantity,
-                price: item.price
+                price: item.price,
               })),
               total: total - discount - additionalDiscount,
               discount,
@@ -62,46 +67,50 @@ const Checkcart = () => {
               shippingInfo: {
                 name: userInfo.HoVaTen,
                 phone: userInfo.SDT,
-                address: userInfo.DiaChi
+                address: userInfo.DiaChi,
               },
-              orderNote
+              orderNote,
             };
-  
+
             try {
               const response = await createOrder(orderData);
               if (response.data) {
                 // Xóa giỏ hàng khỏi localStorage dựa trên userId
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 const userId = userData?.id;
-  
+
                 if (userId) {
                   localStorage.removeItem(`cart_${userId}`);
                 }
-  
+
                 // Kích hoạt sự kiện cartUpdated để cập nhật Header
                 window.dispatchEvent(new Event("cartUpdated"));
-  
+
                 // Chuyển hướng đến trang xác nhận đơn hàng
                 navigate(`/profile-receipt/${response.data._id}`);
               }
             } catch (error) {
-              console.error('Lỗi khi tạo đơn hàng:', error);
-              alert('Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!');
+              console.error("Lỗi khi tạo đơn hàng:", error);
+              alert("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
             } finally {
               setIsSubmitting(false);
             }
-          }
+          },
         },
         {
-          label: 'Hủy',
-          onClick: () => {}
-        }
-      ]
+          label: "Hủy",
+          onClick: () => {},
+        },
+      ],
     });
   };
 
   if (!cart || cart.length === 0) {
-    return <div className="container mt-4">Không có sản phẩm nào trong giỏ hàng.</div>;
+    return (
+      <div className="container mt-4">
+        Không có sản phẩm nào trong giỏ hàng.
+      </div>
+    );
   }
 
   return (
@@ -119,7 +128,7 @@ const Checkcart = () => {
         </div>
 
         <h2 className="text-center">🛒 Thông tin thanh toán</h2>
-        
+
         {userInfo.HoVaTen && (
           <div className="mb-4">
             <h4 className="mb-3">Thông tin giao hàng</h4>
@@ -140,13 +149,18 @@ const Checkcart = () => {
                     src={item.image}
                     alt={item.name}
                     className="img-thumbnail me-3"
-                    style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px" }}
+                    style={{
+                      width: "120px",
+                      height: "120px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                    }}
                   />
                   <div className="flex-grow-1">
                     <h5 className="mb-1">{item.name}</h5>
                     <p className="mb-1">Bộ nhớ: {item.memory}</p>
                     <p className="mb-1 d-flex align-items-center">
-                      Màu sắc: 
+                      Màu sắc:
                       <span
                         style={{
                           display: "inline-block",
@@ -161,7 +175,9 @@ const Checkcart = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="mb-1 fw-bold text-primary">Giá: {formatCurrency(item.price)} VND</p>
+                    <p className="mb-1 fw-bold text-primary">
+                      Giá: {formatCurrency(item.price)} VND
+                    </p>
                     <p className="mb-1">Số lượng: {item.quantity}</p>
                   </div>
                 </div>
@@ -172,15 +188,19 @@ const Checkcart = () => {
 
         <div className="mt-4 p-3 bg-light">
           <h4 className="mb-3">Tổng thanh toán</h4>
-          <p className="fs-5">Tổng tiền: <strong>{formatCurrency(total)} VND</strong></p>
-          {discount > 0 && (
-            <p className="text-danger fs-6">Giảm giá từ voucher: -{formatCurrency(discount)} VND</p>
-          )}
+          <p className="fs-5">
+            Tổng tiền: <strong>{formatCurrency(total)} VND</strong>
+          </p>
+
           {additionalDiscount > 0 && (
-            <p className="text-danger fs-6">Giảm thêm 5%: -{formatCurrency(additionalDiscount)} VND</p>
+            <p className="text-danger fs-6">
+              Giảm thêm 5%: -{formatCurrency(additionalDiscount)} VND
+            </p>
           )}
+
           <h4 className="text-success mt-3">
-            Tổng tiền sau giảm giá: {formatCurrency(total - discount - additionalDiscount)} VND
+            Tổng tiền sau giảm giá: {formatCurrency(total - additionalDiscount)}{" "}
+            VND
           </h4>
         </div>
 
@@ -195,12 +215,12 @@ const Checkcart = () => {
         </div>
 
         <div className="text-center mt-4">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-success btn-lg"
             disabled={cart.length === 0 || isSubmitting}
           >
-            {isSubmitting ? 'Đang xử lý...' : ' Thanh toán khi nhận hàng'}
+            {isSubmitting ? "Đang xử lý..." : " Thanh toán khi nhận hàng"}
           </button>
         </div>
       </form>
