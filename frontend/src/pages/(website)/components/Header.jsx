@@ -286,6 +286,11 @@ const Header = () => {
               </Link>
             </li>
             <li>
+              <Link to="/listdanhgia" className="py-4 inline-block text-white">
+                Đánh giá
+              </Link>
+            </li>
+            <li>
               <Link to="/contact" className="py-4 inline-block text-white">
                 Liên hệ
               </Link>
