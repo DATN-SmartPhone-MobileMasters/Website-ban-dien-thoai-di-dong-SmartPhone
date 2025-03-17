@@ -9,20 +9,30 @@ const Checkcart = () => {
   const navigate = useNavigate();
   const {
     cart: initialCart,
-    total,
-    finalTotal,
-    discount,
-    additionalDiscount,
+    total: initialTotal = 0,
+    finalTotal: initialFinalTotal = 0,
+    discount: initialDiscount = 0,
+    additionalDiscount: initialAdditionalDiscount = 0,
   } = location.state || {};
+
   const [userInfo, setUserInfo] = useState({});
   const [cart, setCart] = useState(initialCart || []);
+  const [total, setTotal] = useState(initialTotal);
+  const [finalTotal, setFinalTotal] = useState(initialFinalTotal);
+  const [discount, setDiscount] = useState(initialDiscount);
+  const [additionalDiscount, setAdditionalDiscount] = useState(initialAdditionalDiscount);
   const [orderNote, setOrderNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Hàm định dạng tiền tệ
   const formatCurrency = (value) => {
-    return value.toLocaleString("vi-VN");
+    if (typeof value !== "number" || isNaN(value)) {
+      return "0 VND";
+    }
+    return value.toLocaleString("vi-VN") + " VND";
   };
 
+  // Lấy thông tin người dùng
   useEffect(() => {
     const fetchUserData = async () => {
       const userData = JSON.parse(localStorage.getItem("userData"));
@@ -34,12 +44,13 @@ const Checkcart = () => {
           console.error("Lỗi khi lấy thông tin người dùng:", error);
         }
       } else {
-        console.error("Không có dữ liệu");
+        console.error("Không có dữ liệu người dùng");
       }
     };
     fetchUserData();
   }, []);
 
+  // Xử lý đặt hàng
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     confirmAlert({
@@ -173,7 +184,7 @@ const Checkcart = () => {
                   </div>
                   <div>
                     <p className="mb-1 fw-bold text-primary">
-                      Giá: {formatCurrency(item.price)} VND
+                      Giá: {formatCurrency(item.price || 0)}
                     </p>
                     <p className="mb-1">Số lượng: {item.quantity}</p>
                   </div>
@@ -186,23 +197,11 @@ const Checkcart = () => {
         <div className="mt-4 p-3 bg-light">
           <h4 className="mb-3">Tổng thanh toán</h4>
           <p className="fs-5">
-            Tổng tiền: <strong>{formatCurrency(total)} VND</strong>
+            Tổng tiền: <strong>{formatCurrency(total)}</strong>
           </p>
 
-          {discount > 0 && (
-            <p className="text-danger fs-6">
-              Giảm giá từ voucher: -{formatCurrency(discount)} VND
-            </p>
-          )}
-
-          {additionalDiscount > 0 && (
-            <p className="text-danger fs-6">
-              Giảm thêm 5%: -{formatCurrency(additionalDiscount)} VND
-            </p>
-          )}
-
           <h4 className="text-success mt-3">
-            Tổng tiền sau giảm giá: {formatCurrency(finalTotal)} VND
+            Tổng tiền sau giảm giá: {formatCurrency(finalTotal)}
           </h4>
         </div>
 
