@@ -13,6 +13,7 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
+  const [isColorAvailable, setIsColorAvailable] = useState(true);
 
   useEffect(() => {
     setLoading(true);
@@ -22,7 +23,11 @@ const ProductDetail = () => {
         setProduct(productData);
 
         if (productData.BoNhoTrong1) {
-          setSelectedMemory({ memory: productData.BoNhoTrong1, price: productData.GiaSP1, quantity: productData.SoLuong1 });
+          setSelectedMemory({
+            memory: productData.BoNhoTrong1,
+            price: productData.GiaSP1,
+            quantity: productData.SoLuong1,
+          });
         }
         if (productData.Mau1) {
           setSelectedColor(productData.Mau1);
@@ -39,6 +44,28 @@ const ProductDetail = () => {
       });
   }, [id]);
 
+  const handleMemorySelection = (memoryKey) => {
+    const memory = product[memoryKey];
+    const memoryIndex = memoryKey.slice(-1); 
+
+    setSelectedMemory({
+      memory: memory,
+      price: product[`GiaSP${memoryIndex}`],
+      quantity: product[`SoLuong${memoryIndex}`],
+    });
+  };
+
+  const handleColorSelection = (color, image) => {
+    if (color === "Hết Hàng") {
+      setIsColorAvailable(false);
+      alert("Màu này đã hết hàng!");
+    } else {
+      setIsColorAvailable(true);
+    }
+    setSelectedColor(color);
+    setSelectedImage(image || product.HinhAnh1);
+  };
+
   const addToCart = () => {
     const authToken = localStorage.getItem("authToken");
   
@@ -53,19 +80,31 @@ const ProductDetail = () => {
       return;
     }
   
-    const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+  
+    if (!userId) {
+      alert("Không tìm thấy thông tin người dùng.");
+      return;
+    }
+  
+    const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
     const existingItemIndex = cartItems.findIndex(
       (item) => item.id === product._id && item.memory === selectedMemory.memory && item.color === selectedColor
     );
   
     if (existingItemIndex !== -1) {
-      if (cartItems[existingItemIndex].quantity < selectedMemory.quantity) {
-        cartItems[existingItemIndex].quantity += 1;
-      } else {
-        alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
+      const newQuantity = cartItems[existingItemIndex].quantity + 1;
+      if (newQuantity > cartItems[existingItemIndex].totalQuantity) {
+        alert("Đã đạt đến giới hạn sản phẩm.");
         return;
       }
+      cartItems[existingItemIndex].quantity = newQuantity;
     } else {
+      if (1 > selectedMemory.quantity) {
+        alert("Sản phẩm đã hết.");
+        return;
+      }
       cartItems.push({
         id: product._id,
         name: product.TenSP,
@@ -75,16 +114,15 @@ const ProductDetail = () => {
         quantity: 1,
         price: selectedMemory.price,
         maxQuantity: selectedMemory.quantity,
+        totalQuantity: selectedMemory.quantity, 
       });
     }
   
-    localStorage.setItem("cart", JSON.stringify(cartItems));
+    localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
     alert("Sản phẩm đã được thêm vào giỏ hàng!");
   
-    // Kích hoạt sự kiện "cartUpdated" để thông báo cập nhật giỏ hàng
     window.dispatchEvent(new Event("cartUpdated"));
   
-    // Chuyển hướng đến trang giỏ hàng
     navigate("/cart");
   };
 
@@ -162,7 +200,7 @@ const ProductDetail = () => {
           <h2>{product.TenSP}</h2>
           <p className="text-muted">Mã sản phẩm: {product.MaSP}</p>
           <h4 className="text-danger">{formatCurrency(selectedMemory.price)}</h4>
-          <p>Số lượng: {selectedMemory.quantity}</p>
+          <p>Tổng Số lượng: {selectedMemory.quantity}</p>
 
           <h5>Bộ Nhớ Trong:</h5>
           <div className="d-flex gap-2">
@@ -171,9 +209,7 @@ const ProductDetail = () => {
                 <button
                   key={index}
                   className={`btn ${selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"}`}
-                  onClick={() =>
-                    setSelectedMemory({ memory: product[key], price: product[`GiaSP${index + 1}`], quantity: product[`SoLuong${index + 1}`] })
-                  }
+                  onClick={() => handleMemorySelection(key)}
                 >
                   {product[key]}
                 </button>
@@ -187,18 +223,27 @@ const ProductDetail = () => {
               color ? (
                 <div
                   key={index}
-                  className={`border p-2 rounded ${selectedColor === color ? "border border-primary border-3" : ""}`}
-                  style={{ width: "40px", height: "40px", backgroundColor: color, cursor: "pointer" }}
+                  className={`border p-2 rounded ${selectedColor === color ? "border border-primary border-3 shadow-lg" : "border-secondary"}`}
+                  style={{ 
+                    width: selectedColor === color ? "50px" : "40px", 
+                    height: selectedColor === color ? "50px" : "40px",
+                    backgroundColor: color === "Hết Hàng" ? "gray" : color, 
+                    cursor: "pointer",
+                    transition: "all 0.3s ease-in-out", 
+                  }}
                   onClick={() => {
-                    setSelectedColor(color);
-                    setSelectedImage(product[`HinhAnh${index + 1}`] || product.HinhAnh1);
+                    handleColorSelection(color, product[`HinhAnh${index + 1}`] || product.HinhAnh1);
                   }}
                 ></div>
               ) : null
             )}
           </div>
 
-          <button className="btn btn-success mt-3" onClick={addToCart}>
+          <button 
+            className="btn btn-success mt-3" 
+            onClick={addToCart} 
+            disabled={!isColorAvailable || selectedColor === "Hết Hàng"}
+          >
             🛒 Thêm vào giỏ hàng
           </button>
         </div>

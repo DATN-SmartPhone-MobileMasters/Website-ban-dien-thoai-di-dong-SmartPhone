@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createProducts, fetchBrands,uploadImage } from "../../../service/api";
 import { message } from 'antd';
+import { createProducts, fetchBrands, uploadImage } from "../../../service/api";
 
 const ProductsAdd = () => {
   const [brands, setBrands] = useState([]);
@@ -51,23 +51,23 @@ const ProductsAdd = () => {
       [name]: value,
     });
   };
-  
+
   const handleImageUpload = async (e, fieldName) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
     formData.append('image', file);
-  
+
     try {
       const response = await uploadImage(formData);
-      console.log('Image upload response:', response.data); 
+      console.log('Image upload response:', response.data);
       setProduct(prev => ({
         ...prev,
         [fieldName]: response.data.imageUrl
       }));
     } catch (error) {
-      console.error('Image upload error:', error); 
+      console.error('Image upload error:', error);
       setError(`Tải ảnh ${fieldName} lên thất bại`);
     }
   };
@@ -75,13 +75,13 @@ const ProductsAdd = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
       await createProducts(product);
       navigate('/admin/products');
       message.success('Thêm sản phẩm thành công!');
     } catch (error) {
-      console.error('Create product error:', error.response?.data); // Hiển thị lỗi từ server
+      console.error('Create product error:', error.response?.data);
       setError(error.response?.data?.message || 'Không thể thêm sản phẩm.');
       setLoading(false);
     }
@@ -122,7 +122,6 @@ const ProductsAdd = () => {
                     required
                   />
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="TenTH">Thương Hiệu</label>
                   <select
@@ -141,7 +140,6 @@ const ProductsAdd = () => {
                     ))}
                   </select>
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="BoNhoTrong1">Bộ Nhớ Trong 1</label>
                   <select
@@ -160,8 +158,17 @@ const ProductsAdd = () => {
                     <option value="1TB">1TB</option>
                   </select>
                 </div>
-
-
+                <div className="form-group">
+                  <label htmlFor="SoLuong1">Số Lượng Bộ Nhớ 1</label>
+                  <input
+                    type="number"
+                    id="SoLuong1"
+                    name="SoLuong1"
+                    className="form-control"
+                    value={product.SoLuong1}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="form-group">
                   <label htmlFor="BoNhoTrong2">Bộ Nhớ Trong 2</label>
                   <select
@@ -180,8 +187,17 @@ const ProductsAdd = () => {
                     <option value="1TB">1TB</option>
                   </select>
                 </div>
-
-
+                <div className="form-group">
+                  <label htmlFor="SoLuong2">Số Lượng Bộ Nhớ 2</label>
+                  <input
+                    type="number"
+                    id="SoLuong2"
+                    name="SoLuong2"
+                    className="form-control"
+                    value={product.SoLuong2}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="form-group">
                   <label htmlFor="BoNhoTrong3">Bộ Nhớ Trong 3</label>
                   <select
@@ -200,135 +216,89 @@ const ProductsAdd = () => {
                     <option value="1TB">1TB</option>
                   </select>
                 </div>
-
                 <div className="form-group">
-                  <label htmlFor="Mau1">Màu 1</label>
+                  <label htmlFor="SoLuong3">Số Lượng Bộ Nhớ 3</label>
                   <input
-                    type="text"
-                    id="Mau1"
-                    name="Mau1"
+                    type="number"
+                    id="SoLuong3"
+                    name="SoLuong3"
                     className="form-control"
-                    value={product.Mau1}
+                    value={product.SoLuong3}
                     onChange={handleChange}
                   />
-                  {product.Mau1 && (
-                    <div style={{ marginTop: '10px', height: '30px', width: '30px', backgroundColor: product.Mau1 }}></div>
-                  )}
                 </div>
-                <div className="form-group">
-                  <label htmlFor="Mau2">Màu 2</label>
-                  <input
-                    type="text"
-                    id="Mau2"
-                    name="Mau2"
-                    className="form-control"
-                    value={product.Mau2 || ""}
-                    onChange={handleChange}
-                    placeholder="Nhập mã màu hoặc để trống"
-                  />
-                  {product.Mau2 && product.Mau2.trim() && (
-                    <div
-                      style={{
-                        marginTop: "10px",
-                        height: "30px",
-                        width: "30px",
-                        backgroundColor: product.Mau2,
-                        border: "1px solid #ccc",
-                      }}
-                    ></div>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="Mau3">Màu 3</label>
-                  <input
-                    type="text"
-                    id="Mau3"
-                    name="Mau3"
-                    className="form-control"
-                    value={product.Mau3 || ""}
-                    onChange={handleChange}
-                    placeholder="Nhập mã màu hoặc để trống"
-                  />
-                  {product.Mau3 && product.Mau3.trim() && (
-                    <div
-                      style={{
-                        marginTop: "10px",
-                        height: "30px",
-                        width: "30px",
-                        backgroundColor: product.Mau3,
-                        border: "1px solid #ccc",
-                      }}
-                    ></div>
-                  )}
-                </div>
-
-
-
-              </div>
-
-              <div className="col-md-6">
                 <div className="form-group">
                   <label htmlFor="ManHinh">Màn Hình</label>
-                  <input
-                    type="text"
+                  <select
                     id="ManHinh"
                     name="ManHinh"
                     className="form-control"
                     value={product.ManHinh}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Chọn kích thước màn hình</option>
+                    <option value="5inch">5 inch</option>
+                    <option value="5.1inch">5.1 inch</option>
+                    <option value="6inch">6 inch</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label htmlFor="HDH">Hệ Điều Hành</label>
-                  <input
-                    type="text"
+                  <select
                     id="HDH"
                     name="HDH"
                     className="form-control"
                     value={product.HDH}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Chọn hệ điều hành</option>
+                    <option value="IOS">IOS</option>
+                    <option value="ANDROID">ANDROID</option>
+                  </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="CamSau">Camera Sau</label>
+                  <label htmlFor="MoTa">Mô tả</label>
                   <input
                     type="text"
-                    id="CamSau"
-                    name="CamSau"
+                    id="MoTa"
+                    name="MoTa"
                     className="form-control"
-                    value={product.CamSau}
+                    value={product.MoTa}
                     onChange={handleChange}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="CamTruoc">Camera Trước</label>
-                  <input
-                    type="text"
-                    id="CamTruoc"
-                    name="CamTruoc"
+                  <label htmlFor="LoaiPin">Pin</label>
+                  <select
+                    id="LoaiPin"
+                    name="LoaiPin"
                     className="form-control"
-                    value={product.CamTruoc}
+                    value={product.LoaiPin}
                     onChange={handleChange}
-                  />
+                  >
+                    <option value="">Chọn loại pin</option>
+                    <option value="PISEN">PISEN</option>
+                    <option value="Energizer">Energizer</option>
+                    <option value="Duracell">Duracell</option>
+                  </select>
                 </div>
-
                 <div className="form-group">
-                  <label htmlFor="CPU">CPU</label>
-                  <input
-                    type="text"
-                    id="CPU"
-                    name="CPU"
+                  <label htmlFor="TrangThai">Trạng Thái</label>
+                  <select
+                    id="TrangThai"
+                    name="TrangThai"
                     className="form-control"
-                    value={product.CPU}
+                    value={product.TrangThai}
                     onChange={handleChange}
-                    required
-                  />
+                  >
+                    <option value="">Vui lòng chọn</option>
+                    <option value="Còn hàng">Còn hàng</option>
+                    <option value="Hết hàng">Hết hàng</option>
+                  </select>
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="CapSac">Cáp sạc</label>
                   <select
@@ -345,89 +315,116 @@ const ProductsAdd = () => {
                     <option value="USB">USB</option>
                   </select>
                 </div>
-
-
+              </div>
+              <div className="col-md-6">
                 <div className="form-group">
-                  <label htmlFor="MoTa">Mô tả</label>
-                  <input
-                    type="text"
-                    id="MoTa"
-                    name="MoTa"
-                    className="form-control"
-                    value={product.MoTa}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="LoaiPin">Pin</label>
-                  <input
-                    type="text"
-                    id="LoaiPin"
-                    name="LoaiPin"
-                    className="form-control"
-                    value={product.LoaiPin}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="TrangThai">Trạng Thái</label>
+                  <label htmlFor="Mau1">Màu 1</label>
                   <select
-                    id="TrangThai"
-                    name="TrangThai"
+                    id="Mau1"
+                    name="Mau1"
                     className="form-control"
-                    value={product.TrangThai}
+                    value={product.Mau1}
                     onChange={handleChange}
                   >
-                    <option value="">Vui lòng chọn</option>
-                    <option value="Còn hàng">Còn hàng</option>
-                    <option value="Hết hàng">Hết hàng</option>
+                    <option value="">Chọn màu</option>
+                    <option value="black">Black</option>
+                    <option value="silver">Silver</option>
+                    <option value="white">White</option>
+                    <option value="grey">Grey</option>
+                    <option value="purple">Purple</option>
+                  </select>
+                  {product.Mau1 && (
+                    <div style={{ marginTop: '10px', height: '30px', width: '30px', backgroundColor: product.Mau1 }}></div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="Mau2">Màu 2</label>
+                  <select
+                    id="Mau2"
+                    name="Mau2"
+                    className="form-control"
+                    value={product.Mau2}
+                    onChange={handleChange}
+                  >
+                    <option value="">Chọn màu</option>
+                    <option value="black">Black</option>
+                    <option value="silver">Silver</option>
+                    <option value="white">White</option>
+                    <option value="grey">Grey</option>
+                    <option value="purple">Purple</option>
+                  </select>
+                  {product.Mau2 && (
+                    <div style={{ marginTop: '10px', height: '30px', width: '30px', backgroundColor: product.Mau2 }}></div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="Mau3">Màu 3</label>
+                  <select
+                    id="Mau3"
+                    name="Mau3"
+                    className="form-control"
+                    value={product.Mau3}
+                    onChange={handleChange}
+                  >
+                    <option value="">Chọn màu</option>
+                    <option value="black">Black</option>
+                    <option value="silver">Silver</option>
+                    <option value="white">White</option>
+                    <option value="grey">Grey</option>
+                    <option value="purple">Purple</option>
+                  </select>
+                  {product.Mau3 && (
+                    <div style={{ marginTop: '10px', height: '30px', width: '30px', backgroundColor: product.Mau3 }}></div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="CamSau">Camera Sau</label>
+                  <select
+                    id="CamSau"
+                    name="CamSau"
+                    className="form-control"
+                    value={product.CamSau}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Chọn độ phân giải</option>
+                    <option value="16px">16 PX</option>
+                    <option value="20px">20 PX</option>
+                    <option value="25px">25 PX</option>
                   </select>
                 </div>
-
+                <div className="form-group">
+                  <label htmlFor="CamTruoc">Camera Trước</label>
+                  <select
+                    id="CamTruoc"
+                    name="CamTruoc"
+                    className="form-control"
+                    value={product.CamTruoc}
+                    onChange={handleChange}
+                  >
+                    <option value="">Chọn độ phân giải</option>
+                    <option value="30px">30 PX</option>
+                    <option value="35px">35 PX</option>
+                    <option value="40px">40 PX</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="CPU">CPU</label>
+                  <select
+                    id="CPU"
+                    name="CPU"
+                    className="form-control"
+                    value={product.CPU}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Chọn loại CPU</option>
+                    <option value="APPLE CHIPSET">APPLE CHIPSET</option>
+                    <option value="ANDROID CHIPSET">ANDROID CHIPSET</option>
+                  </select>
+                </div>
               </div>
-
-
             </div>
-
-            <div className="form-group">
-              <label htmlFor="SoLuong1">Số Lượng 1</label>
-              <input
-                type="number"
-                id="SoLuong1"
-                name="SoLuong1"
-                className="form-control"
-                value={product.SoLuong1}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="SoLuong2">Số Lượng 2</label>
-              <input
-                type="number"
-                id="SoLuong2"
-                name="SoLuong2"
-                className="form-control"
-                value={product.SoLuong2}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="SoLuong3">Số Lượng 3</label>
-              <input
-                type="number"
-                id="SoLuong3"
-                name="SoLuong3"
-                className="form-control"
-                value={product.SoLuong3}
-                onChange={handleChange}
-              />
-            </div>
-
             <div className="form-group">
               <label htmlFor="GiaSP1">Giá 1</label>
               <input
@@ -440,7 +437,6 @@ const ProductsAdd = () => {
                 required
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="GiaSP2">Giá 2</label>
               <input
@@ -453,7 +449,6 @@ const ProductsAdd = () => {
                 required
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="GiaSP3">Giá 3</label>
               <input
@@ -466,7 +461,6 @@ const ProductsAdd = () => {
                 required
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="HinhAnh1">Hình Ảnh 1</label>
               <input
@@ -478,14 +472,13 @@ const ProductsAdd = () => {
                 required
               />
               {product.HinhAnh1 && (
-                <img 
-                  src={product.HinhAnh1} 
-                  alt="Preview 1" 
+                <img
+                  src={product.HinhAnh1}
+                  alt="Preview 1"
                   style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
                 />
               )}
             </div>
-
             <div className="form-group">
               <label htmlFor="HinhAnh2">Hình Ảnh 2</label>
               <input
@@ -496,14 +489,13 @@ const ProductsAdd = () => {
                 accept="image/*"
               />
               {product.HinhAnh2 && (
-                <img 
-                  src={product.HinhAnh2} 
-                  alt="Preview 2" 
+                <img
+                  src={product.HinhAnh2}
+                  alt="Preview 2"
                   style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
                 />
               )}
             </div>
-
             <div className="form-group">
               <label htmlFor="HinhAnh3">Hình Ảnh 3</label>
               <input
@@ -514,16 +506,15 @@ const ProductsAdd = () => {
                 accept="image/*"
               />
               {product.HinhAnh3 && (
-                <img 
-                  src={product.HinhAnh3} 
-                  alt="Preview 3" 
+                <img
+                  src={product.HinhAnh3}
+                  alt="Preview 3"
                   style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
                 />
               )}
             </div>
           </div>
         </div>
-
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? 'Đang thêm sản phẩm...' : 'Thêm Sản Phẩm'}
         </button>

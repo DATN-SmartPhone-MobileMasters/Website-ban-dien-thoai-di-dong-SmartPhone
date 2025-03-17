@@ -65,26 +65,29 @@ class PromotionController {
 
   async updatePromotion(req, res) {
     try {
-      const { error, value } = promotionValidator.validate(req.body);
-      if (error) {
-        const listErr = error.details.map((err) => err.message);
-        return res.status(400).json({ message: listErr });
+      console.log("Received update request:", req.body);
+
+      const promotion = await Promotion.findById(req.params.id);
+      if (!promotion) {
+        return res.status(404).json({ message: "Voucher không tồn tại" });
       }
 
-      const promotion = await Promotion.findByIdAndUpdate(
-        req.params.id,
-        value,
-        { new: true }
-      );
-      if (!promotion) {
-        return res.status(404).json({ message: "Promotion not found" });
+      if (promotion.TrangThai === 1) {
+        return res
+          .status(400)
+          .json({ message: "Voucher đã bị khóa sau khi sử dụng" });
       }
+
+      // Cập nhật trạng thái voucher sau khi sử dụng
+      promotion.TrangThai = 1;
+      await promotion.save();
 
       res.status(200).json({
-        message: "Data updated successfully",
+        message: "Voucher đã được sử dụng",
         data: promotion,
       });
     } catch (error) {
+      console.error("Lỗi cập nhật voucher:", error);
       res.status(500).json({ message: error.message });
     }
   }
