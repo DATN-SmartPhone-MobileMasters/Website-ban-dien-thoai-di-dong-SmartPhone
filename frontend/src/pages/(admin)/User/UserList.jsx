@@ -7,45 +7,62 @@ import { fetchUsers,fetchOrdersByUserId, deleteUser } from '../../../service/api
 const UserList = () => {
   const [users, setUsers] = useState([]);
 
- useEffect(() => {
-    fetchUsers()
-      .then((res) => setUsers(res.data || []))
-      .catch(console.error);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const usersRes = await fetchUsers();
+        const usersData = usersRes.data || [];
+
+        const usersWithOrders = await Promise.all(
+          usersData.map(async (user) => {
+            try {
+              const ordersRes = await fetchOrdersByUserId(user._id);
+              const activeOrders = ordersRes.data.data.filter(
+                (order) =>
+                  order.paymentStatus !== "Huỷ Đơn" &&
+                  order.paymentStatus !== "Hoàn thành"
+              );
+              return { ...user, hasActiveOrders: activeOrders.length > 0 };
+            } catch (error) {
+              console.error(`Error fetching orders for user ${user._id}:`, error);
+              return { ...user, hasActiveOrders: true }; // Assume has orders to prevent deletion
+            }
+          })
+        );
+        setUsers(usersWithOrders);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setUsers([]);
+      }
+    };
+    fetchData();
   }, []);
 
 
   const handleDelete = async (id) => {
     try {
-      const ordersResponse = await fetchOrdersByUserId(id);
-      const hasOrders = ordersResponse.data.data?.length > 0;
-  
+      const user = users.find((u) => u._id === id);
+
       confirmAlert({
         title: 'Xác nhận xóa',
-        message: hasOrders 
-          ? 'Tài khoản này có đơn hàng. Bạn có chắc muốn xoá tài khoản và tất cả đơn hàng liên quan?' 
-          : 'Bạn có chắc muốn xoá tài khoản này?',
+        message: 'Bạn có chắc muốn xoá tài khoản này?',
         buttons: [
           {
             label: 'Có',
             onClick: async () => {
               try {
-                await deleteUser(id); // This now deletes user + orders (backend)
+                await deleteUser(id);
                 setUsers(users.filter((user) => user._id !== id));
               } catch (e) {
                 console.error(e);
               }
             },
           },
-          {
-            label: 'Không',
-            onClick: () => {},
-          },
+          { label: 'Không' },
         ],
-        closeOnEscape: true,
-        closeOnClickOutside: true,
       });
     } catch (error) {
-      console.error("Lỗi khi kiểm tra đơn hàng:", error);
+      console.error("Lỗi khi xoá người dùng:", error);
     }
   };
 
@@ -87,18 +104,22 @@ const UserList = () => {
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
-                    <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
+                    <td>
+                      {user.MaQuyen === 1 ? "Admin" : user.MaQuyen === 2 ? "Editor" : "User"}
+                    </td>
                     <td className="space-x-2">
                     <Link to={`/admin/accounts-details/${user._id}`} className="text-blue-500 hover:underline">
                         <button className="btn btn-info ml-2">Chi tiết
                           </button>
                         </Link>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        className="btn btn-danger ml-2"
-                      >
-                        Xoá
-                      </button>
+                      {user.MaQuyen === 0 && !user.hasActiveOrders && (
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          className="btn btn-danger ml-2"
+                        >
+                          Xoá
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProducts, updateProducts, fetchBrands } from "../../../service/api";
 import { uploadImage } from "../../../service/api";
+
 const ProductsEdit = () => {
   const [brands, setBrands] = useState([]);
   const { id } = useParams();
@@ -9,9 +10,9 @@ const ProductsEdit = () => {
   const [product, setProduct] = useState({
     MaSP: "",
     TenSP: "",
-    TenTH: '',
-    CapSac: '',
-    MoTa: '',
+    TenTH: "",
+    CapSac: "",
+    MoTa: "",
     BoNhoTrong1: "",
     BoNhoTrong2: "",
     BoNhoTrong3: "",
@@ -53,9 +54,7 @@ const ProductsEdit = () => {
     fetchBrands()
       .then((res) => setBrands(res.data.data))
       .catch(console.error);
-
-  }, [id]); // Dependency array chỉ cần `id`
-
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,7 +66,7 @@ const ProductsEdit = () => {
           [name]: value,
           SoLuong1: value === "Hết hàng" ? "0" : prevProduct.SoLuong1,
           SoLuong2: value === "Hết hàng" ? "0" : prevProduct.SoLuong2,
-          SoLuong3: value === "Hết hàng" ? "0" : prevProduct.SoLuong3, // Giữ nguyên số lượng khi chọn lại "Còn hàng"
+          SoLuong3: value === "Hết hàng" ? "0" : prevProduct.SoLuong3,
         };
       }
       return { ...prevProduct, [name]: value };
@@ -77,33 +76,33 @@ const ProductsEdit = () => {
   const handleImageUpload = async (e, fieldName) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
-    formData.append('image', file);
-  
+    formData.append("image", file);
+
     try {
       const response = await uploadImage(formData);
-      setProduct(prev => ({
+      setProduct((prev) => ({
         ...prev,
-        [fieldName]: response.data.imageUrl
+        [fieldName]: response.data.imageUrl,
       }));
     } catch (error) {
       setError(`Tải ảnh ${fieldName} lên thất bại`);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    updateProducts(id, product)
-      .then(() => {
-        alert("Cập nhật sản phẩm thành công!");
-        navigate("/admin/products");
-      })
-      .catch(() => {
-        setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
-      });
-  };
-
+  // Trong ProductsEdit.js
+const handleSubmit = (e) => {
+  e.preventDefault();
+  updateProducts(id, product)
+    .then(() => {
+      alert("Cập nhật sản phẩm thành công!");
+      navigate("/admin/products");
+    })
+    .catch(() => {
+      setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
+    });
+};
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -163,7 +162,6 @@ const ProductsEdit = () => {
                   )}
                 </div>
 
-
                 <div className="mb-3">
                   <label className="form-label">Bộ Nhớ Trong 1</label>
                   <input
@@ -175,6 +173,24 @@ const ProductsEdit = () => {
                     required
                   />
                   {product.BoNhoTrong1.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label" style={{ color: "red" }}>
+                    Số Lượng Bộ Nhớ trong 1
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="SoLuong1"
+                    value={product.SoLuong1}
+                    onChange={handleChange}
+                    required
+                    disabled={product.TrangThai === "Hết hàng"}
+                  />
+                  {!product.SoLuong1 && product.SoLuong1 !== 0 && (
                     <div className="text-danger mt-1">Không được bỏ trống</div>
                   )}
                 </div>
@@ -195,6 +211,24 @@ const ProductsEdit = () => {
                 </div>
 
                 <div className="mb-3">
+                  <label className="form-label" style={{ color: "aqua" }}>
+                    Số Lượng Bộ Nhớ trong 2
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="SoLuong2"
+                    value={product.SoLuong2}
+                    onChange={handleChange}
+                    required
+                    disabled={product.TrangThai === "Hết hàng"}
+                  />
+                  {!product.SoLuong2 && product.SoLuong2 !== 0 && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
                   <label className="form-label">Bộ Nhớ Trong 3</label>
                   <input
                     type="text"
@@ -205,6 +239,24 @@ const ProductsEdit = () => {
                     required
                   />
                   {product.BoNhoTrong3.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label" style={{ color: "lime" }}>
+                    Số Lượng Bộ Nhớ trong 3
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="SoLuong3"
+                    value={product.SoLuong3}
+                    onChange={handleChange}
+                    required
+                    disabled={product.TrangThai === "Hết hàng"}
+                  />
+                  {!product.SoLuong3 && product.SoLuong3 !== 0 && (
                     <div className="text-danger mt-1">Không được bỏ trống</div>
                   )}
                 </div>
@@ -264,55 +316,7 @@ const ProductsEdit = () => {
                     <div className="text-danger mt-1">Giá sản phẩm phải lớn hơn 0</div>
                   )}
 
-                </div>
-
-              </div>
-
-              <div className="col-md-6">
-                <div className="mb-3">
-                  <label className="form-label">Hệ Điều Hành</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="HDH"
-                    value={product.HDH}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.HDH.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Pin</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="LoaiPin"
-                    value={product.LoaiPin}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.LoaiPin.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Trạng Thái</label>
-                  <select
-                    className="form-control"
-                    name="TrangThai"
-                    value={product.TrangThai}
-                    onChange={handleChange}
-                  >
-                    <option value="Còn Hàng">Còn hàng</option>
-                    <option value="Hết hàng">Hết hàng</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
+<div className="form-group">
                   <label htmlFor="TenTH">Thương Hiệu</label>
                   <select
                     id="TenTH"
@@ -331,101 +335,20 @@ const ProductsEdit = () => {
                   </select>
                 </div>
 
-                {/* Các trường màu */}
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 1</label>
-                    {/* Ô vuông hiển thị màu ngay cạnh chữ "Màu 1" */}
-                    <div
-                      style={{
-                        backgroundColor: product.Mau1,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="Mau1"
-                    value={product.Mau1}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.Mau1.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 2</label>
-                    {/* Ô vuông hiển thị màu ngay cạnh chữ "Màu 1" */}
-                    <div
-                      style={{
-                        backgroundColor: product.Mau2,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="Mau2"
-                    value={product.Mau2}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.Mau2.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 1</label>
-                    {/* Ô vuông hiển thị màu ngay cạnh chữ "Màu 1" */}
-                    <div
-                      style={{
-                        backgroundColor: product.Mau3,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="Mau3"
-                    value={product.Mau3}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.Mau3.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-
                 <div className="form-group">
                   <label htmlFor="CPU">CPU</label>
-                  <input
-                    type="text"
+                  <select
                     id="CPU"
                     name="CPU"
                     className="form-control"
                     value={product.CPU}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Chọn Chipset</option>
+                    <option value="APPLE CHIPSET">APPLE CHIPSET</option>
+                    <option value="ANDROID CHIPSET">ANDROID CHIPSET</option>
+                  </select>
                 </div>
 
                 <div className="form-group">
@@ -444,126 +367,225 @@ const ProductsEdit = () => {
                     <option value="USB">USB</option>
                   </select>
                 </div>
-
+              
+                </div>
               </div>
+
+              <div className="col-md-6">
+
+              <div className="mb-3">
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <label className="form-label">Màu 1</label>
+                    <div
+                      style={{
+                        backgroundColor: product.Mau1,
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                  </div>
+
+                  <select
+                    className="form-control"
+                    name="Mau1"
+                    value={product.Mau1}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Chọn màu</option>
+                    <option value="Hết Hàng">Hết Hàng</option>
+                    <option value="black">Black</option>
+                    <option value="silver">Silver</option>
+                    <option value="white">White</option>
+                    <option value="grey">Grey</option>
+                    <option value="purple">Purple</option>
+                  </select>
+                  {product.Mau1.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <label className="form-label">Màu 2</label>
+                    <div
+                      style={{
+                        backgroundColor: product.Mau2,
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                  </div>
+                  <select
+                    className="form-control"
+                    name="Mau2"
+                    value={product.Mau2}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Chọn màu</option>
+                    <option value="Hết Hàng">Hết Hàng</option>
+                    <option value="black">Black</option>
+                    <option value="silver">Silver</option>
+                    <option value="white">White</option>
+                    <option value="grey">Grey</option>
+                    <option value="purple">Purple</option>
+                  </select>
+                  {product.Mau2.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <label className="form-label">Màu 3</label>
+                    <div
+                      style={{
+                        backgroundColor: product.Mau3,
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                      }}
+                    />
+                  </div>
+                  <select
+                    className="form-control"
+                    name="Mau3"
+                    value={product.Mau3}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Chọn màu</option>
+                    <option value="Hết Hàng">Hết Hàng</option>
+                    <option value="black">Black</option>
+                    <option value="silver">Silver</option>
+                    <option value="white">White</option>
+                    <option value="grey">Grey</option>
+                    <option value="purple">Purple</option>
+                  </select>
+                  {product.Mau3.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Hệ Điều Hành</label>
+                  <select
+                    className="form-control"
+                    name="HDH"
+                    value={product.HDH}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Chọn Hệ Điều Hành</option>
+                    <option value="IOS">IOS</option>
+                    <option value="ANDROID">ANDROID</option>
+                  </select>
+                  {product.HDH.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Pin</label>
+                  <select
+                    className="form-control"
+                    name="LoaiPin"
+                    value={product.LoaiPin}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="PISEN">PISEN</option>
+                    <option value="Energizer">Energizer</option>
+                    <option value="Duracell">Duracell</option>
+                  </select>
+                  {product.LoaiPin.trim() === "" && (
+                    <div className="text-danger mt-1">Không được bỏ trống</div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Trạng Thái</label>
+                  <select
+                    className="form-control"
+                    name="TrangThai"
+                    value={product.TrangThai}
+                    onChange={handleChange}
+                  >
+                    <option value="Còn Hàng">Còn hàng</option>
+                    <option value="Hết hàng">Hết hàng</option>
+                  </select>
+                </div>
+
+                
             </div>
+            </div>
+            
 
             <hr />
 
-
             <div className="row">
-              <div className="col-md-6">
-                <div className="mb-3">
-                  <label className="form-label">Số Lượng 1</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuong1"
-                    value={product.SoLuong1}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"} // Vô hiệu hóa khi trạng thái là Hết hàng
+              <div className="col-md-6"></div>
+
+              <div className="form-group">
+                <label htmlFor="HinhAnh1">Hình Ảnh 1</label>
+                <input
+                  type="file"
+                  id="HinhAnh1"
+                  className="form-control"
+                  onChange={(e) => handleImageUpload(e, "HinhAnh1")}
+                  accept="image/*"
+                />
+                {product.HinhAnh1 && (
+                  <img
+                    src={product.HinhAnh1}
+                    alt="Preview 1"
+                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
                   />
-                  {!product.SoLuong1 && product.SoLuong1 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-
-
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Số Lượng 2</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuong2"
-                    value={product.SoLuong2}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuong2 && product.SoLuong2 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-
-
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Số Lượng 3</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuong3"
-                    value={product.SoLuong3}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuong3 && product.SoLuong3 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-
-
-                </div>
+                )}
               </div>
 
               <div className="form-group">
-              <label htmlFor="HinhAnh1">Hình Ảnh 1</label>
-              <input
-                type="file"
-                id="HinhAnh1"
-                className="form-control"
-                onChange={(e) => handleImageUpload(e, 'HinhAnh1')}
-                accept="image/*"
-              />
-              {product.HinhAnh1 && (
-                <img 
-                  src={product.HinhAnh1} 
-                  alt="Preview 1" 
-                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                <label htmlFor="HinhAnh2">Hình Ảnh 2</label>
+                <input
+                  type="file"
+                  id="HinhAnh2"
+                  className="form-control"
+                  onChange={(e) => handleImageUpload(e, "HinhAnh2")}
+                  accept="image/*"
                 />
-              )}
-            </div>
+                {product.HinhAnh2 && (
+                  <img
+                    src={product.HinhAnh2}
+                    alt="Preview 2"
+                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
+                  />
+                )}
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="HinhAnh2">Hình Ảnh 2</label>
-              <input
-                type="file"
-                id="HinhAnh2"
-                className="form-control"
-                onChange={(e) => handleImageUpload(e, 'HinhAnh2')}
-                accept="image/*"
-              />
-              {product.HinhAnh2 && (
-                <img 
-                  src={product.HinhAnh2} 
-                  alt="Preview 2" 
-                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+              <div className="form-group">
+                <label htmlFor="HinhAnh3">Hình Ảnh 3</label>
+                <input
+                  type="file"
+                  id="HinhAnh3"
+                  className="form-control"
+                  onChange={(e) => handleImageUpload(e, "HinhAnh3")}
+                  accept="image/*"
                 />
-              )}
+                {product.HinhAnh3 && (
+                  <img
+                    src={product.HinhAnh3}
+                    alt="Preview 3"
+                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
+                  />
+                )}
+              </div>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="HinhAnh3">Hình Ảnh 3</label>
-              <input
-                type="file"
-                id="HinhAnh3"
-                className="form-control"
-                onChange={(e) => handleImageUpload(e, 'HinhAnh3')}
-                accept="image/*"
-              />
-              {product.HinhAnh3 && (
-                <img 
-                  src={product.HinhAnh3} 
-                  alt="Preview 3" 
-                  style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                />
-              )}
-            </div>
-
-            </div>
-
           </div>
         </div>
 
@@ -576,13 +598,14 @@ const ProductsEdit = () => {
             value={product.MoTa}
             onChange={handleChange}
             required
-            rows={4} // Số dòng hiển thị
+            rows={4}
           />
         </div>
 
-
         <div className="mt-4 text-center">
-          <button type="submit" className="btn btn-primary">Cập Nhật</button>
+          <button type="submit" className="btn btn-primary">
+            Cập Nhật
+          </button>
         </div>
       </form>
     </div>
@@ -590,5 +613,3 @@ const ProductsEdit = () => {
 };
 
 export default ProductsEdit;
-
-
