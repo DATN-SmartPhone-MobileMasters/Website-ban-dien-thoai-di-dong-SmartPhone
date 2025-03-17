@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProducts, fetchBrands,uploadImage } from "../../../service/api";
+import { message } from 'antd';
 
 const ProductsAdd = () => {
   const [brands, setBrands] = useState([]);
@@ -78,6 +79,7 @@ const ProductsAdd = () => {
     try {
       await createProducts(product);
       navigate('/admin/products');
+      message.success('Thêm sản phẩm thành công!');
     } catch (error) {
       console.error('Create product error:', error.response?.data); // Hiển thị lỗi từ server
       setError(error.response?.data?.message || 'Không thể thêm sản phẩm.');
