@@ -42,13 +42,22 @@ import Blogdefault from "./pages/(website)/Blog/blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
 import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
-
-
+import DanhGia from "./pages/(admin)/danhgia/DanhGia";
+import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
+import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
 function App() {
   const configRouter = createBrowserRouter([
     {
       element: <LayoutAdmin />,
       children: [
+        {
+          path: "/adddanhgia",
+          element: <AddDanhgia />,
+        },
+        {
+          path: "/danhgia",
+          element: <DanhGia />,
+        },
         {
           path: "/admin/login",
           element: <AdminLogin />,
@@ -142,6 +151,10 @@ function App() {
     {
       element: <LayoutWebsite />,
       children: [
+        {
+          path: "/listdanhgia",
+          element: <ListDanhgia />,
+        },
         {
           path: "/checkcart",
           element: <Checkcart />,

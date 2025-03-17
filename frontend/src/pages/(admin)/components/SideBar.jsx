@@ -166,15 +166,22 @@ const SideBar = () => {
             </div>
           </div> */}
         </li>
+
+        <li className="nav-item">
+          <Link
+            className="nav-link collapsed"
+            to="/danhgia"
+          >
+            <i className="fas fa-fw fa-comments" />
+            <span>Quản lý đánh giá</span>
+          </Link>
+        </li>
+
         {/* Quản lý bình luận */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
             to="/admin/comments"
-            // data-toggle="collapse"
-            // data-target="#collapseBinhluan"
-            // aria-expanded="true"
-            // aria-controls="collapseBinhluan"
           >
             <i className="fas fa-fw fa-comments" />
             <span>Quản lý bình luận</span>
