@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
-import { Card, Spin, message } from "antd";
+import { Spin, message } from "antd";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const SellerProducts = () => {
   const [products, setProducts] = useState([]);
@@ -16,15 +21,17 @@ const SellerProducts = () => {
     setLoading(true);
     try {
       const response = await fetchProducts();
-      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data.data || [];
 
       // Lọc bỏ sản phẩm có tên chứa "iphone"
-      const filteredProducts = data.filter(product => !product.TenSP.toLowerCase().includes("iphone"));
+      const filteredProducts = data.filter(
+        (product) => !product.TenSP.toLowerCase().includes("iphone")
+      );
 
       // Giữ lại tối đa 8 sản phẩm mới nhất
-      const latestProducts = filteredProducts.slice(-8);
-
-      setProducts(latestProducts);
+      setProducts(filteredProducts.slice(-8));
     } catch (error) {
       message.error("Lỗi khi lấy danh sách sản phẩm!");
     } finally {
@@ -32,53 +39,71 @@ const SellerProducts = () => {
     }
   };
 
+  const handleCardClick = (id) => {
+    navigate(`/products/product_detail/${id}`);
+  };
 
   return (
-    <div style={{ width: "100%", textAlign: "center", padding: "20px 0" }}>
-      <h2>Các sản phẩm khác</h2>
+    <div className="w-full text-center py-12 bg-gradient-to-b from-gray-100 to-gray-200">
+      <h2 className="text-3xl font-extrabold text-gray-800 mb-8">
+        💎 Các sản phẩm khác 💎
+      </h2>
+
       {loading ? (
-        <Spin />
+        <div className="flex justify-center items-center h-40">
+          <Spin size="large" />
+        </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "20px",
-            justifyContent: "center",
-            maxWidth: "900px",
-            margin: "0 auto"
+        <Swiper
+          modules={[Navigation, Autoplay, Pagination]}
+          slidesPerView={1}
+          spaceBetween={10}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            768: { slidesPerView: 3 },
+            1024: { slidesPerView: 4 },
           }}
+          loop={true}
+          autoplay={{ delay: 2500, disableOnInteraction: false }}
+          navigation={true}
+          pagination={{ clickable: true }}
+          className="w-full max-w-7xl mx-auto"
         >
           {products.length > 0 ? (
             products.map((product) => (
-              <Card
-                key={product._id}
-                hoverable
-                style={{ width: 220, textAlign: "center", cursor: "pointer" }}
-                cover={
+              <SwiperSlide key={product._id}>
+                <div
+                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1 p-5 cursor-pointer border border-gray-200 hover:border-gray-400"
+                  onClick={() => handleCardClick(product._id)}
+                >
                   <img
                     src={product.HinhAnh1}
                     alt={product.TenSP}
-                    style={{
-                      height: 150,
-                      objectFit: "contain",
-                      width: "100%",
-                      backgroundColor: "#f8f8f8",
-                    }}
-                    onClick={() => navigate(`/products/product_detail/${product._id}`)}
+                    title={product.TenSP}
+                    className="h-48 w-full object-cover bg-gray-100 rounded-lg"
                   />
-                }
-              >
-                <Card.Meta
-                  title={product.TenSP}
-                  description={<span style={{ color: "red", fontWeight: "bold" }}>{product.GiaSP1.toLocaleString()} VNĐ</span>}
-                />
-              </Card>
+                  <div className="mt-4 text-center">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                      {product.TenSP}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {product.BoNhoTrong1
+                        ? `Bộ nhớ: ${product.BoNhoTrong1}`
+                        : "Chưa có thông tin bộ nhớ"}
+                    </p>
+                    <p className="text-red-600 font-bold text-lg mt-3 bg-yellow-100 px-2 py-1 rounded-md">
+                      {product.GiaSP1
+                        ? product.GiaSP1.toLocaleString() + " VNĐ"
+                        : "Chưa có giá"}
+                    </p>
+                  </div>
+                </div>
+              </SwiperSlide>
             ))
           ) : (
-            <p>Không có sản phẩm nào phù hợp.</p>
+            <p className="text-gray-600 text-lg">Không có sản phẩm nào.</p>
           )}
-        </div>
+        </Swiper>
       )}
     </div>
   );
