@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProducts } from "../../../service/api";
+import  SellerProducts from "../../(website)/components/SellerProducts"
+import LatestProducts from "../../(website)/components/LatestProducts"
 import { FaMobileAlt, FaCamera, FaMicrochip, FaBatteryFull, FaPlug, FaInfoCircle } from "react-icons/fa";
 
 const ProductDetail = () => {
@@ -296,6 +298,12 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+        <div className="col-12 mt-4">
+        <LatestProducts />
+      </div>
+        <div className="col-12 mt-4">
+        <SellerProducts />
+      </div>
       </div>
       <br />
     </div>
