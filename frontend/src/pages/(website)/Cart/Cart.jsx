@@ -433,16 +433,17 @@ const Cart = () => {
               </button>
             </div>
             <Link
-              to="/checkcart"
-              state={{
-                cart: cart.filter((_, index) => selectedItems[index]),
-                total: calculateFinalTotal(),
-                discount: discount,
-                additionalDiscount: calculateAdditionalDiscount(),
-              }}
-            >
-              <button className="btn btn-success">Thanh toán</button>
-            </Link>
+  to="/checkcart"
+  state={{
+    cart: cart.filter((_, index) => selectedItems[index]),
+    total: calculateOriginalTotal(), // Tổng tiền trước giảm giá
+    finalTotal: calculateFinalTotal(), // Tổng tiền sau giảm giá
+    discount: discount, // Giảm giá từ voucher
+    additionalDiscount: calculateAdditionalDiscount(), // Giảm giá thêm (5%)
+  }}
+>
+  <button className="btn btn-success">Thanh toán</button>
+</Link>
           </div>
         </>
       )}
