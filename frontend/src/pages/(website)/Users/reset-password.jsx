@@ -1,105 +1,76 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+import { Form, Input, Button, message } from 'antd';
 import { resetPassword } from '../../../service/api';
 
 const ResetPassword = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = React.useState(false);
   const location = useLocation();
-  const token = new URLSearchParams(location.search).get('token'); 
+  const navigate = useNavigate();
+  const token = new URLSearchParams(location.search).get('token');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (newPassword !== confirmPassword) {
-     confirmAlert({
-        title: 'Lỗi',
-        message: 'Mật khẩu xác nhận không khớp',
-        buttons: [{ label: 'OK', onClick: () => {} }]
-      });
-      return;
-    }
-
+  const onFinish = async (values) => {
     try {
-      setIsLoading(true);
-      const response = await resetPassword({ token, MatKhau: newPassword });
-
-      if (response.data.message) {
-        confirmAlert({
-          title: 'Thành công',
-          message: response.data.message,
-          buttons: [
-            {
-              label: 'OK',
-              onClick: () => navigate('/login'),
-            },
-          ],
-        });
-      }
-    } catch (e) {
-      const errorMessage = e.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.';
-      setError(errorMessage);
-      
-      confirmAlert({
-        title: 'Lỗi',
-        message: errorMessage,
-        buttons: [{ label: 'OK', onClick: () => {} }],
+      setLoading(true);
+      await resetPassword({ 
+        token,
+        MatKhau: values.newPassword 
       });
+      
+      message.success('Đặt lại mật khẩu thành công!');
+      navigate('/login');
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="flex justify-end w-4/5 text-sm uppercase">
-        <a href="/" className="text-orange-500">Trang Chủ</a>
-        <span className="mx-2">/</span>
-        <p>Đặt Lại Mật Khẩu</p>
-      </div>
       <div className="w-4/5 p-8 bg-white rounded-lg shadow-md">
-        <h5 className="text-2xl font-bold mb-6 text-black">Đặt Lại Mật Khẩu</h5>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <div className="relative">
-              <i className="absolute left-3 top-1/2 transform -translate-y-1/2 fas fa-lock text-gray-400"></i>
-              <input
-                type="password"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                placeholder="Mật khẩu mới"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div className="mb-6">
-            <div className="relative">
-              <i className="absolute left-3 top-1/2 transform -translate-y-1/2 fas fa-lock text-gray-400"></i>
-              <input
-                type="password"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
-                placeholder="Xác nhận mật khẩu"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition duration-300"
-            disabled={isLoading}
+        <h5 className="text-2xl font-bold mb-6">Đặt Lại Mật Khẩu</h5>
+        <Form form={form} onFinish={onFinish} layout="vertical">
+          <Form.Item
+            name="newPassword"
+            label="Mật khẩu mới"
+            rules={[
+              { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+              { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+            ]}
           >
-            {isLoading ? 'Đang xử lý...' : 'Đặt Lại Mật Khẩu'}
-          </button>
-        </form>
+            <Input.Password placeholder="Nhập mật khẩu mới" />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            label="Xác nhận mật khẩu"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Mật khẩu không khớp!'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Xác nhận mật khẩu" />
+          </Form.Item>
+
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            className="w-full bg-orange-500 hover:bg-orange-600"
+          >
+            Đặt Lại Mật Khẩu
+          </Button>
+        </Form>
       </div>
     </div>
   );

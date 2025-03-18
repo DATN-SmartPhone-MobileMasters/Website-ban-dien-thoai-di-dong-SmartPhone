@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import bcrypt from 'bcryptjs';
 import { loginUsers,updateUser,getUserById } from './../../service/api';
 
 const AdminLogin = () => {
@@ -14,6 +13,13 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (authToken) {
+      navigate("/admin/dashboard");
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -79,12 +85,9 @@ const AdminLogin = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="flex justify-end w-4/5 text-sm uppercase">
-        <p>Đăng Nhập Admin</p>
-      </div>
       <div className="flex justify-center w-full">
         <div className="w-1/2 p-8 bg-white rounded-lg shadow-md">
-          <h5 className="text-2xl font-bold mb-6 text-black">Đăng Nhập</h5>
+          <h5 className="text-2xl font-bold mb-6 text-black">Đăng Nhập Admin</h5>
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <div className="relative">

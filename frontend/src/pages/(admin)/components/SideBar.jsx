@@ -1,8 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+import { updateUser } from '../../../service/api';
 const SideBar = () => {
   const userData = JSON.parse(localStorage.getItem('userData'));
+  const handleLogout = async () => {
+      const authToken = localStorage.getItem("authToken");
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      if (userData) {
+        await updateUser(userData.id, { TrangThai: 0 });
+      }
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/admin/login'; 
+    };
   return (
     <>
       {/* Sidebar */}
@@ -215,7 +225,12 @@ const SideBar = () => {
         </li>
         {/* Sidebar Toggler */}
         <div className="text-center d-none d-md-inline">
-          <button className="rounded-circle border-0" id="sidebarToggle" />
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white transition"
+        >
+          Đăng xuất
+        </button>
         </div>
       </ul>
       {/* End of Sidebar */}

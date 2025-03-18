@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
@@ -48,7 +48,18 @@ import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
 function App() {
   const configRouter = createBrowserRouter([
     {
+      path: "/admin/login",
+      element: <AdminLogin />,
+    },
+    {
       element: <LayoutAdmin />,
+      loader: () => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw redirect("/admin/login"); 
+        }
+        return null;
+      },
       children: [
         {
           path: "/adddanhgia",
@@ -57,10 +68,6 @@ function App() {
         {
           path: "/danhgia",
           element: <DanhGia />,
-        },
-        {
-          path: "/admin/login",
-          element: <AdminLogin />,
         },
         {
           path: "/admin/dashboard",
