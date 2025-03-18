@@ -10,10 +10,6 @@ const ProductList = () => {
   const [selectedStorage, setSelectedStorage] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
   const [brands, setBrands] = useState([]);
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(50000000);
-  const [priceRange, setPriceRange] = useState([0, 50000000]);
-  const [showPriceFilter, setShowPriceFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -27,15 +23,8 @@ const ProductList = () => {
       const data = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProducts(data);
 
-      const uniqueBrands = [...new Set(data.map(product => product.TenSP.split(" ")[0]))];
+      const uniqueBrands = [...new Set(data.map((product) => product.TenSP.split(" ")[0]))];
       setBrands(uniqueBrands);
-
-      const prices = data.map(product => Number(product.GiaSP1) || 0);
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
-      setMinPrice(min);
-      setMaxPrice(max);
-      setPriceRange([min, max]);
     } catch (error) {
       message.error("Lỗi khi tải danh sách sản phẩm!");
     } finally {
@@ -43,24 +32,10 @@ const ProductList = () => {
     }
   };
 
-  const resetPriceFilter = () => {
-    setPriceRange([minPrice, maxPrice]);
-  };
-
   const sortedProducts = [...products]
-    .filter((product) =>
-      selectedStorage ? product.BoNhoTrong1 === selectedStorage : true
-    )
-    .filter((product) =>
-      selectedBrand ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase()) : true
-    )
-    .filter((product) =>
-      searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true
-    )
-    .filter((product) => {
-      const price = Number(product.GiaSP1) || 0;
-      return price >= priceRange[0] && price <= priceRange[1];
-    })
+    .filter((product) => selectedStorage ? product.BoNhoTrong1 === selectedStorage : true)
+    .filter((product) => selectedBrand ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase()) : true)
+    .filter((product) => searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true)
     .sort((a, b) => {
       const priceA = Number(a.GiaSP1) || 0;
       const priceB = Number(b.GiaSP1) || 0;
@@ -69,17 +44,19 @@ const ProductList = () => {
       return 0;
     });
 
-
   return (
-    <div className="bg-gray-100 min-h-screen py-6">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-wrap justify-between mb-4 gap-4">
+    <div className="bg-gray-50 min-h-screen py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">📢 Danh sách sản phẩm</h2>
+
+        {/* Bộ lọc */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-white p-4 shadow-md rounded-lg">
           <select
-            className="p-2 border rounded text-sm"
+            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
             value={selectedBrand}
             onChange={(e) => setSelectedBrand(e.target.value)}
           >
-            <option value="">Tất cả sản phẩm</option>
+            <option value="">Tất cả thương hiệu</option>
             {brands.map((brand) => (
               <option key={brand} value={brand}>{brand}</option>
             ))}
@@ -87,15 +64,14 @@ const ProductList = () => {
 
           <input
             type="text"
-            className="p-2 border rounded text-sm"
-            placeholder="Tìm kiếm sản phẩm..."
+            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
+            placeholder="🔍 Tìm kiếm sản phẩm..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-
           <select
-            className="p-2 border rounded text-sm"
+            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
             value={selectedStorage}
             onChange={(e) => setSelectedStorage(e.target.value)}
           >
@@ -108,96 +84,49 @@ const ProductList = () => {
           </select>
 
           <select
-            className="p-2 border rounded text-sm"
+            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
           >
             <option value="">Sắp xếp theo</option>
-            <option value="asc">Giá thấp đến cao</option>
-            <option value="desc">Giá cao đến thấp</option>
+            <option value="asc">⬆ Giá thấp đến cao</option>
+            <option value="desc">⬇ Giá cao đến thấp</option>
           </select>
-
-          {/* Dropdown lọc khoảng giá */}
-          <div className="relative">
-            <button
-              className="p-2 border rounded text-sm bg-white shadow"
-              onClick={() => setShowPriceFilter(!showPriceFilter)}
-            >
-              Lọc theo giá
-            </button>
-
-            {showPriceFilter && (
-              <div className="absolute left-0 mt-2 w-60 bg-white border rounded shadow-lg p-4 z-10">
-                <label className="text-sm font-medium block mb-2">
-                  Khoảng giá ({priceRange[0].toLocaleString()}₫ - {priceRange[1].toLocaleString()}₫)
-                </label>
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  value={priceRange[0]}
-                  onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                  className="w-full"
-                />
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  className="w-full"
-                />
-
-                {/* Nút hủy lọc */}
-                <div className="flex justify-between mt-4">
-                  <button
-                    className="text-red-500 text-sm"
-                    onClick={resetPriceFilter}
-                  >
-                    Hủy lọc
-                  </button>
-                  <button
-                    className="text-blue-500 text-sm"
-                    onClick={() => setShowPriceFilter(false)}
-                  >
-                    Đóng
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         {loading ? (
-          <Spin size="large" />
+          <div className="flex justify-center items-center h-40">
+            <Spin size="large" />
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {sortedProducts.map((product) => (
-              <div key={product.id} className="border p-4 rounded-lg shadow-lg bg-white transition-transform duration-300 transform hover:scale-105">
-                <div className="product-img mb-4">
-                  <Link to={`/products/product_detail/${product._id}`}>
+              <div
+                key={product._id}
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400 cursor-pointer"
+              >
+                <Link to={`/products/product_detail/${product._id}`} onClick={(e) => e.stopPropagation()}>
+                  <div className="relative">
                     <img
                       src={product.HinhAnh1}
                       alt={product.TenSP}
-                      className="object-contain rounded-md w-full h-60 bg-white"
+                      title={product.TenSP}
+                      className="h-48 w-full object-cover bg-gray-100 rounded-lg"
                     />
-                  </Link>
-                </div>
-
-                <h5 className="text-sm text-center">
-                  <Link to={`/products/product_detail/${product.id}`} className="font-semibold">
-                    {product.TenSP} <strong>({product.BoNhoTrong1})</strong>
-                  </Link>
-                </h5>
-                <div className="my-2 text-sm text-center">
-                  <span className="font-semibold text-orange-500">
-                    {product.GiaSP1 ? product.GiaSP1.toLocaleString() + "₫" : "Chưa có giá"}
-                  </span>
-                </div>
+                    {/* Hiển thị tên sản phẩm khi hover */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg">
+                      <span className="text-white text-lg font-semibold text-center px-2">{product.TenSP}</span>
+                    </div>
+                  </div>
+                </Link>
                 <div className="mt-4 text-center">
-                  <button className="text-blue-500 hover:text-blue-700">
-                    <i className="fa fa-shopping-cart" />
-                  </button>
+                  <h3 className="text-lg font-semibold text-gray-800 truncate">{product.TenSP}</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
+                  </p>
+                  <p className="text-red-600 font-bold text-lg mt-3 bg-yellow-100 px-2 py-1 rounded-md">
+                    {product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá"}
+                  </p>
                 </div>
               </div>
             ))}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FaSearch,
@@ -9,7 +9,9 @@ import {
   FaUser,
   FaUserPlus,
 } from "react-icons/fa";
-import { updateUser } from '../../../service/api';
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
+import { updateUser, getUserById } from "../../../service/api";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +19,7 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
   const [cartCount, setCartCount] = useState(0); // State để lưu số lượng sản phẩm trong giỏ hàng
+  const navigate = useNavigate();
 
   // Kiểm tra đăng nhập và lấy thông tin người dùng
   useEffect(() => {
@@ -32,17 +35,22 @@ const Header = () => {
   // Lấy số lượng sản phẩm trong giỏ hàng khi component được tạo
   useEffect(() => {
     const updateCartCount = () => {
-      const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-      const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-      setCartCount(totalItems);
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.id;
+
+      if (userId) {
+        const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+        const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+        setCartCount(totalItems);
+      }
     };
-  
+
     // Cập nhật số lượng sản phẩm khi component được tạo
     updateCartCount();
-  
+
     // Lắng nghe sự kiện cartUpdated
     window.addEventListener("cartUpdated", updateCartCount);
-  
+
     // Dọn dẹp sự kiện khi component bị hủy
     return () => {
       window.removeEventListener("cartUpdated", updateCartCount);
@@ -51,21 +59,82 @@ const Header = () => {
 
   // Xử lý đăng xuất
   const handleLogout = async () => {
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userData = JSON.parse(localStorage.getItem("userData"));
     if (userData) {
       await updateUser(userData.id, { TrangThai: 0 });
     }
-    
-    // Xóa thông tin đăng nhập và giỏ hàng
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('cart'); // Xóa giỏ hàng khi đăng xuất
-  
+
+    // Xóa thông tin đăng nhập nhưng giữ nguyên giỏ hàng
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+
     setIsLoggedIn(false);
     setUserData(null);
     setCartCount(0); // Đặt số lượng sản phẩm trong giỏ hàng về 0
-  
-    window.location.href = '/'; // Chuyển hướng về trang chủ
+
+    window.location.href = "/"; // Chuyển hướng về trang chủ
+  };
+
+  const checkUserExists = async (userId) => {
+    try {
+      const user = await getUserById(userId);
+      return user.data;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    const storedUserData = localStorage.getItem("userData");
+
+    if (authToken && storedUserData) {
+      setIsLoggedIn(true);
+      const parsedUserData = JSON.parse(storedUserData);
+      setUserData(parsedUserData);
+
+      // Kiểm tra định kỳ
+      const interval = setInterval(async () => {
+        const user = await checkUserExists(parsedUserData.id);
+        if (!user) {
+          handleAutoLogout();
+        }
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  const handleAutoLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("cart");
+    setIsLoggedIn(false);
+    setUserData(null);
+    setCartCount(0);
+    window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+  };
+
+  // Xử lý khi bấm vào giỏ hàng
+  const handleCartClick = (e) => {
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      e.preventDefault(); // Ngăn chặn chuyển hướng mặc định
+      confirmAlert({
+        title: "Yêu cầu đăng nhập",
+        message: "Bạn cần đăng nhập để xem giỏ hàng.",
+        buttons: [
+          {
+            label: "Đăng nhập",
+            onClick: () => navigate("/login"), // Chuyển hướng đến trang đăng nhập
+          },
+          {
+            label: "Hủy",
+            onClick: () => {}, // Không làm gì nếu người dùng chọn hủy
+          },
+        ],
+      });
+    }
   };
 
   return (
@@ -138,7 +207,7 @@ const Header = () => {
                         to={`/account-details/${userData.id}`}
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
                       >
-                        <FaUser /> 
+                        <FaUser />
                         Thông Tin Tài Khoản
                       </Link>
                     </li>
@@ -183,6 +252,7 @@ const Header = () => {
         <Link
           to="/cart"
           className="relative text-gray-600 hover:text-blue-600 ml-3"
+          onClick={handleCartClick}
         >
           <FaShoppingCart size={20} />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">
@@ -213,6 +283,11 @@ const Header = () => {
             <li>
               <Link to="/blog" className="py-4 inline-block text-white">
                 Bài viết
+              </Link>
+            </li>
+            <li>
+              <Link to="/listdanhgia" className="py-4 inline-block text-white">
+                Đánh giá
               </Link>
             </li>
             <li>

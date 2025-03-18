@@ -1,181 +1,344 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { fetchPromotion } from "../../../service/api";
+import { useState, useEffect } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { fetchPromotion, updateVoucherStatus, getProducts } from "../../../service/api"
 
 const Cart = () => {
-  const [cart, setCart] = useState([]);
-  const [selectedItems, setSelectedItems] = useState({});
-  const [voucher, setVoucher] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const [promotions, setPromotions] = useState([]);
-  const navigate = useNavigate();
+  const [cart, setCart] = useState([])
+  const [selectedItems, setSelectedItems] = useState({})
+  const [voucher, setVoucher] = useState("")
+  const [discount, setDiscount] = useState(0)
+  const [promotions, setPromotions] = useState([])
+  const navigate = useNavigate()
 
   const formatCurrency = (value) => {
-    return value.toLocaleString("vi-VN");
-  };
+    return value.toLocaleString("vi-VN")
+  }
 
   useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
-    if (!authToken) {
-      navigate("/login");
-      return;
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetchPromotion()
+        setPromotions(response.data) // Cập nhật danh sách mã giảm giá
+      } catch (error) {
+        console.error("Lỗi khi lấy mã giảm giá:", error)
+      }
     }
 
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
+    fetchPromotions()
+  }, [])
 
-    const initialSelection = storedCart.reduce((acc, item, index) => {
-      acc[index] = true;
-      return acc;
-    }, {});
-    setSelectedItems(initialSelection);
+  const updateCart = async () => {
+    const authToken = localStorage.getItem("authToken")
+    if (!authToken) {
+      navigate("/login")
+      return
+    }
 
-    const getPromotions = async () => {
-      try {
-        const response = await fetchPromotion();
-        setPromotions(response.data.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách khuyến mãi:", error);
+    const userData = JSON.parse(localStorage.getItem("userData"))
+    const userId = userData?.id
+
+    if (userId) {
+      const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || []
+
+      const updatedCart = await Promise.all(
+        storedCart.map(async (item) => {
+          try {
+            const response = await getProducts(item.id)
+            const productData = response.data.data
+
+            let newPrice = item.price
+            let newQuantity = item.totalQuantity
+            const newName = item.name
+
+            if (productData.BoNhoTrong1 === item.memory) {
+              newPrice = productData.GiaSP1
+              newQuantity = productData.SoLuong1
+            } else if (productData.BoNhoTrong2 === item.memory) {
+              newPrice = productData.GiaSP2
+              newQuantity = productData.SoLuong2
+            } else if (productData.BoNhoTrong3 === item.memory) {
+              newPrice = productData.GiaSP3
+              newQuantity = productData.SoLuong3
+            }
+
+            return {
+              ...item,
+              price: newPrice,
+              name: productData.TenSP,
+              totalQuantity: newQuantity,
+            }
+          } catch (error) {
+            console.error("Lỗi khi lấy thông tin sản phẩm:", error)
+            return item
+          }
+        }),
+      )
+
+      setCart(updatedCart)
+      const initialSelection = updatedCart.reduce((acc, _, index) => {
+        acc[index] = true
+        return acc
+      }, {})
+      setSelectedItems(initialSelection)
+    }
+  }
+
+  useEffect(() => {
+    const authToken = localStorage.getItem("authToken")
+    if (!authToken) {
+      navigate("/login")
+      return
+    }
+
+    const userData = JSON.parse(localStorage.getItem("userData"))
+    const userId = userData?.id
+
+    const updateCart = async () => {
+      if (userId) {
+        const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || []
+
+        // Fetch latest product details and update prices
+        const updatedCart = await Promise.all(
+          storedCart.map(async (item) => {
+            try {
+              const response = await getProducts(item.id)
+              const productData = response.data.data
+
+              // Get current memory details
+              let newPrice = item.price
+              let newQuantity = item.totalQuantity
+              const newName = item.name
+
+              if (productData.BoNhoTrong1 === item.memory) {
+                newPrice = productData.GiaSP1
+                newQuantity = productData.SoLuong1
+              } else if (productData.BoNhoTrong2 === item.memory) {
+                newPrice = productData.GiaSP2
+                newQuantity = productData.SoLuong2
+              } else if (productData.BoNhoTrong3 === item.memory) {
+                newPrice = productData.GiaSP3
+                newQuantity = productData.SoLuong3
+              }
+
+              return {
+                ...item,
+                price: newPrice,
+                name: productData.TenSP,
+                totalQuantity: newQuantity,
+              }
+            } catch (error) {
+              console.error("Lỗi khi lấy thông tin sản phẩm:", error)
+              return item
+            }
+          }),
+        )
+
+        setCart(updatedCart)
+        const initialSelection = updatedCart.reduce((acc, _, index) => {
+          acc[index] = true
+          return acc
+        }, {})
+        setSelectedItems(initialSelection)
       }
-    };
-    getPromotions();
-  }, [navigate]);
+    }
+
+    // Cập nhật giỏ hàng khi component được tạo
+    updateCart()
+
+    // Lắng nghe sự kiện cartUpdated
+    window.addEventListener("cartUpdated", updateCart)
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        updateCart()
+      }
+    })
+
+    // Dọn dẹp sự kiện khi component bị hủy
+    return () => {
+      window.removeEventListener("cartUpdated", updateCart)
+      document.removeEventListener("visibilitychange", () => {})
+    }
+  }, [navigate])
 
   const removeItemFromCart = (index) => {
-    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?");
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?")
     if (confirmDelete) {
-      const newCart = cart.filter((_, i) => i !== index);
-      localStorage.setItem("cart", JSON.stringify(newCart));
-      setCart(newCart);
-  
-      const newSelectedItems = { ...selectedItems };
-      delete newSelectedItems[index];
-      setSelectedItems(newSelectedItems);
-  
-      // Tải lại trang sau khi xóa
-      window.location.reload();
+      const newCart = cart.filter((_, i) => i !== index)
+      const userData = JSON.parse(localStorage.getItem("userData"))
+      const userId = userData?.id
+
+      if (userId) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart))
+      }
+
+      setCart(newCart)
+
+      const newSelectedItems = { ...selectedItems }
+      delete newSelectedItems[index]
+      setSelectedItems(newSelectedItems)
+
+      window.location.reload()
     }
-  };
+  }
 
   const increaseQuantity = (index) => {
-    const newCart = [...cart];
-    if (newCart[index].quantity < newCart[index].maxQuantity) {
-      newCart[index].quantity += 1;
-      localStorage.setItem("cart", JSON.stringify(newCart));
-      setCart(newCart);
-    } else {
-      alert("Số lượng sản phẩm trong giỏ hàng đã đạt tối đa.");
+    const newCart = [...cart]
+
+    const newQuantity = newCart[index].quantity + 1
+
+    if (newQuantity > newCart[index].totalQuantity) {
+      alert("Đã đạt đến giới hạn sản phẩm.")
+      return
     }
-  };
+
+    newCart[index].quantity = newQuantity
+    const userData = JSON.parse(localStorage.getItem("userData"))
+    const userId = userData?.id
+
+    if (userId) {
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart))
+    }
+
+    setCart(newCart)
+  }
 
   const decreaseQuantity = (index) => {
-    const newCart = [...cart];
+    const newCart = [...cart]
     if (newCart[index].quantity > 1) {
-      newCart[index].quantity -= 1;
-      localStorage.setItem("cart", JSON.stringify(newCart));
-      setCart(newCart);
+      newCart[index].quantity -= 1
+      const userData = JSON.parse(localStorage.getItem("userData"))
+      const userId = userData?.id
+
+      if (userId) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart))
+      }
+
+      setCart(newCart)
     }
-  };
+  }
 
   const calculateTotal = () => {
     return cart.reduce((total, item, index) => {
       if (selectedItems[index]) {
-        return total + item.price * item.quantity;
+        return total + item.price * item.quantity
       }
-      return total;
-    }, 0);
-  };
+      return total
+    }, 0)
+  }
 
-  const applyVoucher = () => {
-    const promotion = promotions.find((promo) => promo.MaKM === voucher);
-    if (promotion) {
-      if (promotion.TrangThai === 1) {
-        alert("Mã giảm giá đã kết thúc.");
-        return;
-      }
-  
-      const currentDate = new Date();
-      const startDate = new Date(promotion.NgayBD);
-      const endDate = new Date(promotion.NgayKT);
-  
-      if (currentDate >= startDate && currentDate <= endDate) {
-        const total = calculateTotal();
-  
-        // Kiểm tra nếu voucher là giảm giá số tiền cố định và tổng tiền bé hơn giá trị voucher
-        if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
-          alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.");
-          return;
-        }
-  
-        if (promotion.LoaiKM === "percentage") {
-          const discountAmount = (total * promotion.GiaTriKM) / 100;
-          setDiscount(discountAmount);
-        } else {
-          setDiscount(promotion.GiaTriKM);
-        }
-        alert("Áp dụng mã giảm giá thành công!");
-      } else {
-        alert("Mã giảm giá không còn hiệu lực.");
-      }
-    } else {
-      alert("Mã giảm giá không hợp lệ.");
+  const applyVoucher = async () => {
+    console.log("Giá trị của promotions:", promotions)
+
+    if (!promotions?.data || !Array.isArray(promotions.data)) {
+      alert("Không thể lấy danh sách mã giảm giá.")
+      return
     }
-  };
+
+    const promotion = promotions.data.find((promo) => promo.MaKM === voucher)
+
+    if (!promotion) {
+      alert("Mã giảm giá không hợp lệ.")
+      return
+    }
+
+    // Kiểm tra trạng thái, nếu đã sử dụng thì không thể áp dụng nữa
+    if (promotion.TrangThai === 1) {
+      alert("Mã giảm giá này đã được sử dụng.")
+      return
+    }
+
+    const currentDate = new Date()
+    const startDate = new Date(promotion.NgayBD)
+    const endDate = new Date(promotion.NgayKT)
+
+    if (currentDate < startDate || currentDate > endDate) {
+      alert("Mã giảm giá không còn hiệu lực.")
+      return
+    }
+
+    const total = calculateTotal()
+
+    // Nếu mã là dạng "fixed" nhưng tổng tiền không đủ để áp dụng
+    if (promotion.LoaiKM === "fixed" && total < promotion.GiaTriKM) {
+      alert("Tổng tiền trong giỏ hàng không đủ để áp dụng voucher này.")
+      return
+    }
+
+    let discountAmount = 0
+    if (promotion.LoaiKM === "percentage") {
+      discountAmount = (total * promotion.GiaTriKM) / 100
+    } else {
+      discountAmount = promotion.GiaTriKM
+    }
+
+    setDiscount(discountAmount)
+    alert("Áp dụng mã giảm giá thành công!")
+    console.log(promotion._id)
+
+    // 🔥 **Thêm đoạn cập nhật trạng thái voucher sau khi áp dụng thành công**
+    try {
+      await updateVoucherStatus(promotion._id)
+      console.log("Promotion ID:", promotion._id)
+
+      console.log("Voucher đã bị khóa sau khi sử dụng")
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái voucher:", error.message)
+    }
+  }
 
   const handleSelectItem = (index) => {
     setSelectedItems((prev) => ({
       ...prev,
       [index]: !prev[index],
-    }));
-  };
+    }))
+  }
 
   const calculateFinalTotal = () => {
-    const total = calculateTotal();
-    let finalTotal = total - discount;
+    const total = calculateTotal()
+    let finalTotal = total - discount
 
-    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
     if (finalTotal > 50000000) {
-      finalTotal *= 0.95;
+      finalTotal *= 0.95
     }
 
-    return finalTotal;
-  };
+    return finalTotal
+  }
 
   const calculateOriginalTotal = () => {
     return cart.reduce((total, item, index) => {
       if (selectedItems[index]) {
-        return total + item.price * item.quantity;
+        return total + item.price * item.quantity
       }
-      return total;
-    }, 0);
-  };
+      return total
+    }, 0)
+  }
 
   const calculateDiscountAmount = () => {
-    const total = calculateTotal();
-    let discountAmount = discount;
+    const total = calculateTotal()
+    let discountAmount = discount
 
-    // Áp dụng giảm giá 5% nếu tổng hóa đơn trên 50 triệu
     if (total - discount > 50000000) {
-      discountAmount += (total - discount) * 0.05;
+      discountAmount += (total - discount) * 0.05
     }
 
-    return discountAmount;
-  };
+    return discountAmount
+  }
 
   const calculateAdditionalDiscount = () => {
-    const total = calculateTotal();
+    const total = calculateTotal()
     if (total - discount > 50000000) {
-      return (total - discount) * 0.05;
+      return (total - discount) * 0.05
     }
-    return 0;
-  };
+    return 0
+  }
 
   const handleVoucherChange = (e) => {
-    setVoucher(e.target.value);
+    setVoucher(e.target.value)
     if (e.target.value === "") {
-      setDiscount(0); // Xóa giảm giá khi xóa mã giảm giá
+      setDiscount(0)
     }
-  };
+  }
 
   return (
     <div className="container mt-4">
@@ -196,7 +359,7 @@ const Cart = () => {
                     style={{ width: "20px", height: "20px" }}
                   />
                   <img
-                    src={item.image}
+                    src={item.image || "/placeholder.svg"}
                     alt={item.name}
                     className="img-thumbnail me-3"
                     style={{ width: "100px", height: "100px", objectFit: "cover" }}
@@ -219,7 +382,7 @@ const Cart = () => {
                       ></span>
                     </p>
                     <p className="card-text">Giá: {formatCurrency(item.price)} VND</p>
-                    <p className="card-text">Số lượng tối đa: {item.maxQuantity}</p>
+                    <p className="card-text">Tổng Số lượng: {item.totalQuantity}</p>
                   </div>
                   <div className="d-flex align-items-center">
                     <button
@@ -238,33 +401,23 @@ const Cart = () => {
                       +
                     </button>
                   </div>
-                  <button
-                    className="btn btn-danger ms-3"
-                    onClick={() => removeItemFromCart(index)}
-                  >
+                  <button className="btn btn-danger ms-3" onClick={() => removeItemFromCart(index)}>
                     Xóa
                   </button>
                 </div>
               </div>
             </div>
           ))}
+
           <div className="mt-4">
             <h4>Tổng tiền: {formatCurrency(calculateOriginalTotal())} VND</h4>
-            {discount > 0 && (
-              <h4 className="text-danger">
-                Giảm giá từ voucher: -{formatCurrency(discount)} VND
-              </h4>
-            )}
+            {discount > 0 && <h4 className="text-danger">Giảm giá từ voucher: -{formatCurrency(discount)} VND</h4>}
             {calculateAdditionalDiscount() > 0 && (
-              <h4 className="text-danger">
-                Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())} VND
-              </h4>
+              <h4 className="text-danger">Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())} VND</h4>
             )}
             {calculateFinalTotal() < calculateOriginalTotal() && (
               <>
-                <h4 className="text-success">
-                  Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())} VND
-                </h4>
+                <h4 className="text-success">Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())} VND</h4>
               </>
             )}
             <div className="input-group mb-3">
@@ -280,21 +433,23 @@ const Cart = () => {
               </button>
             </div>
             <Link
-              to="/checkcart"
-              state={{
-                cart: cart.filter((_, index) => selectedItems[index]),
-                total: calculateFinalTotal(),
-                discount: discount,
-                additionalDiscount: calculateAdditionalDiscount(),
-              }}
-            >
-              <button className="btn btn-success">Thanh toán</button>
-            </Link>
+  to="/checkcart"
+  state={{
+    cart: cart.filter((_, index) => selectedItems[index]),
+    total: calculateOriginalTotal(), // Tổng tiền trước giảm giá
+    finalTotal: calculateFinalTotal(), // Tổng tiền sau giảm giá
+    discount: discount, // Giảm giá từ voucher
+    additionalDiscount: calculateAdditionalDiscount(), // Giảm giá thêm (5%)
+  }}
+>
+  <button className="btn btn-success">Thanh toán</button>
+</Link>
           </div>
         </>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Cart;
+export default Cart
+

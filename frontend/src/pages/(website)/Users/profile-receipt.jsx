@@ -4,8 +4,6 @@ import { Table, Tag, Button, message } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import axios from 'axios';
 
-const API_URL = "http://localhost:5000/api";
-
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -25,7 +25,7 @@ const HoaDonSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['Chờ xử lý', 'Đã Xác Nhận',' Đang Giao', ' Hoàn thành',' Huỷ Đơn'],
+    enum: ['Chờ xử lý', 'Đã Xác Nhận','Đang Giao', 'Hoàn thành','Huỷ Đơn'],
     default: 'Chờ xử lý'
   },
   createdAt: {
