@@ -45,6 +45,7 @@ import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
 import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
 import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
+import { getUserById } from "./service/api";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -53,13 +54,27 @@ function App() {
     },
     {
       element: <LayoutAdmin />,
-      loader: () => {
-        // const token = localStorage.getItem("authToken");
-        // if (token) {
-        //   throw redirect("/admin/login"); 
-        // }
-        // return null;
-      },
+      // loader: async () => {
+      //   const token = localStorage.getItem("authToken");
+      //   if (!token) {
+      //     return redirect("/admin/login");
+      //   }
+      //   const userData = localStorage.getItem("userData");
+      //   if (!userData) {
+      //     return redirect("/admin/login");
+      //   }
+      //   try {
+      //     const user = JSON.parse(userData);
+      //     const response = await getUserById(user.id);
+      //     const userDetails = response.data;
+      //     if (userDetails.MaQuyen === 0) {
+      //       return redirect("/admin/login");
+      //     }
+      //     return null;
+      //   } catch (error) {
+      //     return redirect("/admin/login");
+      //   }
+      // },
       children: [
         {
           path: "/adddanhgia",
