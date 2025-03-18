@@ -50,7 +50,7 @@ const AddDanhgia = ({ onAddSuccess }) => {
 
   return (
     <div style={{ padding: 20, width: '100%', maxWidth: 500, margin: '0 auto' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Thêm đánh giá</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Đánh giá</h2>
 
       <Form layout="vertical" onFinish={onFinish}>
         <Form.Item

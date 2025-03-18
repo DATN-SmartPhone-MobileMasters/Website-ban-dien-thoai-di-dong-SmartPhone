@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
-import { Spin, message } from "antd";
+import { Spin, message, Pagination } from "antd";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -11,10 +11,17 @@ const ProductList = () => {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [brands, setBrands] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   useEffect(() => {
     getProducts();
   }, []);
+
+  // Reset currentPage về 1 khi có thay đổi trong bộ lọc
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedBrand, selectedStorage, searchQuery, sortOrder]);
 
   const getProducts = async () => {
     setLoading(true);
@@ -43,6 +50,16 @@ const ProductList = () => {
       if (sortOrder === "desc") return priceB - priceA;
       return 0;
     });
+
+  // Tính toán sản phẩm hiển thị trên trang hiện tại
+  const indexOfLastProduct = currentPage * pageSize;
+  const indexOfFirstProduct = indexOfLastProduct - pageSize;
+  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  // Xử lý thay đổi trang
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
@@ -99,38 +116,51 @@ const ProductList = () => {
             <Spin size="large" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {sortedProducts.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400 cursor-pointer"
-              >
-                <Link to={`/products/product_detail/${product._id}`} onClick={(e) => e.stopPropagation()}>
-                  <div className="relative">
-                    <img
-                      src={product.HinhAnh1}
-                      alt={product.TenSP}
-                      title={product.TenSP}
-                      className="h-48 w-full object-cover bg-gray-100 rounded-lg"
-                    />
-                    {/* Hiển thị tên sản phẩm khi hover */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg">
-                      <span className="text-white text-lg font-semibold text-center px-2">{product.TenSP}</span>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {currentProducts.map((product) => (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400 cursor-pointer"
+                >
+                  <Link to={`/products/product_detail/${product._id}`} onClick={(e) => e.stopPropagation()}>
+                    <div className="relative">
+                      <img
+                        src={product.HinhAnh1}
+                        alt={product.TenSP}
+                        title={product.TenSP}
+                        className="h-48 w-full object-cover bg-gray-100 rounded-lg"
+                      />
+                      {/* Hiển thị tên sản phẩm khi hover */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg">
+                        <span className="text-white text-lg font-semibold text-center px-2">{product.TenSP}</span>
+                      </div>
                     </div>
+                  </Link>
+                  <div className="mt-4 text-center">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">{product.TenSP}</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
+                    </p>
+                    <p className="text-red-600 font-bold text-lg mt-3 bg-yellow-100 px-2 py-1 rounded-md">
+                      {product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá"}
+                    </p>
                   </div>
-                </Link>
-                <div className="mt-4 text-center">
-                  <h3 className="text-lg font-semibold text-gray-800 truncate">{product.TenSP}</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
-                  </p>
-                  <p className="text-red-600 font-bold text-lg mt-3 bg-yellow-100 px-2 py-1 rounded-md">
-                    {product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá"}
-                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Phân trang */}
+            <div className="flex justify-center mt-8">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={sortedProducts.length}
+                onChange={handlePageChange}
+                showSizeChanger={false}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>
