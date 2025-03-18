@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  redirect,
+} from "react-router-dom";
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
@@ -27,8 +31,8 @@ import "font-awesome/css/font-awesome.min.css";
 import HomePage from "./pages/(website)/HomePage";
 import ProductList from "./pages/(website)/Products/ProductList";
 import ProductDetail from "./pages/(website)/Products/ProductDetail";
-import LoginForm from './pages/(website)/Users/login-form';
-import SignupForm from './pages/(website)/Users/signup-form';
+import LoginForm from "./pages/(website)/Users/login-form";
+import SignupForm from "./pages/(website)/Users/signup-form";
 import ForgotPassword from "./pages/(website)/Users/forgot-password";
 import ResetPassword from "./pages/(website)/Users/reset-password";
 import AccountPage from "./pages/(website)/Users/account";
@@ -45,6 +49,7 @@ import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
 import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
 import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
+import ListContact from "./pages/(website)/contact/ListContact";
 import { getUserById } from "./service/api";
 function App() {
   const configRouter = createBrowserRouter([
@@ -191,7 +196,7 @@ function App() {
         },
         {
           path: "/products/product_detail/:id",
-          element: <ProductDetail/>,
+          element: <ProductDetail />,
         },
         {
           path: "/login",
@@ -244,6 +249,10 @@ function App() {
         {
           path: "/blog/sigle",
           element: <Blogsingle />,
+        },
+        {
+          path: "/contact",
+          element: <ListContact />,
         },
       ],
     },
