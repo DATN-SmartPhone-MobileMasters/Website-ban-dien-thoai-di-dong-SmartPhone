@@ -55,7 +55,7 @@ function App() {
       element: <LayoutAdmin />,
       loader: () => {
         const token = localStorage.getItem("authToken");
-        if (!token) {
+        if (token) {
           throw redirect("/admin/login"); 
         }
         return null;
