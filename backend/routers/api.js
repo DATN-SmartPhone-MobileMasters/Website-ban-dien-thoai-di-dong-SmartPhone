@@ -6,8 +6,15 @@ import UsersController from "../controllers/UsersController.js";
 import CommentController from "../controllers/CommentController.js";
 import HoaDonController from "../controllers/HoaDonController.js";
 import PromotionController from "../controllers/PromotionController.js";
+import DanhGiaController from "../controllers/DanhGiaController.js";
 // tạo router
 const apiRouter = Router();
+
+// API đánh giá cửa hàng
+const DanhGiaControl = new DanhGiaController();
+apiRouter.get("/danhgias", DanhGiaControl.apiList);
+apiRouter.delete("/danhgias/:id", DanhGiaControl.apiDelete);
+apiRouter.post("/danhgias", DanhGiaControl.apiCreate);
 
 const DanhMucControl = new DanhMucController();
 //api thực hiện các chức năng danh mục

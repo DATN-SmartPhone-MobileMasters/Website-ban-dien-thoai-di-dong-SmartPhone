@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+import { Table, Tag, Button, message } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import axios from 'axios';
-
-const API_URL = "http://localhost:5000/api"; // Thay thế bằng API URL của bạn
 
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
@@ -23,7 +20,75 @@ const ProfileReceipt = () => {
     }
   }, []);
 
-  const updateProductQuantities = async (products, action) => {
+  const columns = [
+    {
+      title: 'Mã đơn hàng',
+      dataIndex: '_id',
+      key: '_id',
+      width: 200,
+      render: (text) => <span className="font-medium">{text}</span>
+    },
+    {
+      title: 'Tên khách hàng',
+      dataIndex: ['shippingInfo', 'name'],
+      key: 'name'
+    },
+    {
+      title: 'Ngày đặt hàng',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => new Date(date).toLocaleDateString()
+    },
+    {
+      title: 'Chi tiết đơn hàng',
+      key: 'details',
+      render: (_, record) => (
+        <Link to={`/profile-receipt-details/${record._id}`}>
+          <Button type="primary" ghost>
+            Xem chi tiết
+          </Button>
+        </Link>
+      )
+    },
+    {
+      title: 'Tình trạng đơn hàng',
+      dataIndex: 'paymentStatus',
+      key: 'status',
+      render: (status) => {
+        let color = '';
+        switch (status) {
+          case 'Đã Xác Nhận':
+            color = 'green';
+            break;
+          case 'Chờ xử lý':
+            color = 'orange';
+            break;
+          case 'Huỷ Đơn':
+            color = 'red';
+            break;
+          default:
+            color = 'gray';
+        }
+        return <Tag color={color}>{status}</Tag>;
+      }
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      render: (_, record) => (
+        (record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+          <Button 
+            danger 
+            onClick={() => handleCancelOrder(record._id, record.products)}
+          >
+            Huỷ đơn
+          </Button>
+        )
+      )
+    }
+  ];
+
+    const updateProductQuantities = async (products, action) => {
     for (const product of products) {
       try {
         // Lấy thông tin sản phẩm hiện tại
@@ -64,55 +129,17 @@ const ProfileReceipt = () => {
   };
 
   const handleCancelOrder = async (orderId, products) => {
-    confirmAlert({
-      title: 'Xác nhận huỷ đơn hàng',
-      message: 'Bạn có chắc chắn muốn huỷ đơn hàng này?',
-      buttons: [
-        {
-          label: 'Có',
-          onClick: async () => {
-            try {
-              // Cập nhật trạng thái đơn hàng thành "Huỷ Đơn"
-              await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
-
-              // Trả lại số lượng sản phẩm
-              await updateProductQuantities(products, "add");
-
-              // Cập nhật lại danh sách đơn hàng
-              const response = await fetchOrdersByUserId(userData.id);
-              setOrders(response.data.data);
-
-              confirmAlert({
-                title: 'Thành công',
-                message: 'Huỷ đơn hàng thành công!',
-                buttons: [
-                  {
-                    label: 'OK',
-                    onClick: () => {}
-                  }
-                ]
-              });
-            } catch (error) {
-              console.error("Lỗi khi huỷ đơn:", error);
-              confirmAlert({
-                title: 'Lỗi',
-                message: 'Huỷ đơn thất bại!',
-                buttons: [
-                  {
-                    label: 'OK',
-                    onClick: () => {}
-                  }
-                ]
-              });
-            }
-          }
-        },
-        {
-          label: 'Không',
-          onClick: () => {}
-        }
-      ]
-    });
+    try {
+      await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
+      await updateProductQuantities(products, "add");
+      
+      const response = await fetchOrdersByUserId(userData.id);
+      setOrders(response.data.data);
+      
+      message.success('Huỷ đơn hàng thành công');
+    } catch (error) {
+      message.error('Huỷ đơn hàng thất bại');
+    }
   };
 
   useEffect(() => {
@@ -123,7 +150,7 @@ const ProfileReceipt = () => {
           setOrders(response.data.data);
         }
       } catch (error) {
-        console.error("Error fetching orders:", error);
+        message.error('Lỗi tải danh sách đơn hàng');
       } finally {
         setLoading(false);
       }
@@ -131,15 +158,11 @@ const ProfileReceipt = () => {
     fetchData();
   }, [userData.id]);
 
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
-
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto py-8">
         <div className="flex">
-          {/* Left Container */}
+            {/* Left Sidebar */}
           <div className="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
             <div className="flex items-center mb-4">
               <span className="text-black font-semibold">{userData.Email}</span>
@@ -154,66 +177,38 @@ const ProfileReceipt = () => {
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
                 <Link to={`/account/${userData.id}`} className="flex items-center gap-2">
                   <i className="fa fa-edit mr-2"></i>
-                  <span>Cập nhập thông tin tài khoản</span>
+                  <span>Update tài khoản</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
                 <Link to={`/profile-receipt/${userData.id}`} className="flex items-center gap-2">
                   <i className="fas fa-money-check mr-2"></i>
-                  <span>Quản lý đơn hàng</span>
+                  <span>Thông tin đơn hàng</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
                 <Link to={`/profile-reset-password/${userData.id}`} className="flex items-center gap-2">
                   <i className="fas fa-lock mr-2"></i>
-                  <span>Đổi mật khẩu</span>
+                  <span>Thay đổi mật khẩu</span>
                 </Link>
               </li>
             </ul>
           </div>
-
-          {/* Right Container */}
+              {/* Right Content */}
           <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-200">
-                  <tr>
-                    <th className="py-2 px-4 border">Mã đơn hàng</th>
-                    <th className="py-2 px-4 border">Tên khách hàng</th>
-                    <th className="py-2 px-4 border">Ngày đặt hàng</th>
-                    <th className="py-2 px-4 border">Chi tiết đơn hàng</th>
-                    <th className="py-2 px-4 border">Tình trạng đơn hàng</th>
-                    <th className="py-2 px-4 border">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-100">
-                      <td className="py-2 px-4 border">{order._id}</td>
-                      <td className="py-2 px-4 border">{order.shippingInfo.name}</td>
-                      <td className="py-2 px-4 border">{new Date(order.createdAt).toLocaleDateString()}</td>
-                      <td className="py-2 px-4 border">
-                        <Link to={`/profile-receipt-details/${order._id}`} className="text-blue-500 hover:underline">
-                          <button className="px-4 py-2 bg-blue-500 text-white rounded">Chi tiết</button>
-                        </Link>
-                      </td>
-                      <td className="py-2 px-4 border">{order.paymentStatus}</td>
-                      <td className="py-2 px-4 border">
-                        {(order.paymentStatus === 'Chờ xử lý' || order.paymentStatus === 'Đã Xác Nhận') && (
-                          <button
-                            onClick={() => handleCancelOrder(order._id, order.products)}
-                            className="px-4 py-2 bg-red-500 text-white rounded"
-                          >
-                            Huỷ
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              columns={columns}
+              dataSource={orders}
+              rowKey="_id"
+              loading={loading}
+              scroll={{ x: 1000 }}
+              pagination={{
+                pageSize: 5,
+                showSizeChanger: false,
+                hideOnSinglePage: true
+              }}
+            />
           </div>
         </div>
       </div>

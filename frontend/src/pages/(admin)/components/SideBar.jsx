@@ -1,8 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+import { updateUser } from '../../../service/api';
 const SideBar = () => {
   const userData = JSON.parse(localStorage.getItem('userData'));
+  const handleLogout = async () => {
+      const authToken = localStorage.getItem("authToken");
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      if (userData) {
+        await updateUser(userData.id, { TrangThai: 0 });
+      }
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/admin/login'; 
+    };
   return (
     <>
       {/* Sidebar */}
@@ -166,15 +176,22 @@ const SideBar = () => {
             </div>
           </div> */}
         </li>
+
+        <li className="nav-item">
+          <Link
+            className="nav-link collapsed"
+            to="/danhgia"
+          >
+            <i className="fas fa-fw fa-comments" />
+            <span>Quản lý đánh giá</span>
+          </Link>
+        </li>
+
         {/* Quản lý bình luận */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
             to="/admin/comments"
-            // data-toggle="collapse"
-            // data-target="#collapseBinhluan"
-            // aria-expanded="true"
-            // aria-controls="collapseBinhluan"
           >
             <i className="fas fa-fw fa-comments" />
             <span>Quản lý bình luận</span>
@@ -208,7 +225,12 @@ const SideBar = () => {
         </li>
         {/* Sidebar Toggler */}
         <div className="text-center d-none d-md-inline">
-          <button className="rounded-circle border-0" id="sidebarToggle" />
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white transition"
+        >
+          Đăng xuất
+        </button>
         </div>
       </ul>
       {/* End of Sidebar */}

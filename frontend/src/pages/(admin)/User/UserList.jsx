@@ -25,7 +25,7 @@ const UserList = () => {
               return { ...user, hasActiveOrders: activeOrders.length > 0 };
             } catch (error) {
               console.error(`Error fetching orders for user ${user._id}:`, error);
-              return { ...user, hasActiveOrders: true }; // Assume has orders to prevent deletion
+              return { ...user, hasActiveOrders: true }; 
             }
           })
         );

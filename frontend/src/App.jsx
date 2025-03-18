@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
@@ -42,16 +42,32 @@ import Blogdefault from "./pages/(website)/Blog/blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
 import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
-
-
+import DanhGia from "./pages/(admin)/danhgia/DanhGia";
+import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
+import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
 function App() {
   const configRouter = createBrowserRouter([
     {
+      path: "/admin/login",
+      element: <AdminLogin />,
+    },
+    {
       element: <LayoutAdmin />,
+      loader: () => {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          throw redirect("/admin/login"); 
+        }
+        return null;
+      },
       children: [
         {
-          path: "/admin/login",
-          element: <AdminLogin />,
+          path: "/adddanhgia",
+          element: <AddDanhgia />,
+        },
+        {
+          path: "/danhgia",
+          element: <DanhGia />,
         },
         {
           path: "/admin/dashboard",
@@ -142,6 +158,10 @@ function App() {
     {
       element: <LayoutWebsite />,
       children: [
+        {
+          path: "/listdanhgia",
+          element: <ListDanhgia />,
+        },
         {
           path: "/checkcart",
           element: <Checkcart />,

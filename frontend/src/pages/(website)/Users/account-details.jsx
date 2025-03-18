@@ -36,7 +36,7 @@ const AccountDetails = () => {
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto py-8">
         <div className="flex">
-          {/* Left Container */}
+          {/* Left Sidebar */}
           <div className="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
             <div className="flex items-center mb-4">
               <span className="text-black font-semibold">{userData.Email}</span>
@@ -51,19 +51,19 @@ const AccountDetails = () => {
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
                 <Link to={`/account/${id}`} className="flex items-center gap-2">
                   <i className="fa fa-edit mr-2"></i>
-                  <span>Cập nhập thông tin tài khoản</span>
+                  <span>Update tài khoản</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
                 <Link to={`/profile-receipt/${id}`} className="flex items-center gap-2">
                   <i className="fas fa-money-check mr-2"></i>
-                  <span>Quản lý đơn hàng</span>
+                  <span>Thông tin đơn hàng</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
                 <Link to={`/profile-reset-password/${id}`} className="flex items-center gap-2">
                   <i className="fas fa-lock mr-2"></i>
-                  <span>Đổi mật khẩu</span>
+                  <span>Thay đổi mật khẩu</span>
                 </Link>
               </li>
             </ul>
