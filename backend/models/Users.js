@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema({
   HoVaTen: {
     type: String,
   },
+  Avata:{
+    type: String,
+  },
   GioiTinh: {
     type: String,
   },
