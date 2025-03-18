@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getProducts } from "../../../service/api";
-import  SellerProducts from "../../(website)/components/SellerProducts"
-import LatestProducts from "../../(website)/components/LatestProducts"
-import { FaMobileAlt, FaCamera, FaMicrochip, FaBatteryFull, FaPlug, FaInfoCircle } from "react-icons/fa";
+import SellerProducts from "../../(website)/components/SellerProducts";
+import LatestProducts from "../../(website)/components/LatestProducts";
+import {
+  FaMobileAlt,
+  FaCamera,
+  FaMicrochip,
+  FaBatteryFull,
+  FaPlug,
+  FaInfoCircle,
+} from "react-icons/fa";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -11,7 +18,11 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedMemory, setSelectedMemory] = useState({ memory: "", price: 0, quantity: 0 });
+  const [selectedMemory, setSelectedMemory] = useState({
+    memory: "",
+    price: 0,
+    quantity: 0,
+  });
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
@@ -48,7 +59,7 @@ const ProductDetail = () => {
 
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];
-    const memoryIndex = memoryKey.slice(-1); 
+    const memoryIndex = memoryKey.slice(-1);
 
     setSelectedMemory({
       memory: memory,
@@ -70,31 +81,34 @@ const ProductDetail = () => {
 
   const addToCart = () => {
     const authToken = localStorage.getItem("authToken");
-  
+
     if (!authToken) {
       alert("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
       navigate("/login");
       return;
     }
-  
+
     if (!product || !selectedMemory.memory || !selectedColor) {
       alert("Vui lòng chọn bộ nhớ và màu sắc!");
       return;
     }
-  
+
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
-  
+
     if (!userId) {
       alert("Không tìm thấy thông tin người dùng.");
       return;
     }
-  
+
     const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
     const existingItemIndex = cartItems.findIndex(
-      (item) => item.id === product._id && item.memory === selectedMemory.memory && item.color === selectedColor
+      (item) =>
+        item.id === product._id &&
+        item.memory === selectedMemory.memory &&
+        item.color === selectedColor
     );
-  
+
     if (existingItemIndex !== -1) {
       const newQuantity = cartItems[existingItemIndex].quantity + 1;
       if (newQuantity > cartItems[existingItemIndex].totalQuantity) {
@@ -116,20 +130,23 @@ const ProductDetail = () => {
         quantity: 1,
         price: selectedMemory.price,
         maxQuantity: selectedMemory.quantity,
-        totalQuantity: selectedMemory.quantity, 
+        totalQuantity: selectedMemory.quantity,
       });
     }
-  
+
     localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
     alert("Sản phẩm đã được thêm vào giỏ hàng!");
-  
+
     window.dispatchEvent(new Event("cartUpdated"));
-  
+
     navigate("/cart");
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
   };
 
   const handleMouseMove = (e) => {
@@ -148,7 +165,8 @@ const ProductDetail = () => {
 
   if (loading) return <div className="text-center mt-5">Đang tải...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!product) return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
+  if (!product)
+    return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
 
   return (
     <div className="container mt-4">
@@ -187,7 +205,11 @@ const ProductDetail = () => {
                   key={index}
                   src={product[`HinhAnh${index}`]}
                   alt={product.TenSP}
-                  className={`img-thumbnail mx-2 ${selectedImage === product[`HinhAnh${index}`] ? "border border-primary" : ""}`}
+                  className={`img-thumbnail mx-2 ${
+                    selectedImage === product[`HinhAnh${index}`]
+                      ? "border border-primary"
+                      : ""
+                  }`}
                   width={80}
                   style={{ cursor: "pointer" }}
                   onClick={() => setSelectedImage(product[`HinhAnh${index}`])}
@@ -201,7 +223,9 @@ const ProductDetail = () => {
         <div className="col-md-6">
           <h2>{product.TenSP}</h2>
           <p className="text-muted">Mã sản phẩm: {product.MaSP}</p>
-          <h4 className="text-danger">{formatCurrency(selectedMemory.price)}</h4>
+          <h4 className="text-danger">
+            {formatCurrency(selectedMemory.price)}
+          </h4>
           <p>Tổng Số lượng: {selectedMemory.quantity}</p>
 
           <h5>Bộ Nhớ Trong:</h5>
@@ -210,7 +234,11 @@ const ProductDetail = () => {
               product[key] ? (
                 <button
                   key={index}
-                  className={`btn ${selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"}`}
+                  className={`btn ${
+                    selectedMemory.memory === product[key]
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  }`}
                   onClick={() => handleMemorySelection(key)}
                 >
                   {product[key]}
@@ -225,25 +253,32 @@ const ProductDetail = () => {
               color ? (
                 <div
                   key={index}
-                  className={`border p-2 rounded ${selectedColor === color ? "border border-primary border-3 shadow-lg" : "border-secondary"}`}
-                  style={{ 
-                    width: selectedColor === color ? "50px" : "40px", 
+                  className={`border p-2 rounded ${
+                    selectedColor === color
+                      ? "border border-primary border-3 shadow-lg"
+                      : "border-secondary"
+                  }`}
+                  style={{
+                    width: selectedColor === color ? "50px" : "40px",
                     height: selectedColor === color ? "50px" : "40px",
-                    backgroundColor: color === "Hết Hàng" ? "gray" : color, 
+                    backgroundColor: color === "Hết Hàng" ? "gray" : color,
                     cursor: "pointer",
-                    transition: "all 0.3s ease-in-out", 
+                    transition: "all 0.3s ease-in-out",
                   }}
                   onClick={() => {
-                    handleColorSelection(color, product[`HinhAnh${index + 1}`] || product.HinhAnh1);
+                    handleColorSelection(
+                      color,
+                      product[`HinhAnh${index + 1}`] || product.HinhAnh1
+                    );
                   }}
                 ></div>
               ) : null
             )}
           </div>
 
-          <button 
-            className="btn btn-success mt-3" 
-            onClick={addToCart} 
+          <button
+            className="btn btn-success mt-3"
+            onClick={addToCart}
             disabled={!isColorAvailable || selectedColor === "Hết Hàng"}
           >
             🛒 Thêm vào giỏ hàng
@@ -253,7 +288,10 @@ const ProductDetail = () => {
         {/* Phần thông tin chi tiết sản phẩm */}
         <div className="col-12 mt-4">
           <div className="card shadow-sm p-4 bg-light">
-            <h3 className="mb-4"><FaInfoCircle className="me-2" />THÔNG TIN SẢN PHẨM</h3>
+            <h3 className="mb-4">
+              <FaInfoCircle className="me-2" />
+              THÔNG TIN SẢN PHẨM
+            </h3>
             <div className="row">
               <div className="col-md-6">
                 <div className="d-flex align-items-center mb-3">
@@ -299,12 +337,13 @@ const ProductDetail = () => {
           </div>
         </div>
         <div className="col-12 mt-4">
-        <LatestProducts />
-      </div>
+          <LatestProducts />
+        </div>
         <div className="col-12 mt-4">
-        <SellerProducts />
+          <SellerProducts />
+        </div>
       </div>
-      </div>
+
       <br />
     </div>
   );
