@@ -29,8 +29,8 @@ const HoaDonControl = new HoaDonController();
 apiRouter.post("/hoadons", HoaDonControl.apiCreate);
 apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
-apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); 
-apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId);// Cập nhật hóa đơn
+apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
+apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
 
 const sanPhamControl = new SanPhamController();
@@ -40,7 +40,7 @@ apiRouter.delete("/sanphams/:id", sanPhamControl.apiDelete);
 apiRouter.get("/sanphams/:id", sanPhamControl.apiDetail);
 apiRouter.post("/sanphams", sanPhamControl.apiCreate);
 apiRouter.put("/sanphams/:id", sanPhamControl.apiUpdate);
-apiRouter.post('/upload', sanPhamControl.apiUpload);
+apiRouter.post("/upload", sanPhamControl.apiUpload);
 
 const ThuongHieuControl = new ThuongHieuController();
 // api thương hiệu
@@ -51,8 +51,8 @@ apiRouter.post("/thuonghieus", ThuongHieuControl.apiCreate);
 apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
-apiRouter.get("/users", UsersControl.apiList); 
-apiRouter.get("/users/:id", UsersControl.apiDetail); 
+apiRouter.get("/users", UsersControl.apiList);
+apiRouter.get("/users/:id", UsersControl.apiDetail);
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
 apiRouter.post("/users/signup", UsersControl.apiSignUp);
 apiRouter.post("/users/login", UsersControl.apiLogin);
@@ -65,6 +65,7 @@ const CommentControl = new CommentController();
 apiRouter.get("/comments", CommentControl.cmtList);
 apiRouter.get("/comments/:id", CommentControl.cmtDetail);
 apiRouter.delete("/comments/:id", CommentControl.cmtDelete);
+apiRouter.post("/comments", CommentControl.cmtCreate);
 
 const PromotionControl = new PromotionController();
 apiRouter.get("/promotions", PromotionControl.getListPromotion);

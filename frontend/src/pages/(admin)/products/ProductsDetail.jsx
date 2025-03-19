@@ -14,33 +14,33 @@ const ProductsDetail = () => {
   });
 
   // Trong ProductsDetail.js
-useEffect(() => {
-  setLoading(true);
+  useEffect(() => {
+    setLoading(true);
 
-  getProducts(id)
-    .then((response) => {
-      const productData = response.data.data;
-      setProduct(productData);
+    getProducts(id)
+      .then((response) => {
+        const productData = response.data.data;
+        setProduct(productData);
 
-      if (productData.BoNhoTrong1) {
-        setSelectedMemory({
-          memory: productData.BoNhoTrong1,
-          price: productData.GiaSP1,
-          quantity: productData.SoLuong1,
-        });
-      }
+        if (productData.BoNhoTrong1) {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong1,
+            price: productData.GiaSP1,
+            quantity: productData.SoLuong1,
+          });
+        }
 
-      setLoading(false);
-    })
-    .catch(() => {
-      setError("Không thể tải chi tiết sản phẩm.");
-      setLoading(false);
-    });
-}, [id]);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Không thể tải chi tiết sản phẩm.");
+        setLoading(false);
+      });
+  }, [id]);
 
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];
-    const memoryIndex = memoryKey.slice(-1); 
+    const memoryIndex = memoryKey.slice(-1);
 
     setSelectedMemory({
       memory: memory,
@@ -50,7 +50,10 @@ useEffect(() => {
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
   };
 
   if (loading) {
@@ -69,7 +72,11 @@ useEffect(() => {
   }
 
   if (!product) {
-    return <div className="alert alert-warning text-center">Không tìm thấy sản phẩm.</div>;
+    return (
+      <div className="alert alert-warning text-center">
+        Không tìm thấy sản phẩm.
+      </div>
+    );
   }
 
   return (
@@ -95,18 +102,38 @@ useEffect(() => {
         <div className="card-body">
           <div className="row">
             <div className="col-md-6">
-              <p><strong>Mã Sản Phẩm:</strong> {product.MaSP}</p>
-              <p><strong>Tên Sản Phẩm:</strong> {product.TenSP}</p>
-              <p><strong>Tên Thương Hiệu:</strong> {product.TenTH}</p>
-              <p><strong>Màn Hình:</strong> {product.ManHinh}</p>
-              <p><strong>Pin:</strong> {product.LoaiPin}</p>
+              <p>
+                <strong>Mã Sản Phẩm:</strong> {product.MaSP}
+              </p>
+              <p>
+                <strong>Tên Sản Phẩm:</strong> {product.TenSP}
+              </p>
+              <p>
+                <strong>Tên Thương Hiệu:</strong> {product.TenTH}
+              </p>
+              <p>
+                <strong>Màn Hình:</strong> {product.ManHinh}
+              </p>
+              <p>
+                <strong>Pin:</strong> {product.LoaiPin}
+              </p>
             </div>
             <div className="col-md-6">
-              <p><strong>Hệ Điều Hành:</strong> {product.HDH}</p>
-              <p><strong>Camera Sau:</strong> {product.CamSau}</p>
-              <p><strong>Camera Trước:</strong> {product.CamTruoc}</p>
-              <p><strong>CPU:</strong> {product.CPU}</p>
-              <p><strong>Trạng Thái:</strong> {product.TrangThai}</p>
+              <p>
+                <strong>Hệ Điều Hành:</strong> {product.HDH}
+              </p>
+              <p>
+                <strong>Camera Sau:</strong> {product.CamSau}
+              </p>
+              <p>
+                <strong>Camera Trước:</strong> {product.CamTruoc}
+              </p>
+              <p>
+                <strong>CPU:</strong> {product.CPU}
+              </p>
+              <p>
+                <strong>Trạng Thái:</strong> {product.TrangThai}
+              </p>
             </div>
           </div>
         </div>
@@ -121,62 +148,81 @@ useEffect(() => {
           <div className="row">
             {/* Bộ Nhớ Trong */}
             <div className="col-md-6">
-              <p><strong>Bộ Nhớ Trong:</strong></p>
+              <p>
+                <strong>Bộ Nhớ Trong:</strong>
+              </p>
               <div className="d-flex gap-2 mb-3">
-                {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((key, index) => {
-                  if (!product[key]) return null;
+                {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
+                  (key, index) => {
+                    if (!product[key]) return null;
 
-                  return (
-                    <button
-                      key={index}
-                      className={`btn ${
-                        selectedMemory.memory === product[key] ? "btn-primary" : "btn-outline-primary"
-                      }`}
-                      onClick={() => handleMemorySelection(key)}
-                      style={{ height: "38px" }} 
-                    >
-                      {product[key]}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={index}
+                        className={`btn ${
+                          selectedMemory.memory === product[key]
+                            ? "btn-primary"
+                            : "btn-outline-primary"
+                        }`}
+                        onClick={() => handleMemorySelection(key)}
+                        style={{ height: "38px" }}
+                      >
+                        {product[key]}
+                      </button>
+                    );
+                  }
+                )}
               </div>
 
-              <p><strong>Số Lượng:</strong> {selectedMemory.quantity}</p>
+              <p>
+                <strong>Số Lượng:</strong> {selectedMemory.quantity}
+              </p>
               <p>
                 <strong>Giá:</strong>
-                <span className="text-danger ms-2">{formatCurrency(selectedMemory.price)}</span>
+                <span className="text-danger ms-2">
+                  {formatCurrency(selectedMemory.price)}
+                </span>
               </p>
             </div>
 
             {/* Màu Sắc */}
             <div className="col-md-6">
-              <p><strong>Màu Sắc:</strong></p>
+              <p>
+                <strong>Màu Sắc:</strong>
+              </p>
               <div className="d-flex flex-column gap-2">
-                {[product.Mau1, product.Mau2, product.Mau3].map((color, index) =>
-                  color && (
-                    <div key={index} className="d-flex align-items-center gap-2" style={{ height: "38px" }}>
+                {[product.Mau1, product.Mau2, product.Mau3].map(
+                  (color, index) =>
+                    color && (
                       <div
-                        className="color-box shadow-sm"
-                        style={{
-                          width: "30px",
-                          height: "30px",
-                          backgroundColor: color,
-                          borderRadius: "5px",
-                          border: "1px solid #ccc",
-                          cursor: "pointer",
-                          transition: "transform 0.2s, box-shadow 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.transform = "scale(1.1)";
-                          e.target.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.transform = "scale(1)";
-                          e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-                        }}
-                      />
-                    </div>
-                  )
+                        key={index}
+                        className="d-flex align-items-center gap-2"
+                        style={{ height: "38px" }}
+                      >
+                        <div
+                          className="color-box shadow-sm"
+                          style={{
+                            width: "30px",
+                            height: "30px",
+                            backgroundColor: color,
+                            borderRadius: "5px",
+                            border: "1px solid #ccc",
+                            cursor: "pointer",
+                            transition: "transform 0.2s, box-shadow 0.2s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = "scale(1.1)";
+                            e.target.style.boxShadow =
+                              "0 4px 8px rgba(0, 0, 0, 0.2)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = "scale(1)";
+                            e.target.style.boxShadow =
+                              "0 2px 4px rgba(0, 0, 0, 0.1)";
+                          }}
+                        />
+                      </div>
+                    )
                 )}
               </div>
             </div>
