@@ -58,6 +58,14 @@ const SignupForm = () => {
           </Form.Item>
 
           <Form.Item
+            name="DiaChi"
+            label="Địa Chỉ"
+            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+          >
+            <Input placeholder="Nhập địa chỉ" />
+          </Form.Item>
+
+          <Form.Item
             name="MatKhau"
             label="Mật khẩu"
             rules={[
