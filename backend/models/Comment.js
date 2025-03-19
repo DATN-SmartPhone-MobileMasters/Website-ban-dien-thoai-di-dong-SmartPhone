@@ -2,21 +2,8 @@ import mongoose from "mongoose";
 
 // Schema bình luận
 const binhLuanSchema = new mongoose.Schema({
-  SoThuTu: {
-    type: Number,
-    required: true,
-  },
   Email: {
     type: String,
-    required: true,
-  },
-  MaBL: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-  },
-  MaND: {
-    type: String,
-    ref: "users", // Tham chiếu đến bảng User
     required: true,
   },
   MaSP: {

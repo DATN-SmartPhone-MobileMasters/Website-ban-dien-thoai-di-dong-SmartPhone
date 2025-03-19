@@ -51,6 +51,7 @@ import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
 import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
 import ListContact from "./pages/(website)/contact/ListContact";
 import { getUserById } from "./service/api";
+import AddComment from "./pages/(admin)/comments/AddComment";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -172,6 +173,10 @@ function App() {
         {
           path: "/admin/vouchers/edit/:id",
           element: <UpdatePromotion />,
+        },
+        {
+          path: "/addcomment",
+          element: <AddComment />,
         },
       ],
     },

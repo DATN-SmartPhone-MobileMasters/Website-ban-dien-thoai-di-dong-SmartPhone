@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProducts } from "../../../service/api";
+import {
+  createComment,
+  fetchComments,
+  getProducts,
+} from "../../../service/api";
 import SellerProducts from "../../(website)/components/SellerProducts";
 import LatestProducts from "../../(website)/components/LatestProducts";
 import {
@@ -11,6 +15,7 @@ import {
   FaPlug,
   FaInfoCircle,
 } from "react-icons/fa";
+import { Button, Form, Input, message, Rate } from "antd";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -27,6 +32,11 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
   const [isColorAvailable, setIsColorAvailable] = useState(true);
+  const [comments, setComments] = useState([]);
+  const [form] = Form.useForm();
+  const userData = JSON.parse(localStorage.getItem("userData"));
+  const email = userData?.Email;
+  const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
 
   useEffect(() => {
     setLoading(true);
@@ -56,6 +66,61 @@ const ProductDetail = () => {
         setLoading(false);
       });
   }, [id]);
+
+  // Hàm lấy danh sách bình luận của sản phẩm
+  useEffect(() => {
+    const fetchProductComments = async () => {
+      try {
+        const response = await fetchComments();
+        const productComments = response.data.filter(
+          (comment) => comment.MaSP === id
+        );
+        setComments(productComments);
+      } catch (error) {
+        console.error("Lỗi khi tải bình luận:", error);
+      }
+    };
+
+    fetchProductComments();
+  }, [id]);
+
+  // Hàm gửi bình luận
+  const onFinish = async (values) => {
+    const containsForbiddenWords = checkvar.some((word) => {
+      const regex = new RegExp(`\\b${word}\\b`, "i");
+      return regex.test(values.NoiDung);
+    });
+
+    if (containsForbiddenWords) {
+      message.error("Bình luận của bạn có chứa từ ngữ không phù hợp!");
+      return; // Dừng việc gửi bình luận
+    }
+    try {
+      setLoading(true);
+      const commentData = {
+        ...values,
+        MaSP: id, // MaSP được lấy từ URL
+        Email: email, // Email được lấy từ thông tin người dùng
+      };
+      await createComment(commentData); // Gửi bình luận lên server
+      message.success("Bình luận đã được thêm thành công!");
+      form.resetFields(); // Reset form sau khi gửi thành công
+
+      // Cập nhật lại danh sách bình luận
+      const response = await fetchComments();
+      const productComments = response.data.filter(
+        (comment) => comment.MaSP === id
+      );
+      setComments(productComments);
+    } catch (error) {
+      console.error(error);
+      message.error(
+        "Thêm bình luận thất bại!Bạn vui lòng đăng nhập để sử dụng tính năng này."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];
@@ -341,6 +406,66 @@ const ProductDetail = () => {
         </div>
         <div className="col-12 mt-4">
           <SellerProducts />
+        </div>
+        <div className="col-12 mt-4">
+          <div className="card shadow-sm p-4 bg-light">
+            <h3 className="mb-4">
+              <FaInfoCircle className="me-2" />
+              BÌNH LUẬN SẢN PHẨM
+            </h3>
+            <Form form={form} onFinish={onFinish} layout="vertical">
+              <Form.Item
+                name="NoiDung"
+                label="Nội Dung"
+                rules={[{ required: true, message: "Vui lòng nhập nội dung" }]}
+              >
+                <Input.TextArea
+                  placeholder="Nhập nội dung bình luận"
+                  rows={4}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="DanhGia"
+                label="Đánh Giá"
+                rules={[{ required: true, message: "Vui lòng chọn đánh giá" }]}
+              >
+                <Rate />
+              </Form.Item>
+
+              <Form.Item>
+                <Button type="primary" htmlType="submit" loading={loading}>
+                  Gửi Bình Luận
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </div>
+
+        {/* Hiển thị danh sách bình luận */}
+        <div className="col-12 mt-4">
+          <div className="card shadow-sm p-4 bg-light">
+            <h3 className="mb-4">
+              <FaInfoCircle className="me-2" />
+              BÌNH LUẬN ĐÃ CÓ
+            </h3>
+            {comments.length > 0 ? (
+              comments.map((comment, index) => (
+                <div key={index} className="mb-3">
+                  <p>
+                    <strong>{comment.Email}</strong> -{" "}
+                    <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
+                  </p>
+                  <p>{comment.NoiDung}</p>
+                  <p className="text-muted">
+                    {new Date(comment.NgayBL).toLocaleDateString()}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p>Chưa có bình luận nào.</p>
+            )}
+          </div>
         </div>
       </div>
 

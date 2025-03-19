@@ -10,7 +10,22 @@ class CommentController {
       res.status(500).json({ error: err.message });
     }
   }
-
+  // theem bl
+  async cmtCreate(req, res) {
+    try {
+      const data = req.body;
+      const newComment = await binhluan.create(data);
+      res.status(200).json({
+        message: "Thêm bình luận thành công",
+        data: newComment,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi thêm bình luận",
+        error: error.message,
+      });
+    }
+  }
   // Chi tiết bình luận
   async cmtDetail(req, res) {
     try {
