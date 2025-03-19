@@ -62,10 +62,8 @@ export const deleteComment = async (id) =>
   axios.delete(`${API_URL}/comments/${id}`);
 export const fetchCommentById = async (id) =>
   axios.get(`${API_URL}/comments/${id}`);
-<<<<<<< HEAD
-=======
-export const createComment = async (data) => axios.post(`${API_URL}/comments`, data); 
->>>>>>> d3f817b254f7914ca7921f3cac7e71ee49f98919
+export const createComment = async (data) =>
+  axios.post(`${API_URL}/comments`, data);
 
 //chitiethoadon
 export const fetchChitiethoadons = async () =>
