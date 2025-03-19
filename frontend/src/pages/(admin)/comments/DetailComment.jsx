@@ -35,9 +35,9 @@ const AdminDetailComment = () => {
           <div className="mb-4">
             <strong>Mã bình luận:</strong> {comment._id}
           </div>
-          <div className="mb-4">
-            <strong>Mã người dùng:</strong> {comment.MaND}
-          </div>
+          {/* <div className="mb-4">
+            <strong>Tên Sản Phẩm:</strong> {comment.TenSP}
+          </div> */}
           <div className="mb-4">
             <strong>Email:</strong> {comment.Email}
           </div>
@@ -55,7 +55,7 @@ const AdminDetailComment = () => {
             <strong>Ngày bình luận:</strong>{" "}
             {new Date(comment.NgayBL).toLocaleDateString()}
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <strong>Hình ảnh sản phẩm:</strong>
             <br />
             <img
@@ -63,7 +63,7 @@ const AdminDetailComment = () => {
               alt="Hình ảnh sản phẩm"
               style={{ width: "200px", marginTop: "5px" }}
             />
-          </div>
+          </div> */}
           <Link to="/admin/comments" className="btn btn-primary mt-3">
             Quay lại danh sách
           </Link>

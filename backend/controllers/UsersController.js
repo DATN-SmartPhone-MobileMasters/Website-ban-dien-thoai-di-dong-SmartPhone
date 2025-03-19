@@ -47,6 +47,7 @@ class UsersController {
       HoVaTen: Joi.string().required(), 
       SDT: Joi.string().required(), 
       Email: Joi.string().email().required(), 
+      DiaChi: Joi.string().required(),
       MatKhau: Joi.string().min(6).required(), 
       confirmPassword:  Joi.string().min(6).required(),
     }).options({ abortEarly: false });
@@ -71,7 +72,7 @@ class UsersController {
         GioiTinh:'Nam',
         SDT: req.body.SDT,
         Email: req.body.Email,
-        DiaChi:'',
+        DiaChi:req.body.DiaChi,
         TaiKhoan:'',
         MatKhau: hashedPassword, 
         MaQuyen: 0,

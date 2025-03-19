@@ -36,7 +36,7 @@ const AdminLogin = () => {
         if (response.data.token) {
           const user = response.data.user;
           const userDetails = await getUserById(user.id);
-          if (userDetails.data.MaQuyen !== 1) {
+          if (userDetails.data.MaQuyen === 0) {
             confirmAlert({
               title: 'Lỗi',
               message: 'Chỉ có admin mới có thể đăng nhập',
