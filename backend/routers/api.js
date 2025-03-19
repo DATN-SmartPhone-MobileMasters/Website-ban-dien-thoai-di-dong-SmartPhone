@@ -29,8 +29,8 @@ const HoaDonControl = new HoaDonController();
 apiRouter.post("/hoadons", HoaDonControl.apiCreate);
 apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
-apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit); 
-apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId);// Cập nhật hóa đơn
+apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
+apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
 
 const sanPhamControl = new SanPhamController();
@@ -40,7 +40,7 @@ apiRouter.delete("/sanphams/:id", sanPhamControl.apiDelete);
 apiRouter.get("/sanphams/:id", sanPhamControl.apiDetail);
 apiRouter.post("/sanphams", sanPhamControl.apiCreate);
 apiRouter.put("/sanphams/:id", sanPhamControl.apiUpdate);
-apiRouter.post('/upload', sanPhamControl.apiUpload);
+apiRouter.post("/upload", sanPhamControl.apiUpload);
 
 const ThuongHieuControl = new ThuongHieuController();
 // api thương hiệu
@@ -51,8 +51,8 @@ apiRouter.post("/thuonghieus", ThuongHieuControl.apiCreate);
 apiRouter.put("/thuonghieus/:id", ThuongHieuControl.apiUpdate);
 
 const UsersControl = new UsersController();
-apiRouter.get("/users", UsersControl.apiList); 
-apiRouter.get("/users/:id", UsersControl.apiDetail); 
+apiRouter.get("/users", UsersControl.apiList);
+apiRouter.get("/users/:id", UsersControl.apiDetail);
 apiRouter.delete("/users/:id", UsersControl.apiDelete);
 apiRouter.post("/users/signup", UsersControl.apiSignUp);
 apiRouter.post("/users/login", UsersControl.apiLogin);
@@ -72,4 +72,10 @@ apiRouter.get("/promotions/:id", PromotionControl.getDetailPromotion);
 apiRouter.post("/promotions", PromotionControl.createPromotion);
 apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
 apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
+
+// Thống kê
+// Thống kê doanh thu
+apiRouter.get("/hoadons/revenue/monthly", HoaDonControl.apiRevenueByMonth);
+apiRouter.get("/hoadons/revenue/yearly", HoaDonControl.apiRevenueByYear);
+
 export default apiRouter;

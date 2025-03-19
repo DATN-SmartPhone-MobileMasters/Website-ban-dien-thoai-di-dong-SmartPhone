@@ -98,13 +98,13 @@ class HoaDonController {
     try {
       const id = req.params.id;
       const deletedHoaDon = await hoadon.findByIdAndDelete(id);
-      
+
       if (!deletedHoaDon) {
         return res.status(404).json({
           message: "Không tìm thấy hóa đơn để xóa",
         });
       }
-  
+
       res.status(200).json({
         message: "Xóa hóa đơn thành công",
         data: deletedHoaDon,
@@ -112,6 +112,74 @@ class HoaDonController {
     } catch (error) {
       res.status(500).json({
         message: "Lỗi khi xóa hóa đơn",
+        error: error.message,
+      });
+    }
+  }
+  // Thống kê doanh thu theo tháng trong một năm cụ thể
+  async apiRevenueByMonth(req, res) {
+    try {
+      const year = parseInt(req.query.year); // Lấy năm từ query parameter
+      if (!year) {
+        return res
+          .status(400)
+          .json({ message: "Vui lòng cung cấp năm hợp lệ" });
+      }
+
+      const revenue = await hoadon.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(`${year}-01-01`),
+              $lt: new Date(`${year + 1}-01-01`),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: { $month: "$createdAt" },
+            totalRevenue: { $sum: "$total" },
+          },
+        },
+        {
+          $sort: { _id: 1 }, // Sắp xếp theo tháng
+        },
+      ]);
+
+      res.status(200).json({
+        message: "Thống kê doanh thu theo tháng thành công",
+        data: revenue,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi thống kê doanh thu theo tháng",
+        error: error.message,
+      });
+    }
+  }
+
+  // Thống kê doanh thu theo năm
+  async apiRevenueByYear(req, res) {
+    try {
+      const revenue = await hoadon.aggregate([
+        {
+          $group: {
+            _id: { $year: "$createdAt" },
+            totalRevenue: { $sum: "$total" },
+          },
+        },
+        {
+          $sort: { _id: 1 }, // Sắp xếp theo năm
+        },
+      ]);
+
+      res.status(200).json({
+        message: "Thống kê doanh thu theo năm thành công",
+        data: revenue,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi thống kê doanh thu theo năm",
         error: error.message,
       });
     }
