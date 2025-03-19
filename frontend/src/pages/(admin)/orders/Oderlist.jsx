@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { message } from "antd";
-import { fetchOrders } from "../../../service/api";
+import { fetchOrders,deleteOrder  } from "../../../service/api";
 
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
-
+  const location = useLocation();
   useEffect(() => {
     const getHoaDons = async () => {
       try {
@@ -17,8 +17,19 @@ const OrderList = () => {
       }
     };
     getHoaDons();
-  }, []);
+  }, [location.key]);
 
+  const handleDelete = async (id) => {
+    try {
+      await deleteOrder(id);
+      message.success("Xóa hóa đơn thành công");
+      const response = await fetchOrders();
+      setHoaDons(response.data.data || []);
+    } catch (error) {
+      console.error("Lỗi khi xóa hóa đơn:", error);
+      message.error("Xóa hóa đơn thất bại!");
+    }
+  };
   return (
     <div>
       <h1 className="h3 mb-2 text-gray-800">Danh sách hóa đơn</h1>
@@ -40,7 +51,6 @@ const OrderList = () => {
                     "Địa chỉ",
                     "Tổng tiền",
                     "Trạng thái",
-                    "Sản phẩm",
                     "Hành động",
                   ].map((header) => (
                     <th key={header}>{header}</th>
@@ -52,25 +62,26 @@ const OrderList = () => {
                   hoaDons.map((hoaDon, i) => (
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
-                      <td>{hoaDon.NguoiDat || "Không có"}</td>
-                      <td>{hoaDon.SDT || "Không có"}</td>
-                      <td>{hoaDon.DiaChi || "Không có"}</td>
-                      <td>{hoaDon.TongTien || "Không có"}</td>
-                      <td>{hoaDon.TrangThai || "Không có"}</td>
-                      <td>
-                        {Array.isArray(hoaDon.SanPham)
-                          ? hoaDon.SanPham.join(", ")
-                          : typeof hoaDon.SanPham === "string"
-                          ? hoaDon.SanPham
-                          : "Không có"}
-                      </td>
+                      <td>{hoaDon.shippingInfo.name || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo.phone || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo.address || "Không có"}</td>
+                      <td>{hoaDon.total || "Không có"}</td>
+                      <td>{hoaDon.paymentStatus || "Không có"}</td>
                       <td>
                         <Link
-                          to={`/orders/${hoaDon._id}`}
+                          to={`/admin/orders/${hoaDon._id}`}
                           className="btn btn-info ml-2"
                         >
                           👁️Xem chi tiết
                         </Link>
+                        {(hoaDon.paymentStatus === "Huỷ Đơn" || hoaDon.paymentStatus === "Hoàn thành") && (
+                          <button
+                            onClick={() => handleDelete(hoaDon._id)}
+                            className="btn btn-danger ml-2"
+                          >
+                            🗑️Xóa
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

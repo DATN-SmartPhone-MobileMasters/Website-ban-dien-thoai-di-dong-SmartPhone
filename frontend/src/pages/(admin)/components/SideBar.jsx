@@ -1,7 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+import { updateUser } from '../../../service/api';
 const SideBar = () => {
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  const handleLogout = async () => {
+      const authToken = localStorage.getItem("authToken");
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      if (userData) {
+        await updateUser(userData.id, { TrangThai: 0 });
+      }
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      window.location.href = '/admin/login'; 
+    };
   return (
     <>
       {/* Sidebar */}
@@ -12,7 +23,7 @@ const SideBar = () => {
         {/* Sidebar - Brand */}
         <Link
           className="sidebar-brand d-flex align-items-center justify-content-center"
-          to="/"
+          to="/admin/dashboard"
         >
           <div className="sidebar-brand-icon rotate-n-15">
             <i className="fas fa-laugh-wink" />
@@ -21,11 +32,17 @@ const SideBar = () => {
             SP Admin <sup>2</sup>
           </div>
         </Link>
+        {/* Admin Email */}
+        <div className="sidebar-user px-3 py-2 text-center">
+          <span className="text-white small">
+            {userData?.Email}
+          </span>
+        </div>
         {/* Divider */}
         <hr className="sidebar-divider my-0" />
         {/* Nav Item - Trang chủ */}
         <li className="nav-item active">
-          <Link className="nav-link" to="/">
+          <Link className="nav-link" to="/admin/dashboard">
             <i className="fas fa-fw fa-tachometer-alt" />
             <span>Trang chủ</span>
           </Link>
@@ -38,16 +55,16 @@ const SideBar = () => {
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
-            to="#"
-            data-toggle="collapse"
-            data-target="#collapseTwo"
-            aria-expanded="true"
-            aria-controls="collapseTwo"
+            to="/admin/categorys"
+            // data-toggle="collapse"
+            // data-target="#collapseTwo"
+            // aria-expanded="true"
+            // aria-controls="collapseTwo"
           >
             <i className="fas fa-fw fa-cog" />
             <span>Quản lý danh mục</span>
           </Link>
-          <div
+          {/* <div
             id="collapseTwo"
             className="collapse"
             aria-labelledby="headingTwo"
@@ -61,22 +78,22 @@ const SideBar = () => {
                 Thêm mới danh mục
               </Link>
             </div>
-          </div>
+          </div> */}
         </li>
         {/* Quản lý sản phẩm */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
-            to="#"
-            data-toggle="collapse"
-            data-target="#collapseUtilities"
-            aria-expanded="true"
-            aria-controls="collapseUtilities"
+            to="/admin/products"
+            // data-toggle="collapse"
+            // data-target="#collapseUtilities"
+            // aria-expanded="true"
+            // aria-controls="collapseUtilities"
           >
             <i className="fas fa-fw fa-wrench" />
             <span>Quản lý sản phẩm</span>
           </Link>
-          <div
+          {/* <div
             id="collapseUtilities"
             className="collapse"
             aria-labelledby="headingUtilities"
@@ -90,22 +107,22 @@ const SideBar = () => {
                 Thêm mới sản phẩm
               </Link>
             </div>
-          </div>
+          </div> */}
         </li>
         {/* Quản lý thương hiệu */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
-            to="#"
-            data-toggle="collapse"
-            data-target="#collapseThuonghieu"
-            aria-expanded="true"
-            aria-controls="collapseThuonghieu"
+            to="/admin/brands"
+            // data-toggle="collapse"
+            // data-target="#collapseThuonghieu"
+            // aria-expanded="true"
+            // aria-controls="collapseThuonghieu"
           >
             <i className="bi bi-slack"></i>
             <span>Quản lý thương hiệu</span>
           </Link>
-          <div
+          {/* <div
             id="collapseThuonghieu"
             className="collapse"
             aria-labelledby="headingThuonghieu"
@@ -115,15 +132,16 @@ const SideBar = () => {
               <Link className="collapse-item" to="/brands">
                 Danh sách thương hiệu
               </Link>
+
               <Link className="collapse-item" to="/brands/add">
                 Thêm mới thương hiệu
               </Link>
             </div>
-          </div>
+          </div> */}
         </li>
         {/* Quản lý hóa đơn */}
         <li className="nav-item">
-          <Link className="nav-link" to="/orders">
+          <Link className="nav-link" to="/admin/orders">
             <i className="bi bi-boxes"></i>
             <span>Quản lý hóa đơn</span>
           </Link>
@@ -131,17 +149,17 @@ const SideBar = () => {
         {/* Quản lý voucher Admin */}
         <li className="nav-item">
           <Link
-            to="#"
+            to="/admin/vouchers"
             className="nav-link collapsed"
-            data-toggle="collapse"
-            data-target="#collapseVoucher"
-            aria-expanded="true"
-            aria-controls="collapseVoucher"
+            // data-toggle="collapse"
+            // data-target="#collapseVoucher"
+            // aria-expanded="true"
+            // aria-controls="collapseVoucher"
           >
             <i className="bi bi-ticket-perforated"></i>
             <span>Quản lý voucher</span>
           </Link>
-          <div
+          {/* <div
             id="collapseVoucher"
             className="collapse"
             aria-labelledby="headingVoucher"
@@ -151,52 +169,48 @@ const SideBar = () => {
               <Link className="collapse-item" to="/vouchers">
                 Danh sách voucher
               </Link>
+
               <Link className="collapse-item" to="/vouchers/add">
                 Thêm mới voucher
               </Link>
             </div>
-          </div>
+          </div> */}
         </li>
+
+        <li className="nav-item">
+          <Link
+            className="nav-link collapsed"
+            to="/danhgia"
+          >
+            <i className="fas fa-fw fa-comments" />
+            <span>Quản lý đánh giá</span>
+          </Link>
+        </li>
+
         {/* Quản lý bình luận */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
-            to="#"
-            data-toggle="collapse"
-            data-target="#collapseBinhluan"
-            aria-expanded="true"
-            aria-controls="collapseBinhluan"
+            to="/admin/comments"
           >
             <i className="fas fa-fw fa-comments" />
             <span>Quản lý bình luận</span>
           </Link>
-          <div
-            id="collapseBinhluan"
-            className="collapse"
-            aria-labelledby="headingBinhluan"
-            data-parent="#accordionSidebar"
-          >
-            <div className="bg-white py-2 collapse-inner rounded">
-              <Link className="collapse-item" to="/comments">
-                Danh sách bình luận
-              </Link>
-            </div>
-          </div>
         </li>
         {/* Quản lý tài khoản */}
         <li className="nav-item">
           <Link
             className="nav-link collapsed"
-            to="#"
-            data-toggle="collapse"
-            data-target="#collapseTaikhoan"
-            aria-expanded="true"
-            aria-controls="collapseTaikhoan"
+            to="/admin/accounts"
+            // data-toggle="collapse"
+            // data-target="#collapseTaikhoan"
+            // aria-expanded="true"
+            // aria-controls="collapseTaikhoan"
           >
             <i className="fas fa-fw fa-user" />
             <span>Quản lý tài khoản</span>
           </Link>
-          <div
+          {/* <div
             id="collapseTaikhoan"
             className="collapse"
             aria-labelledby="headingTaikhoan"
@@ -207,11 +221,16 @@ const SideBar = () => {
                 Danh sách tài khoản
               </Link>
             </div>
-          </div>
+          </div> */}
         </li>
         {/* Sidebar Toggler */}
         <div className="text-center d-none d-md-inline">
-          <button className="rounded-circle border-0" id="sidebarToggle" />
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white transition"
+        >
+          Đăng xuất
+        </button>
         </div>
       </ul>
       {/* End of Sidebar */}

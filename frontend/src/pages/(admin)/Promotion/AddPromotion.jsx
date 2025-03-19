@@ -4,25 +4,27 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { createPromotion } from "../../../service/api";
 
 const AddPromotion = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
-
+  const ngayBatDau = watch("NgayBD");
   const onSubmit = async (data) => {
     try {
-      await axios.post("http://localhost:5000/api/promotions", data);
+      await createPromotion(data);
       confirmAlert({
         title: "Thành công!",
         message: "Thêm khuyến mãi thành công!",
         buttons: [
           {
             label: "OK",
-            onClick: () => navigate("/vouchers"),
+            onClick: () => navigate("/admin/vouchers"),
           },
         ],
         closeOnEscape: true,
@@ -47,12 +49,11 @@ const AddPromotion = () => {
 
   return (
     <div className="container-fluid">
-      {/* Page Heading */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 text-gray-800">Thêm Khuyến Mãi</h1>
         <button
           className="btn btn-secondary"
-          onClick={() => navigate("/vouchers")}
+          onClick={() => navigate("/admin/vouchers")}
         >
           Quay Lại
         </button>
@@ -65,7 +66,6 @@ const AddPromotion = () => {
           </h6>
         </div>
         <div className="card-body">
-          {/* Form thêm khuyến mãi */}
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <label htmlFor="MaKM" className="form-label">
@@ -77,14 +77,21 @@ const AddPromotion = () => {
                 id="MaKM"
                 {...register("MaKM", {
                   required: "Mã khuyến mãi là trường bắt buộc",
-                  validate: (value) =>
-                    value >= 0 || "Mã khuyến mãi không được là số âm",
+                  minLength: {
+                    value: 3,
+                    message: "Mã khuyến mãi phải có ít nhất 3 ký tự",
+                  },
+                  maxLength: {
+                    value: 20,
+                    message: "Mã khuyến mãi không được dài quá 20 ký tự",
+                  },
                 })}
               />
               {errors.MaKM && (
                 <div className="invalid-feedback">{errors.MaKM.message}</div>
               )}
             </div>
+
             <div className="mb-3">
               <label htmlFor="TenKM" className="form-label">
                 Tên Khuyến Mãi
@@ -105,14 +112,17 @@ const AddPromotion = () => {
               <label htmlFor="LoaiKM" className="form-label">
                 Loại Khuyến Mãi
               </label>
-              <input
-                type="text"
+              <select
                 className={`form-control ${errors.LoaiKM ? "is-invalid" : ""}`}
                 id="LoaiKM"
                 {...register("LoaiKM", {
                   required: "Loại khuyến mãi là trường bắt buộc",
                 })}
-              />
+              >
+                <option value="">Chọn loại khuyến mãi</option>
+                <option value="fixed">Giảm số tiền cố định</option>
+                <option value="percentage">Giảm theo %</option>
+              </select>
               {errors.LoaiKM && (
                 <div className="invalid-feedback">{errors.LoaiKM.message}</div>
               )}
@@ -127,9 +137,19 @@ const AddPromotion = () => {
                   errors.GiaTriKM ? "is-invalid" : ""
                 }`}
                 id="GiaTriKM"
+                step={watch("LoaiKM") === "percentage" ? "1" : "any"}
                 {...register("GiaTriKM", {
                   required: "Giá trị khuyến mãi là trường bắt buộc",
                   min: { value: 0, message: "Giá trị không được là số âm" },
+                  max:
+                    watch("LoaiKM") === "percentage"
+                      ? { value: 100, message: "Không lớn hơn 100%" }
+                      : undefined,
+                  validate: (value) =>
+                    watch("LoaiKM") === "percentage" &&
+                    !Number.isInteger(Number(value))
+                      ? "Không được nhập số thập phân khi giảm theo kiểu %"
+                      : true,
                 })}
               />
               {errors.GiaTriKM && (
@@ -138,6 +158,7 @@ const AddPromotion = () => {
                 </div>
               )}
             </div>
+            {/* kthuc */}
             <div className="mb-3">
               <label htmlFor="NgayBD" className="form-label">
                 Ngày Bắt Đầu
@@ -154,6 +175,7 @@ const AddPromotion = () => {
                 <div className="invalid-feedback">{errors.NgayBD.message}</div>
               )}
             </div>
+
             <div className="mb-3">
               <label htmlFor="NgayKT" className="form-label">
                 Ngày Kết Thúc
@@ -164,12 +186,20 @@ const AddPromotion = () => {
                 id="NgayKT"
                 {...register("NgayKT", {
                   required: "Ngày kết thúc là trường bắt buộc",
+                  validate: (value) => {
+                    if (!ngayBatDau) return "Vui lòng chọn Ngày Bắt Đầu trước";
+                    if (new Date(value) < new Date(ngayBatDau))
+                      return "Ngày Kết Thúc phải lớn hơn hoặc bằng Ngày Bắt Đầu";
+                    return true;
+                  },
                 })}
               />
               {errors.NgayKT && (
                 <div className="invalid-feedback">{errors.NgayKT.message}</div>
               )}
             </div>
+
+            {/* ket huc */}
             <div className="mb-3">
               <label htmlFor="TrangThai" className="form-label">
                 Trạng Thái
@@ -185,7 +215,7 @@ const AddPromotion = () => {
               >
                 <option value="">Chọn trạng thái</option>
                 <option value="0">Đang diễn ra</option>
-                <option value="1">Kết thúc</option>
+                <option value="1">Đã xử dụng</option>
                 <option value="2">Chưa bắt đầu</option>
               </select>
               {errors.TrangThai && (
@@ -195,7 +225,6 @@ const AddPromotion = () => {
               )}
             </div>
 
-            {/* Nút thêm khuyến mãi */}
             <button type="submit" className="btn btn-primary">
               Thêm Khuyến Mãi
             </button>

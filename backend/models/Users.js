@@ -3,47 +3,36 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   MaND: {
     type: String,
-    required: true,
-    unique: true
   },
   HoVaTen: {
     type: String,
-    required: true
+  },
+  Avata:{
+    type: String,
   },
   GioiTinh: {
     type: String,
-    enum: ['Nam', 'Nữ', 'Khác'],
-    required: true
   },
   SDT: {
-    type: String,
-    required: true
+    type: Number,
   },
   Email: {
     type: String,
-    required: true,
-    unique: true
   },
   DiaChi: {
     type: String,
-    required: true
   },
   TaiKhoan: {
     type: String,
-    required: true,
-    unique: true
   },
   MatKhau: {
     type: String,
-    required: true
   },
   MaQuyen: {
     type: Number,
-    required: true
   },
   TrangThai: {
     type: Number,
-    required: true
   },
   created_at: {
     type: Date,
@@ -53,4 +42,3 @@ const userSchema = new mongoose.Schema({
 
 const Users = mongoose.model("users", userSchema);
 export default Users;
-

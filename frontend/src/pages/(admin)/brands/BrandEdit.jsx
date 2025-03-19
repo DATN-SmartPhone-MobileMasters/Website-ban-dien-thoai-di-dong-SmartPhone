@@ -3,20 +3,36 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
-import { fetchCategories, getBrandById } from "../../../service/api";
+import { fetchCategories, getBrandById, updateBrand,uploadImage } from "../../../service/api";
 
 const BrandEdit = () => {
-  const API_URL_Cate = "http://localhost:5000/api/danhmucs"; // API lấy danh mục
-  const API_URL = "http://localhost:5000/api/thuonghieus"; // API lấy và cập nhật thương hiệu
-  const [categories, setCategories] = useState([]); // Lưu danh sách danh mục
+  const [categories, setCategories] = useState([]); 
   const {
     reset,
     register,
     handleSubmit,
+    setValue, 
     formState: { errors },
   } = useForm();
-  const { id } = useParams(); // Lấy ID từ URL
+  const { id } = useParams(); 
+  const [imageUrl, setImageUrl] = useState("");
   const navigate = useNavigate();
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('image', file);
+  
+    try {
+      const response = await uploadImage(formData);
+      setImageUrl(response.data.imageUrl);
+      setValue("HinhAnh", response.data.imageUrl); // Add setValue
+    } catch (error) {
+      message.error("Tải ảnh lên thất bại");
+    }
+  };
 
   // Lấy thông tin thương hiệu và danh mục
   useEffect(() => {
@@ -26,7 +42,7 @@ const BrandEdit = () => {
           getBrandById(id), // Lấy thông tin thương hiệu
           fetchCategories(), // Lấy danh sách danh mục
         ]);
-
+        setImageUrl(brandRes.data.data.HinhAnh);
         setCategories(categoryRes.data.data); // Lưu danh mục vào state
 
         reset({
@@ -42,11 +58,15 @@ const BrandEdit = () => {
   }, [id, reset]);
 
   // Xử lý cập nhật thương hiệu
-  const onSubmit = async (data) => {
+   const onSubmit = async (data) => {
     try {
-      await axios.put(`${API_URL}/${id}`, data);
+      const brandData = {
+        ...data,
+        HinhAnh: imageUrl 
+      };
+      await updateBrand(id,brandData);
       message.success("Cập nhật thành công");
-      navigate("/brands"); // Điều hướng về danh sách thương hiệu
+      navigate("/admin/brands");
     } catch (error) {
       message.error("Cập nhật thất bại");
       console.error("Lỗi khi cập nhật:", error.response);
@@ -80,14 +100,26 @@ const BrandEdit = () => {
             <div className="form-group">
               <label htmlFor="HinhAnh">Hình ảnh</label>
               <input
-                type="text"
+                type="file"
                 className="form-control"
-                id="HinhAnh"
-                {...register("HinhAnh", {
-                  required: "Hình ảnh không được bỏ trống",
-                })}
+                onChange={handleImageUpload}
+                accept="image/*"
               />
-              <small className="text-danger">{errors.HinhAnh?.message}</small>
+              {imageUrl && (
+                <div className="mt-2">
+                  <img 
+                    src={imageUrl} 
+                    alt="Current" 
+                    style={{ maxWidth: '150px' }}
+                  />
+                  <div className="text-muted small mt-1">Ảnh hiện tại</div>
+                </div>
+              )}
+              <input
+                type="hidden"
+                {...register("HinhAnh")}
+                value={imageUrl}
+              />
             </div>
 
             <div className="form-group">
@@ -123,7 +155,7 @@ const BrandEdit = () => {
             </div>
 
             <div className="">
-              <Link to="/brands" className="btn btn-primary">
+              <Link to="/admin/brands" className="btn btn-primary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success ml-3">

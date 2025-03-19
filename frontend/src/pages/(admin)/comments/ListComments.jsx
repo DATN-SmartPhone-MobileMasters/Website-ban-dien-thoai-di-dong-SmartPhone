@@ -55,13 +55,13 @@ const AdminListComment = () => {
             <table className="table table-hover table-bordered">
               <thead>
                 <tr>
-                  <th>STT</th>
+                  {/* <th>STT</th> */}
                   <th>Email</th>
                   <th>Nội dung</th>
                   <th>Đánh giá</th>
                   <th>Ngày bình luận</th>
                   <th></th>
-                  <th></th>
+                  {/* <th></th> */}
                 </tr>
               </thead>
               <tbody>
@@ -77,7 +77,7 @@ const AdminListComment = () => {
                       <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
                     </td>
                     <td>{new Date(comment.NgayBL).toLocaleDateString()}</td> */}
-                    <td>{comment.SoThuTu}</td>
+                    {/* <td>{comment.SoThuTu}</td> */}
                     <td>{comment.Email}</td>
                     <td className="text-truncate" style={{ maxWidth: "200px" }}>
                       {comment.NoiDung}
@@ -94,7 +94,7 @@ const AdminListComment = () => {
                         }}
                       >
                         <Link
-                          to={`/comments/${comment._id}`}
+                          to={`/admin/comments/${comment._id}`}
                           className="btn btn-info"
                           style={{ flex: "1", marginRight: "5px" }}
                         >

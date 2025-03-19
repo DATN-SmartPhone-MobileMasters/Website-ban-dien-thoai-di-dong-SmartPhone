@@ -1,166 +1,207 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
+import { fetchProducts, deleteProducts } from "../../../service/api";
+import { message, Table, Button, Popconfirm, Input, Select } from "antd";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import queryString from "query-string";
 
-// Hàm định dạng tiền tệ
-const formatCurrency = (price) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
-};
+const { Option } = Select;
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedVariants, setSelectedVariants] = useState({});
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Lấy query params từ URL
+  const { search = "", memory = "", status = "", brand = "" } = queryString.parse(location.search);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/sanphams`);
-        if (Array.isArray(res.data)) {
-          setProducts(res.data);
-          // Khởi tạo biến thể mặc định (màu 1)
-          const defaultVariants = res.data.reduce((acc, item) => {
-            acc[item._id] = { 
-              image: item.HinhAnh1, 
-              price: item.GiaSP1 || item.GiaSP,
-              quantity: item.SoLuong1 || item.SoLuong,
-              name: item.TenSP1
-            };
-            return acc;
-          }, {});
-          setSelectedVariants(defaultVariants);
-        } else {
-          console.log("Dữ liệu không hợp lệ:", res.data);
-          setProducts([]);
-        }
-      } catch (err) {
-        setError(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProducts();
+    getProducts();
   }, []);
 
-  // Cập nhật biến thể khi người dùng chọn ảnh
-  const handleVariantChange = (id, variantImage, variantPrice, variantQuantity, variantName) => {
-    setSelectedVariants((prev) => ({
-      ...prev,
-      [id]: { image: variantImage, price: variantPrice, quantity: variantQuantity, name: variantName },
-    }));
-  };
+  useEffect(() => {
+    filterProducts(search, memory, status, brand);
+  }, [search, memory, status, brand, products]);
 
-  const removeItem = async (id) => {
+  const getProducts = async () => {
+    setLoading(true);
     try {
-      if (window.confirm("Bạn có muốn xóa sản phẩm không?")) {
-        await axios.delete(`http://localhost:5000/api/sanphams/${id}`);
-        setProducts(products.filter((item) => item._id !== id));
-        alert("Sản phẩm đã được xóa thành công!");
-      }
+      const response = await fetchProducts();
+      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+      setProducts(data);
+      setFilteredProducts(data);
+
+      // Tạo danh sách thương hiệu dựa vào chữ đầu tiên của TenSP
+      const uniqueBrands = [...new Set(data.map(p => p.TenSP.split(" ")[0]))];
+      setBrands(uniqueBrands);
     } catch (error) {
-      alert("Có lỗi xảy ra khi xóa sản phẩm!");
+      message.error("Lỗi khi lấy danh sách sản phẩm!");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (isLoading) return <p>Đang tải dữ liệu...</p>;
-  if (error) return <p>Có lỗi xảy ra: {error.message}</p>;
+  const handleDelete = async (id) => {
+    try {
+      await deleteProducts(id);
+      message.success("Xóa sản phẩm thành công!");
+      getProducts();
+    } catch (error) {
+      message.error("Lỗi khi xóa sản phẩm!");
+    }
+  };
+
+  const handleFilter = (value) => {
+    updateURL({ search: value, memory, status, brand });
+  };
+
+  const handleMemoryFilter = (value) => {
+    updateURL({ search, memory: value, status, brand });
+  };
+
+  const handleStatusFilter = (value) => {
+    updateURL({ search, memory, status: value, brand });
+  };
+
+  const handleBrandFilter = (value) => {
+    updateURL({ search, memory, status, brand: value });
+  };
+
+  const updateURL = (params) => {
+    const query = queryString.stringify(params);
+    navigate(`?${query}`, { replace: true });
+  };
+
+  const filterProducts = (search, memory, status, brand) => {
+    let filtered = products;
+
+    if (search) {
+      filtered = filtered.filter((p) => p.TenSP.toLowerCase().includes(search.toLowerCase()));
+    }
+
+    if (memory) {
+      filtered = filtered.filter((p) => p.BoNhoTrong1 === memory);
+    }
+
+    if (status) {
+      filtered = filtered.filter((p) => p.TrangThai === status);
+    }
+
+    if (brand) {
+      filtered = filtered.filter((p) => p.TenSP.startsWith(brand));
+    }
+
+    setFilteredProducts(filtered);
+  };
+
+  const columns = [
+    {
+      title: "STT",
+      key: "stt",
+      render: (text, record, index) => index + 1, // index bắt đầu từ 0, nên cộng thêm 1
+    },
+    { title: "Tên sản phẩm", dataIndex: "TenSP", key: "TenSP" },
+    { title: "Bộ nhớ", dataIndex: "BoNhoTrong1", key: "BoNhoTrong1" },
+    { title: "Trạng thái", dataIndex: "TrangThai", key: "TrangThai" },
+    {
+      title: "Hình ảnh",
+      dataIndex: "HinhAnh1",
+      key: "HinhAnh1",
+      render: (text) => <img src={text} alt="Hình ảnh sản phẩm" style={{ width: 50, height: 50 }} />,
+    },
+    {
+      title: "Chi tiết",
+      key: "action",
+      render: (text, record) => (
+        <Link to={`/admin/products/${record._id}`}>
+          <Button type="primary">Xem chi tiết</Button>
+        </Link>
+      ),
+    },
+    {
+      title: "Xóa",
+      key: "delete",
+      render: (text, record) => (
+        <Popconfirm
+          title="Bạn có chắc chắn muốn xóa sản phẩm này không?"
+          onConfirm={() => handleDelete(record._id)}
+          okText="Có"
+          cancelText="Không"
+        >
+          <Button type="primary" danger>Xóa</Button>
+        </Popconfirm>
+      ),
+    },
+  ];
 
   return (
     <div>
       <h2>Danh sách sản phẩm</h2>
-      <table className="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th scope="col">STT</th>
-            <th scope="col">Mã SP</th>
-            <th scope="col">Mã KM</th>
-            <th scope="col">Tên SP</th>
-            <th scope="col">Giá SP</th>
-            <th scope="col">Số Lượng</th>
-            <th scope="col">Hình Ảnh</th>
-            <th scope="col">Chọn màu</th>
-            <th scope="col">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((item, index) => (
-            <tr key={item._id}>
-              <th scope="row">{index + 1}</th>
-              <td>{item._id}</td>
-              <td>{item.MaKM || "Không có mã KM"}</td>
-              <td>{selectedVariants[item._id]?.name || item.TenSP1}</td>
-              <td>{formatCurrency(selectedVariants[item._id]?.price || item.GiaSP1)}</td>
-              <td>{selectedVariants[item._id]?.quantity || item.SoLuong1}</td>
-              <td>
-                <img
-                  src={selectedVariants[item._id]?.image || item.HinhAnh1}
-                  alt="Sản phẩm"
-                  width={79}
-                />
-              </td>
-              <td>
-                {/* Chọn màu cho sản phẩm */}
-                {item.HinhAnh1 && item.GiaSP1 && item.SoLuong1 && (
-                  <img
-                    src={item.HinhAnh1}
-                    alt="Màu 1"
-                    width={selectedVariants[item._id]?.image === item.HinhAnh1 ? 69 : 39}
-                    style={{
-                      cursor: "pointer",
-                      border: "1px solid gray",
-                      marginRight: 6,
-                      transition: "width 0.3s ease-in-out",
-                      borderRadius: "6px",
-                    }}
-                    onClick={() => handleVariantChange(item._id, item.HinhAnh1, item.GiaSP1, item.SoLuong1, item.TenSP1)}
-                  />
-                )}
-                {item.HinhAnh2 && item.GiaSP2 && item.SoLuong2 && (
-                  <img
-                    src={item.HinhAnh2}
-                    alt="Màu 2"
-                    width={selectedVariants[item._id]?.image === item.HinhAnh2 ? 69 : 39}
-                    style={{
-                      cursor: "pointer",
-                      border: "1px solid gray",
-                      marginRight: 6,
-                      transition: "width 0.3s ease-in-out",
-                      borderRadius: "6px",
-                    }}
-                    onClick={() => handleVariantChange(item._id, item.HinhAnh2, item.GiaSP2, item.SoLuong2, item.TenSP2)}
-                  />
-                )}
-                {item.HinhAnh3 && item.GiaSP3 && item.SoLuong3 && (
-                  <img
-                    src={item.HinhAnh3}
-                    alt="Màu 3"
-                    width={selectedVariants[item._id]?.image === item.HinhAnh3 ? 69 : 39}
-                    style={{
-                      cursor: "pointer",
-                      border: "1px solid gray",
-                      transition: "width 0.3s ease-in-out",
-                      borderRadius: "6px",
-                    }}
-                    onClick={() => handleVariantChange(item._id, item.HinhAnh3, item.GiaSP3, item.SoLuong3, item.TenSP3)}
-                  />
-                )}
-              </td>
-              <td>
-                <button className="btn btn-danger" onClick={() => removeItem(item._id)}>
-                  Xóa
-                </button>{" "}
-                <Link to={`/products/edit/${item._id}`}>
-                  <button className="btn btn-primary">Sửa</button>
-                </Link>{" "}
-                <Link to={`/products/detail/${item._id}`}>
-                  <button className="btn btn-primary">Chi tiết</button>
-                </Link>
-              </td>
-            </tr>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <Input
+          placeholder="Nhập tên sản phẩm..."
+          style={{ width: 300 }}
+          value={search}
+          onChange={(e) => handleFilter(e.target.value)}
+        />
+
+        <Select
+          placeholder="Lọc theo thương hiệu"
+          style={{ width: 200 }}
+          value={brand || undefined}
+          onChange={handleBrandFilter}
+          allowClear
+        >
+          {brands.map((b) => (
+            <Option key={b} value={b}>
+              {b}
+            </Option>
           ))}
-        </tbody>
-      </table>
+        </Select>
+
+        <Select
+          placeholder="Lọc theo bộ nhớ"
+          style={{ width: 200 }}
+          value={memory || undefined}
+          onChange={handleMemoryFilter}
+          allowClear
+        >
+          <Option value="64GB">64GB</Option>
+          <Option value="128GB">128GB</Option>
+          <Option value="256GB">256GB</Option>
+          <Option value="512GB">512GB</Option>
+          <Option value="1TB">1TB</Option>
+        </Select>
+
+        <Select
+          placeholder="Lọc theo trạng thái"
+          style={{ width: 200 }}
+          value={status || undefined}
+          onChange={handleStatusFilter}
+          allowClear
+        >
+          <Option value="Còn hàng">Còn hàng</Option>
+          <Option value="Hết hàng">Hết hàng</Option>
+        </Select>
+      </div>
+
+      <Link to="/admin/products/add">
+        <Button type="primary" style={{ marginBottom: 20 }}>
+          Thêm sản phẩm
+        </Button>
+      </Link>
+
+      <Table
+        dataSource={filteredProducts}
+        columns={columns}
+        rowKey="_id"
+        loading={loading}
+        bordered
+      />
     </div>
   );
 };

@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  redirect,
+} from "react-router-dom";
 import LayoutAdmin from "./pages/(admin)/LayoutAdmin";
 import DashBoard from "./pages/(admin)/DashBoard";
-import ProductsList from "./pages/(admin)/products/ProductsList";
-import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
 import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
+import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
+import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
 import CategoryList from "./pages/(admin)/categorys/CategoryList";
 import CategoryAdd from "./pages/(admin)/categorys/CategoryAdd";
 import CategoryUpdate from "./pages/(admin)/categorys/CategoryUpdate";
@@ -22,96 +26,238 @@ import OderList from "./pages/(admin)/orders/Oderlist";
 import Promotion from "./pages/(admin)/Promotion/Promotion";
 import UpdatePromotion from "./pages/(admin)/Promotion/UpdatePromotion";
 import AddPromotion from "./pages/(admin)/Promotion/AddPromotion";
-
+import LayoutWebsite from "./pages/(website)/LayoutWebsite";
+import "font-awesome/css/font-awesome.min.css";
+import HomePage from "./pages/(website)/HomePage";
+import ProductList from "./pages/(website)/Products/ProductList";
+import ProductDetail from "./pages/(website)/Products/ProductDetail";
+import LoginForm from "./pages/(website)/Users/login-form";
+import SignupForm from "./pages/(website)/Users/signup-form";
+import ForgotPassword from "./pages/(website)/Users/forgot-password";
+import ResetPassword from "./pages/(website)/Users/reset-password";
+import AccountPage from "./pages/(website)/Users/account";
+import ProfileResetPasswordPage from "./pages/(website)/Users/profile-reset-password";
+import AccountDetails from "./pages/(website)/Users/account-details";
+import ProfileReceipt from "./pages/(website)/Users/profile-receipt";
+import ProfileReceiptDetails from "./pages/(website)/Users/profile-receipt-detail";
+import Cart from "./pages/(website)/Cart/Cart";
+import AboutList from "./pages/(website)/about/AboutList";
+import Blogdefault from "./pages/(website)/Blog/blogdefault";
+import Blogsingle from "./pages/(website)/Blog/Blogsingle";
+import Checkcart from "./pages/(website)/Cart/Checkcart";
+import AdminLogin from "./pages/(admin)/Admin-Login";
+import DanhGia from "./pages/(admin)/danhgia/DanhGia";
+import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
+import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
+import ListContact from "./pages/(website)/contact/ListContact";
+import { getUserById } from "./service/api";
+import AddComment from "./pages/(admin)/comments/AddComment";
 function App() {
   const configRouter = createBrowserRouter([
     {
+      path: "/admin/login",
+      element: <AdminLogin />,
+    },
+    {
       element: <LayoutAdmin />,
+      // loader: async () => {
+      //   const token = localStorage.getItem("authToken");
+      //   if (!token) {
+      //     return redirect("/admin/login");
+      //   }
+      //   const userData = localStorage.getItem("userData");
+      //   if (!userData) {
+      //     return redirect("/admin/login");
+      //   }
+      //   try {
+      //     const user = JSON.parse(userData);
+      //     const response = await getUserById(user.id);
+      //     const userDetails = response.data;
+      //     if (userDetails.MaQuyen === 0) {
+      //       return redirect("/admin/login");
+      //     }
+      //     return null;
+      //   } catch (error) {
+      //     return redirect("/admin/login");
+      //   }
+      // },
       children: [
         {
-          path: "/",
+          path: "/adddanhgia",
+          element: <AddDanhgia />,
+        },
+        {
+          path: "/danhgia",
+          element: <DanhGia />,
+        },
+        {
+          path: "/admin/dashboard",
           element: <DashBoard />,
         },
         {
-          path: "/categorys",
+          path: "/admin/categorys",
           element: <CategoryList />,
         },
         {
-          path: "/categorys/addcategory",
+          path: "/admin/categorys/addcategory",
           element: <CategoryAdd />,
         },
         {
-          path: "/categorys/update/:id",
+          path: "/admin/categorys/update/:id",
           element: <CategoryUpdate />,
         },
         {
-          path: "/products",
-          element: <ProductsList />,
-        },
-        {
-          path: "/products/edit/:id",
-          element: <ProductsEdit />,
-        },
-
-        {
-          path: "/products/add",
+          path: "/admin/products/add",
           element: <ProductsAdd />,
         },
         {
-          path: "/products/detail/:id",
+          path: "/admin/products/edit/:id",
+          element: <ProductsEdit />,
+        },
+        {
+          path: "/admin/products/:id",
           element: <ProductsDetail />,
         },
         {
-          path: "/brands",
+          path: "/admin/products",
+          element: <ProductsList />,
+        },
+        {
+          path: "/admin/brands",
           element: <BrandList />,
         },
         {
-          path: "/brands/add",
+          path: "/admin/brands/add",
           element: <BrandAdd />,
         },
         {
-          path: "/brands/edit/:id",
+          path: "/admin/brands/edit/:id",
           element: <BrandEdit />,
         },
         {
-          path: "/brands/detail/:id",
+          path: "/admin/brands/detail/:id",
           element: <BrandDetail />,
         },
         {
-          path: "/accounts",
+          path: "/admin/accounts",
           element: <UserList />,
         },
         {
-          path: "/accounts/:id",
+          path: "/admin/accounts-details/:id",
           element: <UserDetails />,
         },
         {
-          path: "/comments",
+          path: "/admin/comments",
           element: <AdminListComment />,
         },
         {
-          path: "/comments/:id",
+          path: "/admin/comments/:id",
           element: <AdminDetailComment />,
         },
         {
-          path: "/orders",
+          path: "/admin/orders",
           element: <OderList />,
         },
         {
-          path: "/orders/:id",
+          path: "/admin/orders/:id",
           element: <OderDetail />,
         },
         {
-          path: "/vouchers",
+          path: "/admin/vouchers",
           element: <Promotion />,
         },
         {
-          path: "/vouchers/add",
+          path: "/admin/vouchers/add",
           element: <AddPromotion />,
         },
         {
-          path: "/vouchers/edit/:id",
+          path: "/admin/vouchers/edit/:id",
           element: <UpdatePromotion />,
+        },
+        {
+          path: "/addcomment",
+          element: <AddComment />,
+        },
+      ],
+    },
+    {
+      element: <LayoutWebsite />,
+      children: [
+        {
+          path: "/listdanhgia",
+          element: <ListDanhgia />,
+        },
+        {
+          path: "/checkcart",
+          element: <Checkcart />,
+        },
+        {
+          path: "/",
+          element: <HomePage />,
+        },
+        {
+          path: "/products",
+          element: <ProductList />,
+        },
+        {
+          path: "/products/product_detail/:id",
+          element: <ProductDetail />,
+        },
+        {
+          path: "/login",
+          element: <LoginForm />,
+        },
+        {
+          path: "/signup",
+          element: <SignupForm />,
+        },
+        {
+          path: "/forgot-password",
+          element: <ForgotPassword />,
+        },
+        {
+          path: "/reset-password",
+          element: <ResetPassword />,
+        },
+        {
+          path: "/account-details/:id",
+          element: <AccountDetails />,
+        },
+        {
+          path: "/account/:id",
+          element: <AccountPage />,
+        },
+        {
+          path: "/profile-receipt/:id",
+          element: <ProfileReceipt />,
+        },
+        {
+          path: "/profile-receipt-details/:id",
+          element: <ProfileReceiptDetails />,
+        },
+        {
+          path: "/profile-reset-password/:id",
+          element: <ProfileResetPasswordPage />,
+        },
+        {
+          path: "/cart",
+          element: <Cart />,
+        },
+        {
+          path: "/about",
+          element: <AboutList />,
+        },
+        {
+          path: "/blog",
+          element: <Blogdefault />,
+        },
+        {
+          path: "/blog/sigle",
+          element: <Blogsingle />,
+        },
+        {
+          path: "/contact",
+          element: <ListContact />,
         },
       ],
     },

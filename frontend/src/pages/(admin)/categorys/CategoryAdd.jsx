@@ -18,7 +18,7 @@ const CategoryAdd = () => {
     try {
       await createCategory({ TenDM: data.TenDM });
       message.success("Thêm danh mục thành công!");
-      navigate("/categorys");
+      navigate("/admin/categorys");
     } catch (error) {
       console.error("Lỗi khi thêm danh mục:", error.response?.data || error);
       message.error(error.response?.data?.message || "Thêm danh mục thất bại!");
@@ -50,7 +50,7 @@ const CategoryAdd = () => {
 
             {/* Nút hành động */}
             <div className="d-flex justify-content-between">
-              <Link to="/categorys" className="btn btn-secondary">
+              <Link to="/admin/categorys" className="btn btn-secondary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success">

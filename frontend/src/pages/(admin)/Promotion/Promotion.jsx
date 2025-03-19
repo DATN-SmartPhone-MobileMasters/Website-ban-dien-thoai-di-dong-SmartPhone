@@ -1,25 +1,28 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { deletePromotion, fetchPromotion } from "../../../service/api";
 
 const Promotion = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const getPromotions = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchPromotion();
+      setPromotions(response.data.data);
+    } catch (error) {
+      setError("Có lỗi khi lấy dữ liệu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/promotions")
-      .then((response) => {
-        setPromotions(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError("Có lỗi khi lấy dữ liệu.");
-        setLoading(false);
-      });
+    getPromotions();
   }, []);
 
   const handleDelete = (id) => {
@@ -29,51 +32,32 @@ const Promotion = () => {
       buttons: [
         {
           label: "Có",
-          onClick: () => {
-            axios
-              .delete(`http://localhost:5000/api/promotions/${id}`)
-              .then((response) => {
-                setPromotions((prev) =>
-                  prev.filter((promotion) => promotion._id !== id)
-                );
-                confirmAlert({
-                  title: "Xóa thành công",
-                  message: "Khuyến mãi đã được xóa thành công!",
-                  buttons: [
-                    {
-                      label: "OK",
-                      onClick: () => {},
-                    },
-                  ],
-                  closeOnEscape: true,
-                  closeOnClickOutside: true,
-                });
-              })
-              .catch((error) => {
-                alert("Có lỗi xảy ra khi xóa khuyến mãi.");
-                console.error(error);
-              });
+          onClick: async () => {
+            try {
+              await deletePromotion(id);
+              setPromotions((prev) =>
+                prev.filter((promotion) => promotion._id !== id)
+              );
+            } catch (error) {
+              alert("Có lỗi xảy ra khi xóa khuyến mãi.");
+            }
           },
         },
-        {
-          label: "Không",
-          onClick: () => {},
-        },
+        { label: "Không" },
       ],
-      closeOnEscape: true,
-      closeOnClickOutside: true,
     });
   };
+
   const getStatusLabel = (status) => {
     switch (status) {
       case 0:
-        return "Đang diễn ra";
+        return "🔵 Đang diễn ra";
       case 1:
-        return "Kết thúc";
+        return "🔴 Đã sử dụng";
       case 2:
-        return "Chưa bắt đầu";
+        return "🟡 Chưa bắt đầu";
       default:
-        return "Không xác định";
+        return "⚪ Không xác định";
     }
   };
 
@@ -81,9 +65,14 @@ const Promotion = () => {
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 text-gray-800">Danh Sách Khuyến Mãi</h1>
-        <Link className="btn btn-primary" to="/vouchers/add">
-          Thêm Khuyến Mãi
-        </Link>
+        <div>
+          <button className="btn btn-secondary me-2" onClick={getPromotions}>
+            🔄 Làm mới
+          </button>
+          <Link className="btn btn-primary" to="/admin/vouchers/add">
+            ➕ Thêm Khuyến Mãi
+          </Link>
+        </div>
       </div>
       <p className="mb-4">
         Đây là danh sách tất cả các khuyến mãi trong hệ thống.
@@ -108,16 +97,13 @@ const Promotion = () => {
               </div>
             )}
             {!loading && !error && (
-              <table
-                className="table table-bordered table-striped"
-                id="dataTable"
-              >
+              <table className="table table-bordered table-striped">
                 <thead>
                   <tr>
-                    <th>Mã Khuyến Mãi</th>
-                    <th>Tên Khuyến Mãi</th>
-                    <th>Loại Khuyến Mãi</th>
-                    <th>Giá Trị Khuyến Mãi</th>
+                    <th>Mã KM</th>
+                    <th>Tên KM</th>
+                    <th>Loại KM</th>
+                    <th>Giá Trị KM</th>
                     <th>Ngày Bắt Đầu</th>
                     <th>Ngày Kết Thúc</th>
                     <th>Trạng Thái</th>
@@ -125,23 +111,35 @@ const Promotion = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {promotions && promotions.length > 0 ? (
+                  {promotions.length > 0 ? (
                     promotions.map((promotion) => (
                       <tr key={promotion._id}>
                         <td>{promotion.MaKM}</td>
                         <td>{promotion.TenKM}</td>
-                        <td>{promotion.LoaiKM}</td>
-                        <td>{promotion.GiaTriKM}</td>
+                        <td>
+                          {promotion.LoaiKM === "percentage"
+                            ? "Giảm theo %"
+                            : "Giảm số tiền cố định"}
+                        </td>
+                        <td>
+                          {promotion.LoaiKM === "percentage"
+                            ? `${promotion.GiaTriKM}%`
+                            : `${promotion.GiaTriKM} VND`}
+                        </td>
                         <td>
                           {new Date(promotion.NgayBD).toLocaleDateString()}
                         </td>
                         <td>
                           {new Date(promotion.NgayKT).toLocaleDateString()}
                         </td>
-                        <td>{getStatusLabel(promotion.TrangThai)}</td>
+                        <td>
+                          <span className="badge bg-info">
+                            {getStatusLabel(promotion.TrangThai)}
+                          </span>
+                        </td>
                         <td className="d-flex justify-content-center gap-3">
                           <Link
-                            to={`/vouchers/edit/${promotion._id}`}
+                            to={`/admin/vouchers/edit/${promotion._id}`}
                             className="btn btn-warning btn-sm"
                           >
                             <i className="fas fa-edit"></i> Chỉnh Sửa

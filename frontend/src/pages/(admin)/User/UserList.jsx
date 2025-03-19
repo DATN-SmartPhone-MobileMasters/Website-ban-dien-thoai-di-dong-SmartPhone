@@ -1,57 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { fetchUsers, deleteUser } from '../../../service/api';
+import { fetchUsers,fetchOrdersByUserId, deleteUser } from '../../../service/api';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
-  const navigate = useNavigate();
 
- useEffect(() => {
-    fetchUsers()
-      .then((res) => setUsers(res.data || []))
-      .catch(console.error);
-      setUsers([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const usersRes = await fetchUsers();
+        const usersData = usersRes.data || [];
+
+        const usersWithOrders = await Promise.all(
+          usersData.map(async (user) => {
+            try {
+              const ordersRes = await fetchOrdersByUserId(user._id);
+              const activeOrders = ordersRes.data.data.filter(
+                (order) =>
+                  order.paymentStatus !== "Huỷ Đơn" &&
+                  order.paymentStatus !== "Hoàn thành"
+              );
+              return { ...user, hasActiveOrders: activeOrders.length > 0 };
+            } catch (error) {
+              console.error(`Error fetching orders for user ${user._id}:`, error);
+              return { ...user, hasActiveOrders: true }; 
+            }
+          })
+        );
+        setUsers(usersWithOrders);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setUsers([]);
+      }
+    };
+    fetchData();
   }, []);
 
 
   const handleDelete = async (id) => {
-    confirmAlert({
-      title: 'Xác nhận xóa',
-      message: 'Bạn có chắc muốn xoá tài khoản này?',
-      buttons: [
-        {
-          label: 'Có',
-          onClick: async () => {
-            try {
-              await deleteUser(id); 
-              setUsers(users.filter((user) => user._id !== id));
-            } catch (e) {
-              console.error(e);
-            }
+    try {
+      const user = users.find((u) => u._id === id);
+
+      confirmAlert({
+        title: 'Xác nhận xóa',
+        message: 'Bạn có chắc muốn xoá tài khoản này?',
+        buttons: [
+          {
+            label: 'Có',
+            onClick: async () => {
+              try {
+                await deleteUser(id);
+                setUsers(users.filter((user) => user._id !== id));
+              } catch (e) {
+                console.error(e);
+              }
+            },
           },
-        },
-        {
-          label: 'Không',
-          onClick: () => {},
-        },
-      ],
-      closeOnEscape: true,
-      closeOnClickOutside: true,
-    });
+          { label: 'Không' },
+        ],
+      });
+    } catch (error) {
+      console.error("Lỗi khi xoá người dùng:", error);
+    }
   };
 
-  const handleViewDetails = (id) => {
-    navigate(`/accounts/${id}`);
-  };
 
    if (!users || users.length === 0) { 
     return <div className="text-center mt-5">Loading...</div>;
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 min-w-[100vw]">
+    <div className="container mx-auto px-4 py-8">
       <h1 className="h3 mb-2 text-gray-800">User Management</h1>
       <div className="card shadow mb-4">
         <div className="card-header py-3">
@@ -83,20 +104,22 @@ const UserList = () => {
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
-                    <td>{user.MaQuyen === 1 ? "Admin" : "User"}</td>
+                    <td>
+                      {user.MaQuyen === 1 ? "Admin" : user.MaQuyen === 2 ? "Editor" : "User"}
+                    </td>
                     <td className="space-x-2">
-                      <button
-                        onClick={() => handleViewDetails(user._id)}
-                        className="btn btn-info ml-2"
-                      >
-                        Chi Tiết
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        className="btn btn-danger ml-2"
-                      >
-                        Xoá
-                      </button>
+                    <Link to={`/admin/accounts-details/${user._id}`} className="text-blue-500 hover:underline">
+                        <button className="btn btn-info ml-2">Chi tiết
+                          </button>
+                        </Link>
+                      {user.MaQuyen === 0 && !user.hasActiveOrders && (
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          className="btn btn-danger ml-2"
+                        >
+                          Xoá
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
