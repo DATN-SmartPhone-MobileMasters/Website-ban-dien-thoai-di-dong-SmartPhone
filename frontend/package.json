@@ -16,6 +16,7 @@
     "bcryptjs": "^3.0.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "chart.js": "^4.4.8",
     "cloudinary": "^2.5.1",
     "express-fileupload": "^1.5.1",
     "font-awesome": "^4.7.0",

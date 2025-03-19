@@ -116,6 +116,68 @@ class HoaDonController {
       });
     }
   }
+
+  // Thống kê doanh thu
+  async thongKeDoanhThu(req, res) {
+    try {
+      const doanhThuTheoNgay = await hoadon.aggregate([
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            tongDoanhThu: { $sum: "$total" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]);
+
+      const doanhThuTheoTuan = await hoadon.aggregate([
+        {
+          $group: {
+            _id: { $week: "$createdAt" }, // Lấy số tuần trong năm
+            tongDoanhThu: { $sum: "$total" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]);
+
+      const doanhThuTheoThang = await hoadon.aggregate([
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+            tongDoanhThu: { $sum: "$total" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]);
+
+      const doanhThuTheoNam = await hoadon.aggregate([
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y", date: "$createdAt" } },
+            tongDoanhThu: { $sum: "$total" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]);
+
+      const tongDoanhThuTheoNgay = doanhThuTheoNgay.reduce((acc, item) => acc + item.tongDoanhThu, 0);
+      const tongDoanhThuTheoTuan = doanhThuTheoTuan.reduce((acc, item) => acc + item.tongDoanhThu, 0);
+
+      res.status(200).json({
+        doanhThuTheoNgay,
+        doanhThuTheoTuan,
+        doanhThuTheoThang,
+        doanhThuTheoNam,
+        tongDoanhThuTheoNgay,
+        tongDoanhThuTheoTuan
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+
+
 }
 
 export default HoaDonController;

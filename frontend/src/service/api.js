@@ -1,8 +1,7 @@
 import axios from "axios";
 const API_URL = `http://localhost:5000/api`;
 
-//thương hiệu
-
+// thương hiệu
 export const fetchBrands = async () => axios.get(`${API_URL}/thuonghieus`);
 export const createBrand = async (data) =>
   axios.post(`${API_URL}/thuonghieus`, data);
@@ -26,7 +25,7 @@ export const deleteCategory = async (id) =>
 export const fetchCategoryById = async (id) =>
   axios.get(`${API_URL}/danhmucs/${id}`);
 
-//users
+// users
 export const loginUsers = async (data) =>
   axios.post(`${API_URL}/users/login`, data);
 export const signupUsers = async (data) =>
@@ -43,18 +42,22 @@ export const forgotPassword = async (data) =>
 export const resetPassword = async (data) =>
   axios.post(`${API_URL}/users/reset-password`, data);
 
-//hoadon
+// hoadon
 export const createOrder = async (data) =>
   axios.post(`${API_URL}/hoadons`, data);
 export const fetchOrders = async () =>
   axios.get(`${API_URL}/hoadons?timestamp=${Date.now()}`);
 export const fetchOrdersByUserId = async (userId) =>
-  axios.get(`${API_URL}/hoadons/user/${userId}`); // New function
+  axios.get(`${API_URL}/hoadons/user/${userId}`);
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
 export const updateOrder = async (id, data) =>
   axios.put(`${API_URL}/hoadons/${id}`, data);
 export const deleteOrder = async (id) =>
   axios.delete(`${API_URL}/hoadons/${id}`);
+
+// Thêm API lấy thống kê doanh thu
+export const fetchThongKeDoanhThu = async () =>
+  axios.get(`${API_URL}/hoadons/thongke/doanhthu`);
 
 // Comments
 export const fetchComments = async () => axios.get(`${API_URL}/comments`);
@@ -62,13 +65,14 @@ export const deleteComment = async (id) =>
   axios.delete(`${API_URL}/comments/${id}`);
 export const fetchCommentById = async (id) =>
   axios.get(`${API_URL}/comments/${id}`);
-export const createComment = async (data) => axios.post(`${API_URL}/comments`, data); 
+export const createComment = async (data) =>
+  axios.post(`${API_URL}/comments`, data);
 
-//chitiethoadon
+// chitiethoadon
 export const fetchChitiethoadons = async () =>
   axios.get(`${API_URL}/chitiethoadons`);
 
-//sanpham mobile
+// sanpham mobile
 export const uploadImage = async (data) =>
   axios.post(`${API_URL}/upload`, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -82,7 +86,7 @@ export const deleteProducts = async (id) =>
   axios.delete(`${API_URL}/sanphams/${id}`);
 export const getProducts = async (id) => axios.get(`${API_URL}/sanphams/${id}`);
 
-//
+// promotions
 export const fetchPromotion = async () => axios.get(`${API_URL}/promotions`);
 export const deletePromotion = async (id) =>
   axios.delete(`${API_URL}/promotions/${id}`);

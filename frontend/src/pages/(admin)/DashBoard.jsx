@@ -1,32 +1,90 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from 'react';
+import { fetchThongKeDoanhThu } from '../../service/api';
 import TopProducts from "./statistical/TopProducts";
+import { Chart, registerables } from 'chart.js';
+
+// Register the necessary components
+Chart.register(...registerables);
 
 const DashBoard = () => {
+  const [thongKeDoanhThu, setThongKeDoanhThu] = useState({
+    doanhThuTheoNgay: [],
+    doanhThuTheoTuan: [],
+    doanhThuTheoThang: [],
+    doanhThuTheoNam: [],
+    tongDoanhThuTheoNgay: 0,
+    tongDoanhThuTheoTuan: 0
+  });
+
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetchThongKeDoanhThu();
+        const data = response.data;
+        
+        setThongKeDoanhThu(data);
+      } catch (error) {
+        console.error('Lỗi khi lấy thống kê doanh thu:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (thongKeDoanhThu.doanhThuTheoNgay.length > 0) {
+      const ctx = document.getElementById('myAreaChart').getContext('2d');
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+      chartRef.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: thongKeDoanhThu.doanhThuTheoNgay.map(item => item._id),
+          datasets: [{
+            label: 'Doanh Thu Theo Ngày',
+            data: thongKeDoanhThu.doanhThuTheoNgay.map(item => item.tongDoanhThu),
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, [thongKeDoanhThu.doanhThuTheoNgay]);
+
   return (
     <>
       {/* Page Heading */}
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
-        <a
-          href="#"
-          className="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
-        >
-          <i className="fas fa-download fa-sm text-white-50" /> Generate Report
-        </a>
-      </div>
+      
       {/* Content Row */}
       <div className="row">
-        {/* Earnings (Monthly) Card Example */}
+        {/* Tuần */}
         <div className="col-xl-3 col-md-6 mb-4">
           <div className="card border-left-primary shadow h-100 py-2">
             <div className="card-body">
               <div className="row no-gutters align-items-center">
                 <div className="col mr-2">
                   <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                    Earnings (Monthly)
+                    Tuần: 
                   </div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    $40,000
+                  <p>{thongKeDoanhThu.tongDoanhThuTheoTuan.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
                   </div>
                 </div>
                 <div className="col-auto">
@@ -36,39 +94,26 @@ const DashBoard = () => {
             </div>
           </div>
         </div>
-        {/* Earnings (Monthly) Card Example */}
-        <div className="col-xl-3 col-md-6 mb-4">
-          <div className="card border-left-success shadow h-100 py-2">
-            <div className="card-body">
-              <div className="row no-gutters align-items-center">
-                <div className="col mr-2">
-                  <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                    Earnings (Annual)
-                  </div>
-                  <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    $215,000
-                  </div>
-                </div>
-                <div className="col-auto">
-                  <i className="fas fa-dollar-sign fa-2x text-gray-300" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Earnings (Monthly) Card Example */}
+       
+        {/* Tháng */}
         <div className="col-xl-3 col-md-6 mb-4">
           <div className="card border-left-info shadow h-100 py-2">
             <div className="card-body">
               <div className="row no-gutters align-items-center">
                 <div className="col mr-2">
                   <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
-                    Tasks
+                    Tháng: 
                   </div>
                   <div className="row no-gutters align-items-center">
                     <div className="col-auto">
                       <div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">
-                        50%
+                      <ul>
+                        {thongKeDoanhThu.doanhThuTheoThang.map((item) => (
+                          <li key={item._id}>
+                            {item._id}: {item.tongDoanhThu.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                          </li>
+                        ))}
+                      </ul>
                       </div>
                     </div>
                     <div className="col">
@@ -86,27 +131,33 @@ const DashBoard = () => {
                   </div>
                 </div>
                 <div className="col-auto">
-                  <i className="fas fa-clipboard-list fa-2x text-gray-300" />
+                <i className="fas fa-calendar fa-2x text-gray-300" />
                 </div>
               </div>
             </div>
           </div>
         </div>
-        {/* Pending Requests Card Example */}
+        {/* Năm */}
         <div className="col-xl-3 col-md-6 mb-4">
           <div className="card border-left-warning shadow h-100 py-2">
             <div className="card-body">
               <div className="row no-gutters align-items-center">
                 <div className="col mr-2">
                   <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                    Pending Requests
+                    Năm: 
                   </div>
                   <div className="h5 mb-0 font-weight-bold text-gray-800">
-                    18
+                  <ul>
+                    {thongKeDoanhThu.doanhThuTheoNam.map((item) => (
+                      <li key={item._id}>
+                        {item._id}: {item.tongDoanhThu.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                      </li>
+                    ))}
+                  </ul>
                   </div>
                 </div>
                 <div className="col-auto">
-                  <i className="fas fa-comments fa-2x text-gray-300" />
+                <i className="fas fa-calendar fa-2x text-gray-300" />
                 </div>
               </div>
             </div>
@@ -157,6 +208,16 @@ const DashBoard = () => {
             <div className="card-body">
               <div className="chart-area">
                 <canvas id="myAreaChart" />
+              </div>
+              <div>
+                <h2>Theo Ngày</h2>
+                <ul>
+                  {thongKeDoanhThu.doanhThuTheoNgay.map((item) => (
+                    <li key={item._id}>
+                      {item._id}: {item.tongDoanhThu.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>

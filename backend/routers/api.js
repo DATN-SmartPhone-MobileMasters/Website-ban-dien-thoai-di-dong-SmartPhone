@@ -33,6 +33,9 @@ apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
 apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
 
+// API thực hiện thống kê doanh thu
+apiRouter.get("/hoadons/thongke/doanhthu", HoaDonControl.thongKeDoanhThu);
+
 const sanPhamControl = new SanPhamController();
 // API thực hiện các chức năng sản phẩm
 apiRouter.get("/sanphams", sanPhamControl.apiList); // Lấy danh sách sản phẩm
@@ -73,4 +76,5 @@ apiRouter.get("/promotions/:id", PromotionControl.getDetailPromotion);
 apiRouter.post("/promotions", PromotionControl.createPromotion);
 apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
 apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
+
 export default apiRouter;
