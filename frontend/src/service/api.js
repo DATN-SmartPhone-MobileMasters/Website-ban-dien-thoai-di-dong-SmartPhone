@@ -109,3 +109,8 @@ export const deleteDanhGia = async (id) =>
   axios.delete(`${API_URL}/danhgias/${id}`);
 export const createDanhGia = async (data) =>
   axios.post(`${API_URL}/danhgias`, data);
+
+export const fetchRevenueByMonth = async (year) =>
+  axios.get(`${API_URL}/hoadons/revenue-by-month?year=${year}`);
+export const fetchRevenueByYear = async () =>
+  axios.get(`${API_URL}/hoadons/revenue-by-year`);
