@@ -120,7 +120,10 @@ class HoaDonController {
   // Thống kê doanh thu
   async thongKeDoanhThu(req, res) {
     try {
+      const matchCompletedOrders = { $match: { paymentStatus: "Hoàn thành" } };
+
       const doanhThuTheoNgay = await hoadon.aggregate([
+        matchCompletedOrders,
         {
           $group: {
             _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
@@ -131,6 +134,7 @@ class HoaDonController {
       ]);
 
       const doanhThuTheoTuan = await hoadon.aggregate([
+        matchCompletedOrders,
         {
           $group: {
             _id: { $week: "$createdAt" }, // Lấy số tuần trong năm
@@ -141,6 +145,7 @@ class HoaDonController {
       ]);
 
       const doanhThuTheoThang = await hoadon.aggregate([
+        matchCompletedOrders,
         {
           $group: {
             _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
@@ -151,6 +156,7 @@ class HoaDonController {
       ]);
 
       const doanhThuTheoNam = await hoadon.aggregate([
+        matchCompletedOrders,
         {
           $group: {
             _id: { $dateToString: { format: "%Y", date: "$createdAt" } },
