@@ -131,7 +131,10 @@ const ProfileReceipt = () => {
   const handleCancelOrder = async (orderId, products) => {
     try {
       await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
-      await updateProductQuantities(products, "add");
+      const order = orders.find(order => order._id === orderId);
+      if (order && order.paymentStatus === 'Đã Xác Nhận') {
+        await updateProductQuantities(products, "add");
+      }
       
       const response = await fetchOrdersByUserId(userData.id);
       setOrders(response.data.data);
