@@ -114,3 +114,5 @@ export const deleteDanhGia = async (id) =>
   axios.delete(`${API_URL}/danhgias/${id}`);
 export const createDanhGia = async (data) =>
   axios.post(`${API_URL}/danhgias`, data);
+export const updateDanhGia = async (id, data) =>
+  axios.put(`${API_URL}/danhgias/${id}`, data);

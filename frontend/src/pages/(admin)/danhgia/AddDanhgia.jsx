@@ -8,38 +8,35 @@ const AddDanhgia = ({ onAddSuccess }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Hàm xử lý khi submit form
+  const bannedWords = ["lừa đảo", "chiếm đoạt", "ăn cắp", "bốc phét"];
+  const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const containsBannedWords = (text) => bannedWords.some(word => normalizeText(text).includes(normalizeText(word)));
+
   const onFinish = async (values) => {
+    if (containsBannedWords(values.NoiDung)) {
+      message.error("Nội dung chứa từ ngữ không hợp lệ, vui lòng nhập lại!");
+      return;
+    }
+
     const token = localStorage.getItem('authToken');
-  
     if (!token) {
       confirmAlert({
         title: 'Yêu cầu đăng nhập',
         message: 'Bạn cần đăng nhập để thêm đánh giá!',
         buttons: [
-          {
-            label: 'Đăng nhập ngay',
-            onClick: () => navigate('/login')
-          },
-          {
-            label: 'Hủy',
-            onClick: () => {} // Không làm gì cả
-          }
+          { label: 'Đăng nhập ngay', onClick: () => navigate('/login') },
+          { label: 'Hủy', onClick: () => {} }
         ]
       });
       return;
     }
-  
+
     try {
       setLoading(true);
       await createDanhGia(values);
       message.success("Thêm đánh giá thành công!");
-  
-      if (onAddSuccess) {
-        onAddSuccess();
-      }
-  
-      navigate('/listdanhgia'); 
+      if (onAddSuccess) onAddSuccess();
+      navigate('/listdanhgia');
     } catch (error) {
       console.error("Lỗi khi thêm đánh giá:", error);
       message.error("Thêm đánh giá thất bại, thử lại sau!");
@@ -51,32 +48,16 @@ const AddDanhgia = ({ onAddSuccess }) => {
   return (
     <div style={{ padding: 20, width: '100%', maxWidth: 500, margin: '0 auto' }}>
       <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Đánh giá</h2>
-
       <Form layout="vertical" onFinish={onFinish}>
-        <Form.Item
-          label="Tên"
-          name="Ten"
-          rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
-        >
+        <Form.Item label="Tên" name="Ten" rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}>
           <Input placeholder="Nhập tên" />
         </Form.Item>
-
-        <Form.Item
-          label="Nội dung"
-          name="NoiDung"
-          rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
-        >
+        <Form.Item label="Nội dung" name="NoiDung" rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}>
           <Input.TextArea placeholder="Nhập nội dung" />
         </Form.Item>
-
-        <Form.Item
-          label="Đánh giá"
-          name="DanhGia"
-          rules={[{ required: true, message: 'Vui lòng chọn số sao!' }]}
-        >
+        <Form.Item label="Đánh giá" name="DanhGia" rules={[{ required: true, message: 'Vui lòng chọn số sao!' }]}>
           <Rate />
         </Form.Item>
-
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} style={{ width: '100%' }}>
             Thêm đánh giá

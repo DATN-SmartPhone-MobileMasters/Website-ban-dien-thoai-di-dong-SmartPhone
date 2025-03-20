@@ -50,6 +50,24 @@ class DanhGiaController {
       });
     }
   }
+
+  // Cập nhật đánh giá (ví dụ: trạng thái hiển thị)
+  async apiUpdate(req, res) {
+    try {
+      const id = req.params.id;
+      const updateData = req.body; // Dữ liệu cập nhật từ client
+      const updatedDanhGia = await danhgia.findByIdAndUpdate(id, updateData, { new: true });
+      res.status(200).json({
+        message: "Cập nhật đánh giá thành công",
+        data: updatedDanhGia,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi cập nhật đánh giá",
+        error: error.message,
+      });
+    }
+  }
 }
 
 export default DanhGiaController;

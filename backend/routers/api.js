@@ -15,6 +15,7 @@ const DanhGiaControl = new DanhGiaController();
 apiRouter.get("/danhgias", DanhGiaControl.apiList);
 apiRouter.delete("/danhgias/:id", DanhGiaControl.apiDelete);
 apiRouter.post("/danhgias", DanhGiaControl.apiCreate);
+apiRouter.put("/danhgias/:id", DanhGiaControl.apiUpdate);
 
 const DanhMucControl = new DanhMucController();
 //api thực hiện các chức năng danh mục
