@@ -24,8 +24,8 @@ const CustomTooltip = ({ active, payload }) => {
 const ThongKeDanhGia = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState(moment().year());
-  const [month, setMonth] = useState(null);
+  const [year, setYear] = useState(null); // Mặc định là "Tất cả năm"
+  const [month, setMonth] = useState(null); // Thêm giá trị null cho tháng "Tất cả tháng"
   const [availableYears, setAvailableYears] = useState([]);
 
   useEffect(() => {
@@ -44,18 +44,19 @@ const ThongKeDanhGia = () => {
           const formattedDate = date.format("YYYY-MM-DD");
           const star = Number(dg.DanhGia);
           yearsSet.add(date.year());
-          
-          if (date.year() !== year || (month !== null && date.month() + 1 !== month)) {
+
+          // Kiểm tra điều kiện lọc
+          if ((year !== null && date.year() !== year) || (month !== null && date.month() + 1 !== month)) {
             return;
           }
-          
+
           if (!starCountsByDate[formattedDate]) {
             starCountsByDate[formattedDate] = { date: formattedDate };
             [1, 2, 3, 4, 5].forEach((s) => {
               starCountsByDate[formattedDate][s] = 0;
             });
           }
-          
+
           starCountsByDate[formattedDate][star] += 1;
         });
 
@@ -80,17 +81,23 @@ const ThongKeDanhGia = () => {
     <div style={{ padding: 20 }}>
       <h2 style={{ textAlign: 'center' }}>Thống kê số lượng đánh giá theo ngày</h2>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+        {/* Dropdown chọn năm */}
         <Select value={year} onChange={setYear} style={{ width: 120, marginRight: 10 }}>
+          <Option value={null}>Tất cả năm</Option>
           {availableYears.map((y) => (
             <Option key={y} value={y}>{y}</Option>
           ))}
         </Select>
+
+        {/* Dropdown chọn tháng */}
         <Select value={month} onChange={setMonth} style={{ width: 120 }} allowClear placeholder="Chọn tháng">
+          <Option value={null}>Tất cả tháng</Option> {/* Thêm tùy chọn "Tất cả tháng" */}
           {[...Array(12)].map((_, index) => (
             <Option key={index + 1} value={index + 1}>{index + 1}</Option>
           ))}
         </Select>
       </div>
+
       {loading ? (
         <Spin size="large" style={{ display: 'block', textAlign: 'center', marginTop: 50 }} />
       ) : (
