@@ -2,7 +2,7 @@ import React from 'react';
 import TopProducts from "./statistical/TopProducts";
 import { Chart, registerables } from 'chart.js';
 import ThongKe from './statistical/ThongKe';
-
+import ThongKeDanhGia from './statistical/ThongKeDanhGia';
 // Đăng ký các component cần thiết của Chart.js
 Chart.register(...registerables);
 
@@ -21,6 +21,11 @@ const DashBoard = () => {
         <div className="bg-white shadow-lg rounded-lg p-6">
           <h6 className="text-lg font-bold text-blue-800 mb-4">Thống kê sản phẩm bán chạy</h6>
           <TopProducts />
+        </div>
+
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <h6 className="text-lg font-bold text-blue-800 mb-4">Thống kê đánh giá của hàng</h6>
+          <ThongKeDanhGia />
         </div>
 
       </div>
