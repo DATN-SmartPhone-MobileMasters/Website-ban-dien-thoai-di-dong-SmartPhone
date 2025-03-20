@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Table, Tag, Button, message } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import axios from 'axios';
-
+const API_URL = `http://localhost:5000/api`;
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ const ProfileReceipt = () => {
         let updatedQuantity1 = data.data.SoLuong1;
         let updatedQuantity2 = data.data.SoLuong2;
         let updatedQuantity3 = data.data.SoLuong3;
-
+        console.log(updatedQuantity1,updatedQuantity2,updatedQuantity3)
         if (product.memory === data.data.BoNhoTrong1) {
           updatedQuantity1 =
             action === "subtract"
