@@ -37,6 +37,11 @@ const ProductDetail = () => {
   const userData = JSON.parse(localStorage.getItem("userData"));
   const email = userData?.Email;
   const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
+  const [displayedComments, setDisplayedComments] = useState(5);
+
+  const handleShowMore = () => {
+    setDisplayedComments(comments.length); // Hiển thị tất cả bình luận
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -407,6 +412,8 @@ const ProductDetail = () => {
         <div className="col-12 mt-4">
           <SellerProducts />
         </div>
+
+        {/* phnaaf comment*/}
         <div className="col-12 mt-4">
           <div className="card shadow-sm p-4 bg-light">
             <h3 className="mb-4">
@@ -450,7 +457,7 @@ const ProductDetail = () => {
               BÌNH LUẬN ĐÃ CÓ
             </h3>
             {comments.length > 0 ? (
-              comments.map((comment, index) => (
+              comments.slice(0, displayedComments).map((comment, index) => (
                 <div key={index} className="mb-3">
                   <p>
                     <strong>{comment.Email}</strong> -{" "}
@@ -464,6 +471,11 @@ const ProductDetail = () => {
               ))
             ) : (
               <p>Chưa có bình luận nào.</p>
+            )}
+            {displayedComments < comments.length && (
+              <button onClick={handleShowMore} className="btn btn-link mt-3">
+                <Button>Hiển thị thêm bình luận</Button>
+              </button>
             )}
           </div>
         </div>
