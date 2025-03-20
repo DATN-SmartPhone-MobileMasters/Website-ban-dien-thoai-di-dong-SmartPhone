@@ -1,102 +1,198 @@
 import React, { useEffect, useState } from "react";
-import { message } from "antd";
-import { fetchOrders } from "../../../service/api";
+import axios from "axios";
+import { Bar } from "react-chartjs-2";
+import { Chart, registerables } from "chart.js";
+import "react-confirm-alert/src/react-confirm-alert.css";
+
+Chart.register(...registerables);
+
+const API_URL = "http://localhost:5000/api";
 
 const TopProducts = () => {
   const [hoaDons, setHoaDons] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
+  const [productStats, setProductStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState({ year: "", month: "", day: "" });
+  const [availableYears, setAvailableYears] = useState(new Set()); // Sử dụng Set để lưu các năm có sẵn
 
   useEffect(() => {
-    const getHoaDons = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetchOrders();
-        setHoaDons(response.data.data || []);
+        const { data } = await axios.get(`${API_URL}/hoadons`);
+        setHoaDons(data.data);
+
+        // Trích xuất các năm từ dữ liệu hóa đơn
+        const years = new Set();
+        data.data.forEach((hoaDon) => {
+          const year = new Date(hoaDon.createdAt).getFullYear();
+          years.add(year);
+        });
+        setAvailableYears(years); // Cập nhật danh sách năm
       } catch (error) {
-        console.error("Lỗi khi tải danh sách hóa đơn:", error);
-        message.error("Lỗi khi tải danh sách hóa đơn!");
+        console.error("Lỗi khi lấy danh sách hóa đơn:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    getHoaDons();
+    fetchData();
   }, []);
 
   useEffect(() => {
-    const calculateTopProducts = () => {
-      const productMap = {};
+    const calculateProductStats = () => {
+      const stats = {};
 
       hoaDons.forEach((hoaDon) => {
-        hoaDon.products.forEach((product) => {
-          if (productMap[product.name]) {
-            productMap[product.name].quantity += product.quantity;
-          } else {
-            productMap[product.name] = {
-              name: product.name,
-              image: product.image,
-              quantity: product.quantity,
-            };
+        if (hoaDon.paymentStatus === "Hoàn thành") {
+          const date = new Date(hoaDon.createdAt);
+          const year = date.getFullYear();
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+
+          // Kiểm tra xem hóa đơn có phù hợp với bộ lọc không
+          if (
+            (filter.year === "" || year === parseInt(filter.year)) &&
+            (filter.month === "" || month === parseInt(filter.month)) &&
+            (filter.day === "" || day === parseInt(filter.day))
+          ) {
+            hoaDon.products.forEach((product) => {
+              const key = `${year}-${month}-${day}`;
+
+              if (!stats[key]) {
+                stats[key] = {};
+              }
+
+              if (!stats[key][product.name]) {
+                stats[key][product.name] = 0;
+              }
+
+              stats[key][product.name] += product.quantity;
+            });
           }
-        });
+        }
       });
 
-      const sortedProducts = Object.values(productMap).sort(
-        (a, b) => b.quantity - a.quantity
-      );
-
-      setTopProducts(sortedProducts);
+      setProductStats(stats);
     };
 
-    calculateTopProducts();
-  }, [hoaDons]);
+    calculateProductStats();
+  }, [hoaDons, filter]);
+
+  const getChartData = () => {
+    const labels = Object.keys(productStats).sort();
+    const datasets = [];
+
+    // Lấy danh sách tất cả sản phẩm
+    const productNames = new Set();
+    Object.values(productStats).forEach((dailyStats) => {
+      Object.keys(dailyStats).forEach((productName) => {
+        productNames.add(productName);
+      });
+    });
+
+    productNames.forEach((productName) => {
+      const data = labels.map((label) => productStats[label][productName] || 0);
+      datasets.push({
+        label: productName,
+        data,
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      });
+    });
+
+    return {
+      labels,
+      datasets,
+    };
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilter((prev) => ({ ...prev, [name]: value }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-50 to-gray-50">
+        <div className="text-center">
+          <div className="spinner-border text-blue-600" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-2 text-blue-800">Đang tải thông tin thống kê...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="col-xl-12 col-lg-12 mb-4">
-      <div className="card shadow mb-4">
-        <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 className="m-0 font-weight-bold text-primary">
-            Sản phẩm được mua nhiều nhất
-          </h6>
+    <div className="w-full">
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <h6 className="text-lg font-bold text-blue-800 mb-4">Sản phẩm bán chạy</h6>
+
+        {/* Bộ lọc theo ngày, tháng, năm */}
+        <div className="flex gap-4 mb-6">
+          <select
+            name="year"
+            value={filter.year}
+            onChange={handleFilterChange}
+            className="p-2 border border-blue-200 rounded"
+          >
+            <option value="">Chọn năm</option>
+            {Array.from(availableYears).map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+          <select
+            name="month"
+            value={filter.month}
+            onChange={handleFilterChange}
+            className="p-2 border border-blue-200 rounded"
+          >
+            <option value="">Chọn tháng</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                Tháng {i + 1}
+              </option>
+            ))}
+          </select>
+          <select
+            name="day"
+            value={filter.day}
+            onChange={handleFilterChange}
+            className="p-2 border border-blue-200 rounded"
+          >
+            <option value="">Chọn ngày</option>
+            {Array.from({ length: 31 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                Ngày {i + 1}
+              </option>
+            ))}
+          </select>
         </div>
-        <div className="card-body">
-          {topProducts.length > 0 ? (
-            <div
-              className="d-flex flex-wrap justify-content-start"
-              style={{ gap: "16px", width: "100%" }}
-            >
-              {topProducts.map((product, index) => (
-                <div
-                  key={index}
-                  className="d-flex align-items-center gap-3"
-                  style={{
-                    flex: "1 1 calc(25% - 16px)", 
-                    minWidth: "200px", 
-                    padding: "12px",
-                    border: "2px solid #ddd",
-                    borderRadius: "10px",
-                  }}
-                >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    style={{
-                      width: "80px",
-                      height: "80px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <div>
-                    <p className="font-weight-bold" style={{ margin: 0 }}>
-                      {product.name}
-                    </p>
-                    <p style={{ margin: 0, color: "#666" }}>
-                      Số lượng: {product.quantity}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center">Không có dữ liệu sản phẩm.</p>
-          )}
+
+        {/* Biểu đồ */}
+        <div className="w-full h-[500px]">
+          <Bar
+            data={getChartData()}
+            options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true },
+              },
+              scales: {
+                x: {
+                  ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 },
+                },
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            }}
+          />
         </div>
       </div>
     </div>
