@@ -1,130 +1,30 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React from 'react';
 import TopProducts from "./statistical/TopProducts";
 import { Chart, registerables } from 'chart.js';
 import ThongKe from './statistical/ThongKe';
 
-
-
-// Register the necessary components
+// Đăng ký các component cần thiết của Chart.js
 Chart.register(...registerables);
 
 const DashBoard = () => {
   return (
-    <>
-      {/* Page Heading */}
-      
-      {/* Content Row */}
-     
-      {/* Content Row */}
-      <div className="row">
-        {/* Area Chart */}
-        <div className="col-xl-8 col-lg-7" style={{ flex: '0 0 65%' }}>
-          <div className="card shadow mb-4">
-            {/* Card Header - Dropdown */}
-            <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-              <h6 className="m-0 font-weight-bold text-primary">
-                Earnings Overview
-              </h6>
-              
-              <div className="dropdown no-arrow">
-                <a
-                  className="dropdown-toggle"
-                  href="#"
-                  role="button"
-                  id="dropdownMenuLink"
-                  data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
-                </a>
-                <div
-                  className="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                  aria-labelledby="dropdownMenuLink"
-                >
-                  <div className="dropdown-header">Dropdown Header:</div>
-                  <a className="dropdown-item" href="#">
-                    Action
-                  </a>
-                  <a className="dropdown-item" href="#">
-                    Another action
-                  </a>
-                  <div className="dropdown-divider" />
-                  <a className="dropdown-item" href="#">
-                    Something else here
-                  </a>
-                </div>
-              </div>
-            </div>
-            {/* Card Body */}
-            <div className="card-body">
-              <ThongKe />
-              
-            </div>
-          </div>
+    <div className="w-full px-4">
+      <div className="grid grid-cols-1 gap-6">
+        
+        {/* Biểu đồ thống kê */}
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <h6 className="text-lg font-bold text-blue-800 mb-4">Thống kê doanh thu</h6>
+          <ThongKe />
         </div>
-        {/* Pie Chart */}
-        <div className="col-xl-4 col-lg-5" style={{ flex: '0 0 35%' }}>
-          <div className="card shadow mb-4">
-            {/* Card Header - Dropdown */}
-            <div className="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-              <h6 className="m-0 font-weight-bold text-primary">
-                Revenue Sources
-              </h6>
 
-              <div className="dropdown no-arrow">
-                <a
-                  className="dropdown-toggle"
-                  href="#"
-                  role="button"
-                  id="dropdownMenuLink"
-                  data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  <i className="fas fa-ellipsis-v fa-sm fa-fw text-gray-400" />
-                </a>
-                <div
-                  className="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                  aria-labelledby="dropdownMenuLink"
-                >
-                  <div className="dropdown-header">Dropdown Header:</div>
-                  <a className="dropdown-item" href="#">
-                    Action
-                  </a>
-                  <a className="dropdown-item" href="#">
-                    Another action
-                  </a>
-                  <div className="dropdown-divider" />
-                  <a className="dropdown-item" href="#">
-                    Something else here
-                  </a>
-                </div>
-              </div>
-            </div>
-            {/* Card Body */}
-            <div className="card-body">
-              <TopProducts />
-              <div className="chart-pie pt-4 pb-2">
-                <canvas id="myPieChart" />
-              </div>
-              <div className="mt-4 text-center small">
-                <span className="mr-2">
-                  <i className="fas fa-circle text-primary" />
-                  Direct
-                </span>
-                <span className="mr-2">
-                  <i className="fas fa-circle text-success" /> Social
-                </span>
-                <span className="mr-2">
-                  <i className="fas fa-circle text-info" /> Referral
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Danh sách sản phẩm top */}
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <h6 className="text-lg font-bold text-blue-800 mb-4">Thống kê sản phẩm bán chạy</h6>
+          <TopProducts />
         </div>
+
       </div>
-    </>
+    </div>
   );
 };
 
