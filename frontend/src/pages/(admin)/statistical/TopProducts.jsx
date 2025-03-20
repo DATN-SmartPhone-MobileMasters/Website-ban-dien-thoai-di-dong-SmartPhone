@@ -66,8 +66,8 @@ const TopProducts = () => {
                   key={index}
                   className="d-flex align-items-center gap-3"
                   style={{
-                    flex: "1 1 calc(25% - 16px)", // Mỗi card chiếm 25% chiều rộng (trừ đi khoảng cách)
-                    minWidth: "200px", // Đảm bảo card không quá nhỏ
+                    flex: "1 1 calc(25% - 16px)", 
+                    minWidth: "200px", 
                     padding: "12px",
                     border: "2px solid #ddd",
                     borderRadius: "10px",

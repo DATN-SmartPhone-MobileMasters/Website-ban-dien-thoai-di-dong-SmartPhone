@@ -60,27 +60,27 @@ function App() {
     },
     {
       element: <LayoutAdmin />,
-      // loader: async () => {
-      //   const token = localStorage.getItem("authToken");
-      //   if (!token) {
-      //     return redirect("/admin/login");
-      //   }
-      //   const userData = localStorage.getItem("userData");
-      //   if (!userData) {
-      //     return redirect("/admin/login");
-      //   }
-      //   try {
-      //     const user = JSON.parse(userData);
-      //     const response = await getUserById(user.id);
-      //     const userDetails = response.data;
-      //     if (userDetails.MaQuyen === 0) {
-      //       return redirect("/admin/login");
-      //     }
-      //     return null;
-      //   } catch (error) {
-      //     return redirect("/admin/login");
-      //   }
-      // },
+      loader: async () => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          return redirect("/admin/login");
+        }
+        const userData = localStorage.getItem("userData");
+        if (!userData) {
+          return redirect("/admin/login");
+        }
+        try {
+          const user = JSON.parse(userData);
+          const response = await getUserById(user.id);
+          const userDetails = response.data;
+          if (userDetails.MaQuyen === 0) {
+            return redirect("/admin/login");
+          }
+          return null;
+        } catch (error) {
+          return redirect("/admin/login");
+        }
+      },
       children: [
         {
           path: "/adddanhgia",
