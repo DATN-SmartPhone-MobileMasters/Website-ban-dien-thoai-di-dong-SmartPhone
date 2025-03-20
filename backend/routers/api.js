@@ -74,9 +74,4 @@ apiRouter.post("/promotions", PromotionControl.createPromotion);
 apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
 apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
 
-// Thống kê
-// Thống kê doanh thu
-apiRouter.get("/hoadons/revenue/monthly", HoaDonControl.apiRevenueByMonth);
-apiRouter.get("/hoadons/revenue/yearly", HoaDonControl.apiRevenueByYear);
-
 export default apiRouter;
