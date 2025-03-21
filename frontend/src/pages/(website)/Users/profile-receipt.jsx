@@ -9,6 +9,29 @@ const API_URL = `http://localhost:5000/api`;
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hiddenReviews, setHiddenReviews] = useState(() => {
+    return JSON.parse(localStorage.getItem("hiddenReviews")) || {};
+  });
+  
+  useEffect(() => {
+    const timers = {};
+  
+    orders.forEach((order) => {
+      if (order.paymentStatus === 'Hoàn thành' && !hiddenReviews[order._id]) {
+        timers[order._id] = setTimeout(() => {
+          setHiddenReviews((prev) => {
+            const updated = { ...prev, [order._id]: true };
+            localStorage.setItem("hiddenReviews", JSON.stringify(updated)); 
+            return updated;
+          });
+        }, 60000); // 1 phút
+      }
+    });
+  
+    return () => {
+      Object.values(timers).forEach(clearTimeout);
+    };
+  }, [orders, hiddenReviews]);
   const [userData, setUserData] = useState({
     Email: '',
     id: '',
@@ -96,13 +119,13 @@ const ProfileReceipt = () => {
       title: 'Đánh giá',
       key: 'review',
       render: (_, record) => (
-        record.paymentStatus === 'Hoàn thành' && (!reviewedOrders[record._id] || reviewedOrders[record._id] < 1) && (
+        record.paymentStatus === 'Hoàn thành' &&
+        !hiddenReviews[record._id] && ( // Kiểm tra trạng thái ẩn
           <Link
             to={{
               pathname: `/listdanhgia`,
               state: { products: record.products, orderId: record._id },
             }}
-            onClick={() => handleReviewClick(record._id)}
           >
             <Button type="primary">Đánh giá</Button>
           </Link>
