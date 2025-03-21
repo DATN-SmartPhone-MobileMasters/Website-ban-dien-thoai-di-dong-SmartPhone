@@ -96,7 +96,7 @@ const ProfileReceipt = () => {
       title: 'Đánh giá',
       key: 'review',
       render: (_, record) => (
-        record.paymentStatus === 'Hoàn thành' && (!reviewedOrders[record._id] || reviewedOrders[record._id] < 2) && (
+        record.paymentStatus === 'Hoàn thành' && (!reviewedOrders[record._id] || reviewedOrders[record._id] < 1) && (
           <Link
             to={{
               pathname: `/listdanhgia`,
