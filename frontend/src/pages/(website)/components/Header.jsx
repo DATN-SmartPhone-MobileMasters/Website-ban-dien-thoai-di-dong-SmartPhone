@@ -286,7 +286,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link to="/listdanhgia" className="py-4 inline-block text-white">
+              <Link to="/listdanhgia2" className="py-4 inline-block text-white">
                 Đánh giá
               </Link>
             </li>
