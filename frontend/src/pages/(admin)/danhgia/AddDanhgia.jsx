@@ -4,7 +4,7 @@ import { Form, Input, Button, Rate, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { createDanhGia } from '../../../service/api';
 
-const AddDanhgia = ({ onAddSuccess }) => {
+const AddDanhgia = ({ orderId }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -33,10 +33,16 @@ const AddDanhgia = ({ onAddSuccess }) => {
 
     try {
       setLoading(true);
-      await createDanhGia(values);
+      await createDanhGia({ ...values, orderId });
       message.success("Thêm đánh giá thành công!");
-      if (onAddSuccess) onAddSuccess();
-      navigate('/listdanhgia');
+
+      // Cập nhật localStorage để đánh dấu đơn hàng đã được đánh giá
+      const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || {});
+      reviewedOrders[orderId] = true; // Đánh dấu đơn hàng đã được đánh giá
+      localStorage.setItem('reviewedOrders', JSON.stringify(reviewedOrders));
+
+      // Chuyển hướng về trang ProfileReceipt
+      navigate('/listdanhgia2');
     } catch (error) {
       console.error("Lỗi khi thêm đánh giá:", error);
       message.error("Thêm đánh giá thất bại, thử lại sau!");

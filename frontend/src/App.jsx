@@ -49,6 +49,7 @@ import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
 import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
 import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
+import ListDanhgia2 from "./pages/(website)/danhgia/ListDanhgia2";
 import ListContact from "./pages/(website)/contact/ListContact";
 import { getUserById } from "./service/api";
 import AddComment from "./pages/(admin)/comments/AddComment";
@@ -183,6 +184,10 @@ function App() {
     {
       element: <LayoutWebsite />,
       children: [
+        {
+          path: "/listdanhgia2",
+          element: <ListDanhgia2 />,
+        },
         {
           path: "/listdanhgia",
           element: <ListDanhgia />,
