@@ -40,12 +40,11 @@ const Orderdetail = () => {
                 paymentStatus: newStatus,
               });
   
-              // Nếu trạng thái là "Đã Xác Nhận", trừ số lượng sản phẩm
+
               if (newStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "subtract");
               }
   
-              // Nếu trạng thái là "Huỷ Đơn" và đơn hàng đang ở trạng thái "Đã Xác Nhận", trả lại số lượng sản phẩm
               if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "add");
               }
