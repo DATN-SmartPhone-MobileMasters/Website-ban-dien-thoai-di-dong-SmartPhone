@@ -35,20 +35,20 @@ const Orderdetail = () => {
           label: "Có",
           onClick: async () => {
             try {
+              // Cập nhật trạng thái đơn hàng
               await axios.put(`${API_URL}/hoadons/${id}`, {
                 paymentStatus: newStatus,
               });
+  
 
-              // Nếu trạng thái là "Đã Xác Nhận", trừ số lượng sản phẩm
               if (newStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "subtract");
               }
-
-              // Nếu trạng thái là "Huỷ Đơn", trả lại số lượng sản phẩm
-              if (newStatus === "Huỷ Đơn") {
+  
+              if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "add");
               }
-
+  
               alert("Cập nhật trạng thái thành công!");
               navigate("/admin/orders");
             } catch (error) {
@@ -59,7 +59,7 @@ const Orderdetail = () => {
         },
         {
           label: "Không",
-          onClick: () => {}, // Do nothing if "No" is clicked
+          onClick: () => {}, 
         },
       ],
     });

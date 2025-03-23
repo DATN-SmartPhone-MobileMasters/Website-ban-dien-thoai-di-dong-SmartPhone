@@ -15,6 +15,7 @@ const DanhGiaControl = new DanhGiaController();
 apiRouter.get("/danhgias", DanhGiaControl.apiList);
 apiRouter.delete("/danhgias/:id", DanhGiaControl.apiDelete);
 apiRouter.post("/danhgias", DanhGiaControl.apiCreate);
+apiRouter.put("/danhgias/:id", DanhGiaControl.apiUpdate);
 
 const DanhMucControl = new DanhMucController();
 //api thực hiện các chức năng danh mục
@@ -32,6 +33,9 @@ apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bả
 apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
 apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
+
+// API thực hiện thống kê doanh thu
+apiRouter.get("/hoadons/thongke/doanhthu", HoaDonControl.thongKeDoanhThu);
 
 const sanPhamControl = new SanPhamController();
 // API thực hiện các chức năng sản phẩm

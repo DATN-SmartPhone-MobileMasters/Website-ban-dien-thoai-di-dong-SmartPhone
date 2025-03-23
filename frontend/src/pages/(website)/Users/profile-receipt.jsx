@@ -4,19 +4,48 @@ import { Table, Tag, Button, message } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import axios from 'axios';
 
+const API_URL = `http://localhost:5000/api`;
+
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hiddenReviews, setHiddenReviews] = useState(() => {
+    return JSON.parse(localStorage.getItem("hiddenReviews")) || {};
+  });
+  
+  useEffect(() => {
+    const timers = {};
+  
+    orders.forEach((order) => {
+      if (order.paymentStatus === 'Hoàn thành' && !hiddenReviews[order._id]) {
+        timers[order._id] = setTimeout(() => {
+          setHiddenReviews((prev) => {
+            const updated = { ...prev, [order._id]: true };
+            localStorage.setItem("hiddenReviews", JSON.stringify(updated)); 
+            return updated;
+          });
+        }, 60000); // 1 phút
+      }
+    });
+  
+    return () => {
+      Object.values(timers).forEach(clearTimeout);
+    };
+  }, [orders, hiddenReviews]);
   const [userData, setUserData] = useState({
     Email: '',
     id: '',
   });
+  const [reviewedOrders, setReviewedOrders] = useState({});
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
+    const storedReviewedOrders = localStorage.getItem('reviewedOrders');
     if (storedUserData) {
-      const parsedUserData = JSON.parse(storedUserData);
-      setUserData(parsedUserData);
+      setUserData(JSON.parse(storedUserData));
+    }
+    if (storedReviewedOrders) {
+      setReviewedOrders(JSON.parse(storedReviewedOrders));
     }
   }, []);
 
@@ -26,18 +55,18 @@ const ProfileReceipt = () => {
       dataIndex: '_id',
       key: '_id',
       width: 200,
-      render: (text) => <span className="font-medium">{text}</span>
+      render: (text) => <span className="font-medium">{text}</span>,
     },
     {
       title: 'Tên khách hàng',
       dataIndex: ['shippingInfo', 'name'],
-      key: 'name'
+      key: 'name',
     },
     {
       title: 'Ngày đặt hàng',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date) => new Date(date).toLocaleDateString()
+      render: (date) => new Date(date).toLocaleDateString(),
     },
     {
       title: 'Chi tiết đơn hàng',
@@ -48,7 +77,7 @@ const ProfileReceipt = () => {
             Xem chi tiết
           </Button>
         </Link>
-      )
+      ),
     },
     {
       title: 'Tình trạng đơn hàng',
@@ -66,64 +95,84 @@ const ProfileReceipt = () => {
           case 'Huỷ Đơn':
             color = 'red';
             break;
+          case 'Hoàn thành':
+            color = 'blue';
+            break;
           default:
             color = 'gray';
         }
         return <Tag color={color}>{status}</Tag>;
-      }
+      },
     },
     {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
         (record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-          <Button 
-            danger 
-            onClick={() => handleCancelOrder(record._id, record.products)}
-          >
+          <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
             Huỷ đơn
           </Button>
         )
-      )
-    }
+      ),
+    },
+    {
+      title: 'Đánh giá',
+      key: 'review',
+      render: (_, record) => (
+        record.paymentStatus === 'Hoàn thành' &&
+        !hiddenReviews[record._id] && ( // Kiểm tra trạng thái ẩn
+          <Link
+            to={{
+              pathname: `/listdanhgia`,
+              state: { products: record.products, orderId: record._id },
+            }}
+          >
+            <Button type="primary">Đánh giá</Button>
+          </Link>
+        )
+      ),
+    },
   ];
 
-    const updateProductQuantities = async (products, action) => {
+  const handleReviewClick = (orderId) => {
+    const updatedReviewedOrders = { ...reviewedOrders };
+    updatedReviewedOrders[orderId] = (updatedReviewedOrders[orderId] || 0) + 1;
+    setReviewedOrders(updatedReviewedOrders);
+    localStorage.setItem('reviewedOrders', JSON.stringify(updatedReviewedOrders));
+  };
+
+  const updateProductQuantities = async (products, action) => {
     for (const product of products) {
       try {
-        // Lấy thông tin sản phẩm hiện tại
         const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
-
-        // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
         let updatedQuantity1 = data.data.SoLuong1;
         let updatedQuantity2 = data.data.SoLuong2;
         let updatedQuantity3 = data.data.SoLuong3;
 
         if (product.memory === data.data.BoNhoTrong1) {
           updatedQuantity1 =
-            action === "subtract"
+            action === 'subtract'
               ? data.data.SoLuong1 - product.quantity
               : data.data.SoLuong1 + product.quantity;
         } else if (product.memory === data.data.BoNhoTrong2) {
           updatedQuantity2 =
-            action === "subtract"
+            action === 'subtract'
               ? data.data.SoLuong2 - product.quantity
               : data.data.SoLuong2 + product.quantity;
         } else if (product.memory === data.data.BoNhoTrong3) {
           updatedQuantity3 =
-            action === "subtract"
+            action === 'subtract'
               ? data.data.SoLuong3 - product.quantity
               : data.data.SoLuong3 + product.quantity;
         }
 
-        // Cập nhật số lượng sản phẩm
         await axios.put(`${API_URL}/sanphams/${product.productId}`, {
           SoLuong1: updatedQuantity1,
           SoLuong2: updatedQuantity2,
           SoLuong3: updatedQuantity3,
         });
       } catch (error) {
-        console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
+        console.error('Lỗi khi cập nhật số lượng sản phẩm:', error);
       }
     }
   };
@@ -131,11 +180,14 @@ const ProfileReceipt = () => {
   const handleCancelOrder = async (orderId, products) => {
     try {
       await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
-      await updateProductQuantities(products, "add");
-      
+      const order = orders.find((order) => order._id === orderId);
+      if (order && order.paymentStatus === 'Đã Xác Nhận') {
+        await updateProductQuantities(products, 'add');
+      }
+
       const response = await fetchOrdersByUserId(userData.id);
       setOrders(response.data.data);
-      
+
       message.success('Huỷ đơn hàng thành công');
     } catch (error) {
       message.error('Huỷ đơn hàng thất bại');
@@ -162,7 +214,6 @@ const ProfileReceipt = () => {
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto py-8">
         <div className="flex">
-            {/* Left Sidebar */}
           <div className="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
             <div className="flex items-center mb-4">
               <span className="text-black font-semibold">{userData.Email}</span>
@@ -194,7 +245,7 @@ const ProfileReceipt = () => {
               </li>
             </ul>
           </div>
-              {/* Right Content */}
+
           <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
             <Table
@@ -206,7 +257,7 @@ const ProfileReceipt = () => {
               pagination={{
                 pageSize: 5,
                 showSizeChanger: false,
-                hideOnSinglePage: true
+                hideOnSinglePage: true,
               }}
             />
           </div>
