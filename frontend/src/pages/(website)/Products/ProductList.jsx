@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
-import { Spin, message, Pagination } from "antd";
+import { Spin, message, Pagination, Select, Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
+
+const { Option } = Select;
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -64,29 +67,50 @@ const ProductList = () => {
         <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">📢 Danh sách sản phẩm</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-white p-4 shadow-md rounded-lg">
-          <select className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
-            <option value="">Tất cả thương hiệu</option>
+          <Select
+            placeholder="Tất cả thương hiệu"
+            value={selectedBrand || undefined}
+            onChange={(value) => setSelectedBrand(value)}
+            allowClear
+            className="w-full"
+          >
             {brands.map((brand) => (
-              <option key={brand} value={brand}>{brand}</option>
+              <Option key={brand} value={brand}>{brand}</Option>
             ))}
-          </select>
+          </Select>
 
-          <input type="text" className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" placeholder="🔍 Tìm kiếm sản phẩm..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <Input
+            placeholder="Tìm kiếm sản phẩm..."
+            prefix={<SearchOutlined />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            allowClear
+          />
 
-          <select className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" value={selectedStorage} onChange={(e) => setSelectedStorage(e.target.value)}>
-            <option value="">Bộ nhớ</option>
-            <option value="64GB">64GB</option>
-            <option value="128GB">128GB</option>
-            <option value="256GB">256GB</option>
-            <option value="512GB">512GB</option>
-            <option value="1TB">1TB</option>
-          </select>
+          <Select
+            placeholder="Bộ nhớ"
+            value={selectedStorage || undefined}
+            onChange={(value) => setSelectedStorage(value)}
+            allowClear
+            className="w-full"
+          >
+            <Option value="64GB">64GB</Option>
+            <Option value="128GB">128GB</Option>
+            <Option value="256GB">256GB</Option>
+            <Option value="512GB">512GB</Option>
+            <Option value="1TB">1TB</Option>
+          </Select>
 
-          <select className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-            <option value="">Sắp xếp theo</option>
-            <option value="asc">⬆ Giá thấp đến cao</option>
-            <option value="desc">⬇ Giá cao đến thấp</option>
-          </select>
+          <Select
+            placeholder="Sắp xếp theo"
+            value={sortOrder || undefined}
+            onChange={(value) => setSortOrder(value)}
+            allowClear
+            className="w-full"
+          >
+            <Option value="asc">Giá thấp đến cao</Option>
+            <Option value="desc">Giá cao đến thấp</Option>
+          </Select>
         </div>
 
         {loading ? (
@@ -97,25 +121,46 @@ const ProductList = () => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {currentProducts.map((product) => (
-                <div key={product._id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400 cursor-pointer">
-                  <Link to={`/products/product_detail/${product._id}`} onClick={(e) => e.stopPropagation()}>
-                    <div className="h-56 flex justify-center items-center bg-gray-100 rounded-lg">
-                      <img src={product.HinhAnh1} alt={product.TenSP} title={product.TenSP} className="h-full w-full object-contain bg-white p-2 rounded-lg" />
-                    </div>
-                  </Link>
+                <Link 
+                  to={`/products/product_detail/${product._id}`} 
+                  key={product._id}
+                  className="block bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400"
+                >
+                  <div className="h-56 flex justify-center items-center bg-gray-100 rounded-lg">
+                    <img 
+                      src={product.HinhAnh1} 
+                      alt={product.TenSP} 
+                      className="h-full w-full object-contain bg-white p-2 rounded-lg" 
+                    />
+                  </div>
                   <div className="mt-4 text-center">
                     <h3 className="text-lg font-semibold text-gray-800 break-words">{product.TenSP}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}</p>
-                    <p className={`font-bold text-lg mt-3 px-2 py-1 rounded-md ${product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 ? "text-gray-500 bg-gray-300" : "text-blue-600 bg-blue-200"}`}>
-                      {product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 ? "Sản phẩm tạm thời hết hàng" : (product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá")}
+                    <p className="text-sm text-gray-600 mt-1">
+                      {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
+                    </p>
+                    <p className={`font-bold text-lg mt-3 px-2 py-1 rounded-md ${
+                      product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 
+                        ? "text-gray-500 bg-gray-300" 
+                        : "text-blue-600 bg-blue-200"
+                    }`}>
+                      {product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 
+                        ? "Sản phẩm tạm thời hết hàng" 
+                        : (product.GiaSP1 ? `${product.GiaSP1.toLocaleString()} VNĐ` : "Chưa có giá")
+                      }
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
 
             <div className="flex justify-center mt-8">
-              <Pagination current={currentPage} pageSize={pageSize} total={sortedProducts.length} onChange={handlePageChange} showSizeChanger={false} />
+              <Pagination 
+                current={currentPage} 
+                pageSize={pageSize} 
+                total={sortedProducts.length} 
+                onChange={handlePageChange} 
+                showSizeChanger={false} 
+              />
             </div>
           </>
         )}

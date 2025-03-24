@@ -1,8 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { confirmAlert } from "react-confirm-alert";
-import "react-confirm-alert/src/react-confirm-alert.css";
+import { 
+  Button, 
+  Card, 
+  Col, 
+  Row, 
+  Divider, 
+  Typography, 
+  Image, 
+  Input, 
+  Modal, 
+  Space,
+  Tag,
+  Descriptions,
+  List,
+  message
+} from "antd";
+import { 
+  ArrowLeftOutlined, 
+  CheckOutlined,
+  ShoppingCartOutlined
+} from "@ant-design/icons";
 import { getUserById, createOrder } from "../../../service/api";
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const Checkcart = () => {
   const location = useLocation();
@@ -29,7 +51,7 @@ const Checkcart = () => {
     if (typeof value !== "number" || isNaN(value)) {
       return "0 VND";
     }
-    return value.toLocaleString("vi-VN") + " VND";
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   };
 
   // Lấy thông tin người dùng
@@ -42,9 +64,11 @@ const Checkcart = () => {
           setUserInfo(response.data);
         } catch (error) {
           console.error("Lỗi khi lấy thông tin người dùng:", error);
+          message.error("Lỗi khi lấy thông tin người dùng");
         }
       } else {
         console.error("Không có dữ liệu người dùng");
+        message.warning("Vui lòng đăng nhập để tiếp tục");
       }
     };
     fetchUserData();
@@ -53,178 +77,193 @@ const Checkcart = () => {
   // Xử lý đặt hàng
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
-    confirmAlert({
+    
+    Modal.confirm({
       title: "Xác nhận đặt hàng",
-      message: "Bạn có chắc chắn muốn đặt hàng không?",
-      buttons: [
-        {
-          label: "Có",
-          onClick: async () => {
-            setIsSubmitting(true);
+      content: "Bạn có chắc chắn muốn đặt hàng không?",
+      okText: "Xác nhận",
+      cancelText: "Hủy",
+      icon: <CheckOutlined />,
+      onOk: async () => {
+        setIsSubmitting(true);
 
-            const orderData = {
-              userId: userInfo._id,
-              products: cart.map((item) => ({
-                productId: item.id,
-                image: item.image,
-                name: item.name,
-                memory: item.memory,
-                color: item.color,
-                quantity: item.quantity,
-                price: item.price,
-              })),
-              total: finalTotal,
-              discount,
-              additionalDiscount,
-              shippingInfo: {
-                name: userInfo.HoVaTen,
-                phone: userInfo.SDT,
-                address: userInfo.DiaChi,
-              },
-              orderNote,
-            };
-
-            try {
-              const response = await createOrder(orderData);
-              if (response.data) {
-                const userData = JSON.parse(localStorage.getItem("userData"));
-                const userId = userData?.id;
-
-                if (userId) {
-                  localStorage.removeItem(`cart_${userId}`);
-                }
-
-                window.dispatchEvent(new Event("cartUpdated"));
-
-                navigate(`/profile-receipt/${response.data._id}`);
-              }
-            } catch (error) {
-              console.error("Lỗi khi tạo đơn hàng:", error);
-              alert("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
-            } finally {
-              setIsSubmitting(false);
-            }
+        const orderData = {
+          userId: userInfo._id,
+          products: cart.map((item) => ({
+            productId: item.id,
+            image: item.image,
+            name: item.name,
+            memory: item.memory,
+            color: item.color,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          total: finalTotal,
+          discount,
+          additionalDiscount,
+          shippingInfo: {
+            name: userInfo.HoVaTen,
+            phone: userInfo.SDT,
+            address: userInfo.DiaChi,
           },
-        },
-        {
-          label: "Hủy",
-          onClick: () => {},
-        },
-      ],
+          orderNote,
+        };
+
+        try {
+          const response = await createOrder(orderData);
+          if (response.data) {
+            const userData = JSON.parse(localStorage.getItem("userData"));
+            const userId = userData?.id;
+
+            if (userId) {
+              localStorage.removeItem(`cart_${userId}`);
+            }
+
+            window.dispatchEvent(new Event("cartUpdated"));
+            message.success("Đặt hàng thành công!");
+            navigate(`/profile-receipt/${response.data._id}`);
+          }
+        } catch (error) {
+          console.error("Lỗi khi tạo đơn hàng:", error);
+          message.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
     });
   };
 
   if (!cart || cart.length === 0) {
     return (
-      <div className="container mt-4">
-        Không có sản phẩm nào trong giỏ hàng.
-      </div>
+      <Card className="mt-4">
+        <Space direction="vertical" align="center" style={{ width: '100%' }}>
+          <ShoppingCartOutlined style={{ fontSize: '48px', color: '#ccc' }} />
+          <Text type="secondary">Không có sản phẩm nào trong giỏ hàng</Text>
+          <Button type="primary" onClick={() => navigate('/')}>
+            Tiếp tục mua sắm
+          </Button>
+        </Space>
+      </Card>
     );
   }
 
   return (
-    <div className="container mt-4 p-3 border rounded bg-light shadow-sm">
-      <form onSubmit={handleSubmitOrder}>
-        <div className="mb-4">
-          <button
-            type="button"
-            className="btn btn-secondary"
+    <div className="container mt-4">
+      <Row gutter={[24, 24]}>
+        <Col span={24}>
+          <Button 
+            type="text" 
+            icon={<ArrowLeftOutlined />} 
             onClick={() => navigate("/cart")}
           >
-            Sửa sản phẩm đã chọn
-          </button>
-        </div>
-
-        <h2 className="text-center">🛒 Thông tin thanh toán</h2>
-
-        {userInfo.HoVaTen && (
-          <div className="mb-4">
-            <h4 className="mb-3">Thông tin giao hàng</h4>
-            <p className="mb-1">Mã đơn hàng: {userInfo._id}</p>
-            <p className="mb-1">Họ và tên: {userInfo.HoVaTen}</p>
-            <p className="mb-1">Số điện thoại: {userInfo.SDT}</p>
-            <p className="mb-1">Địa chỉ: {userInfo.DiaChi}</p>
-          </div>
-        )}
-
-        <div className="row">
-          <div className="col-md-12">
-            <h4>Danh sách sản phẩm:</h4>
-            {cart.map((item, index) => (
-              <div key={index} className="mb-3 p-2">
-                <div className="d-flex align-items-center">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="img-thumbnail me-3"
-                    style={{
-                      width: "120px",
-                      height: "120px",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <div className="flex-grow-1">
-                    <h5 className="mb-1">{item.name}</h5>
-                    <p className="mb-1">Bộ nhớ: {item.memory}</p>
-                    <p className="mb-1 d-flex align-items-center">
-                      Màu sắc:
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: "20px",
-                          height: "20px",
-                          backgroundColor: item.color,
-                          border: "1px solid #ccc",
-                          borderRadius: "4px",
-                          marginLeft: "8px",
-                        }}
-                      ></span>
-                    </p>
-                  </div>
-                  <div>
-                    <p className="mb-1 fw-bold text-primary">
-                      Giá: {formatCurrency(item.price || 0)}
-                    </p>
-                    <p className="mb-1">Số lượng: {item.quantity}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 p-3 bg-light">
-          <h4 className="mb-3">Tổng thanh toán</h4>
-          <p className="fs-5">
-            Tổng tiền: <strong>{formatCurrency(total)}</strong>
-          </p>
-
-          <h4 className="text-success mt-3">
-            Tổng tiền sau giảm giá: {formatCurrency(finalTotal)}
-          </h4>
-        </div>
-
-        <div className="mt-3">
-          <label>Ghi chú đơn hàng:</label>
-          <textarea
-            className="form-control"
-            rows="3"
-            value={orderNote}
-            onChange={(e) => setOrderNote(e.target.value)}
-          ></textarea>
-        </div>
-
-        <div className="text-center mt-4">
-          <button
-            type="submit"
-            className="btn btn-success btn-lg"
-            disabled={cart.length === 0 || isSubmitting}
+            Quay lại giỏ hàng
+          </Button>
+        </Col>
+        
+        <Col xs={24} lg={16}>
+          <Card title={<Title level={3}>Thông tin giao hàng</Title>}>
+            {userInfo.HoVaTen && (
+              <Descriptions bordered column={1}>
+                <Descriptions.Item label="Họ và tên">{userInfo.HoVaTen}</Descriptions.Item>
+                <Descriptions.Item label="Số điện thoại">{userInfo.SDT}</Descriptions.Item>
+                <Descriptions.Item label="Địa chỉ">{userInfo.DiaChi}</Descriptions.Item>
+              </Descriptions>
+            )}
+          </Card>
+          
+          <Card 
+            title={<Title level={3}>Danh sách sản phẩm</Title>} 
+            className="mt-3"
           >
-            {isSubmitting ? "Đang xử lý..." : " Thanh toán khi nhận hàng"}
-          </button>
-        </div>
-      </form>
+            <List
+              itemLayout="horizontal"
+              dataSource={cart}
+              renderItem={(item, index) => (
+                <List.Item key={index}>
+                  <List.Item.Meta
+                    avatar={
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={100}
+                        height={100}
+                        style={{ objectFit: 'cover', borderRadius: '8px' }}
+                        preview={false}
+                      />
+                    }
+                    title={<Text strong>{item.name}</Text>}
+                    description={
+                      <Space direction="vertical" size="small">
+                        <div>
+                          <Text>Bộ nhớ: </Text>
+                          <Tag color="blue">{item.memory}</Tag>
+                        </div>
+                        <div>
+                          <Text>Màu sắc: </Text>
+                          <Tag 
+                            color={item.color.toLowerCase()} 
+                            style={{ 
+                              width: '20px', 
+                              height: '20px', 
+                              border: '1px solid #d9d9d9' 
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Text>Số lượng: </Text>
+                          <Text strong>{item.quantity}</Text>
+                        </div>
+                      </Space>
+                    }
+                  />
+                  <div>
+                    <Text strong type="danger">{formatCurrency(item.price || 0)}</Text>
+                  </div>
+                </List.Item>
+              )}
+            />
+          </Card>
+          
+          <Card title={<Title level={3}>Ghi chú đơn hàng</Title>} className="mt-3">
+            <TextArea
+              rows={4}
+              value={orderNote}
+              onChange={(e) => setOrderNote(e.target.value)}
+              placeholder="Nhập ghi chú cho đơn hàng (nếu có)..."
+            />
+          </Card>
+        </Col>
+        
+        <Col xs={24} lg={8}>
+          <Card title={<Title level={3}>Tổng thanh toán</Title>}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Descriptions column={1}>
+                <Descriptions.Item label="Tổng tiền">
+                  <Text>{formatCurrency(total)}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Giảm giá">
+                  <Text type="success">-{formatCurrency(discount + additionalDiscount)}</Text>
+                </Descriptions.Item>
+                <Divider />
+                <Descriptions.Item label="Tổng thanh toán">
+                  <Title level={4} type="success">{formatCurrency(finalTotal)}</Title>
+                </Descriptions.Item>
+              </Descriptions>
+              
+              <Button
+                type="primary"
+                size="large"
+                block
+                onClick={handleSubmitOrder}
+                loading={isSubmitting}
+                icon={<CheckOutlined />}
+              >
+                {isSubmitting ? "Đang xử lý..." : "Thanh toán khi nhận hàng"}
+              </Button>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };
