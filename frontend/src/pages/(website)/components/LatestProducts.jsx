@@ -20,15 +20,13 @@ const LatestProducts = () => {
         ? response.data
         : response.data.data || [];
 
-      // Lọc chỉ lấy các sản phẩm có chữ "iPhone"
+      // Lọc sản phẩm chỉ lấy iPhone và ẩn nếu cả 3 SoLuong đều bằng 0
       const filteredProducts = data.filter((product) =>
-        product.TenSP.toLowerCase().includes("iphone")
+        product.TenSP.toLowerCase().includes("iphone") &&
+        !(product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0)
       );
 
-      setProducts((prevProducts) => {
-        let newProducts = [...prevProducts, ...filteredProducts].slice(-8); // Giữ tối đa 8 sản phẩm
-        return newProducts;
-      });
+      setProducts(filteredProducts.slice(-8)); // Giữ tối đa 8 sản phẩm
     } catch (error) {
       message.error("Lỗi khi lấy sản phẩm mới nhất!");
     } finally {
@@ -62,15 +60,17 @@ const LatestProducts = () => {
                   to={`/products/product_detail/${product._id}`}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <img
-                    src={product.HinhAnh1}
-                    alt={product.TenSP}
-                    title={product.TenSP}
-                    className="h-48 w-full object-cover bg-gray-100 rounded-lg"
-                  />
+                  <div className="h-48 flex justify-center items-center bg-gray-100 rounded-lg">
+                    <img
+                      src={product.HinhAnh1}
+                      alt={product.TenSP}
+                      title={product.TenSP}
+                      className="h-full w-full object-contain bg-white p-2 rounded-lg"
+                    />
+                  </div>
                 </Link>
                 <div className="mt-4 text-center">
-                  <h3 className="text-lg font-semibold text-gray-800 truncate">
+                  <h3 className="text-lg font-semibold text-gray-800 whitespace-normal break-words">
                     {product.TenSP}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">

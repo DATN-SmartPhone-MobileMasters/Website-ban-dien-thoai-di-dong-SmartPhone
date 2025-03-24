@@ -18,7 +18,6 @@ const ProductList = () => {
     getProducts();
   }, []);
 
-  // Reset currentPage về 1 khi có thay đổi trong bộ lọc
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedBrand, selectedStorage, searchQuery, sortOrder]);
@@ -51,12 +50,10 @@ const ProductList = () => {
       return 0;
     });
 
-  // Tính toán sản phẩm hiển thị trên trang hiện tại
   const indexOfLastProduct = currentPage * pageSize;
   const indexOfFirstProduct = indexOfLastProduct - pageSize;
   const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
 
-  // Xử lý thay đổi trang
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -66,32 +63,17 @@ const ProductList = () => {
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">📢 Danh sách sản phẩm</h2>
 
-        {/* Bộ lọc */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-white p-4 shadow-md rounded-lg">
-          <select
-            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
-            value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-          >
+          <select className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
             <option value="">Tất cả thương hiệu</option>
             {brands.map((brand) => (
               <option key={brand} value={brand}>{brand}</option>
             ))}
           </select>
 
-          <input
-            type="text"
-            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
-            placeholder="🔍 Tìm kiếm sản phẩm..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <input type="text" className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" placeholder="🔍 Tìm kiếm sản phẩm..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
 
-          <select
-            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
-            value={selectedStorage}
-            onChange={(e) => setSelectedStorage(e.target.value)}
-          >
+          <select className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" value={selectedStorage} onChange={(e) => setSelectedStorage(e.target.value)}>
             <option value="">Bộ nhớ</option>
             <option value="64GB">64GB</option>
             <option value="128GB">128GB</option>
@@ -100,11 +82,7 @@ const ProductList = () => {
             <option value="1TB">1TB</option>
           </select>
 
-          <select
-            className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300"
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-          >
+          <select className="p-3 border rounded-lg text-gray-700 focus:ring focus:ring-blue-300" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
             <option value="">Sắp xếp theo</option>
             <option value="asc">⬆ Giá thấp đến cao</option>
             <option value="desc">⬇ Giá cao đến thấp</option>
@@ -119,46 +97,25 @@ const ProductList = () => {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {currentProducts.map((product) => (
-                <div
-                  key={product._id}
-                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400 cursor-pointer"
-                >
+                <div key={product._id} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400 cursor-pointer">
                   <Link to={`/products/product_detail/${product._id}`} onClick={(e) => e.stopPropagation()}>
-                    <div className="relative">
-                      <img
-                        src={product.HinhAnh1}
-                        alt={product.TenSP}
-                        title={product.TenSP}
-                        className="h-48 w-full object-cover bg-gray-100 rounded-lg"
-                      />
-                      {/* Hiển thị tên sản phẩm khi hover */}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg">
-                        <span className="text-white text-lg font-semibold text-center px-2">{product.TenSP}</span>
-                      </div>
+                    <div className="h-56 flex justify-center items-center bg-gray-100 rounded-lg">
+                      <img src={product.HinhAnh1} alt={product.TenSP} title={product.TenSP} className="h-full w-full object-contain bg-white p-2 rounded-lg" />
                     </div>
                   </Link>
                   <div className="mt-4 text-center">
-                    <h3 className="text-lg font-semibold text-gray-800 truncate">{product.TenSP}</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
-                    </p>
-                    <p className="text-red-600 font-bold text-lg mt-3 bg-yellow-100 px-2 py-1 rounded-md">
-                      {product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá"}
+                    <h3 className="text-lg font-semibold text-gray-800 break-words">{product.TenSP}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}</p>
+                    <p className={`font-bold text-lg mt-3 px-2 py-1 rounded-md ${product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 ? "text-gray-500 bg-gray-300" : "text-blue-600 bg-blue-200"}`}>
+                      {product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 ? "Sản phẩm tạm thời hết hàng" : (product.GiaSP1 ? product.GiaSP1.toLocaleString() + " VNĐ" : "Chưa có giá")}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Phân trang */}
             <div className="flex justify-center mt-8">
-              <Pagination
-                current={currentPage}
-                pageSize={pageSize}
-                total={sortedProducts.length}
-                onChange={handlePageChange}
-                showSizeChanger={false}
-              />
+              <Pagination current={currentPage} pageSize={pageSize} total={sortedProducts.length} onChange={handlePageChange} showSizeChanger={false} />
             </div>
           </>
         )}
