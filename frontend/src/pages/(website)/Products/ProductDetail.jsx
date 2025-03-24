@@ -273,7 +273,7 @@ const ProductDetail = () => {
                 />
               </div>
               <div className="d-flex justify-content-center mt-3">
-                {[1, 2, 3].map((index) =>
+                {[1, 2, 3, 4 ,5 ,6].map((index) =>
                   product[`HinhAnh${index}`] ? (
                     <img
                       key={index}
@@ -299,9 +299,7 @@ const ProductDetail = () => {
               <h4 className="text-danger">
                 {formatCurrency(selectedMemory.price)}
               </h4>
-              <p>Tổng Số lượng: {selectedMemory.quantity}</p>
-              <p><h3>{product.TrangThai}</h3></p>
-
+              <p>Số lượng: {selectedMemory.quantity}</p>
               {/* Phần Bộ Nhớ Trong */}
               <h5>Bộ Nhớ Trong:</h5>
               <div className="d-flex gap-2">
@@ -322,30 +320,32 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              {/* Phần Màu Sắc */}
-              <h5 className="mt-3">Màu sắc:</h5>
-              <div className="d-flex gap-2">
-                {[product.Mau1, product.Mau2, product.Mau3].map((color, index) =>
-                  color ? (
-                    <div
-                      key={index}
-                      className={`border p-2 rounded ${
-                        selectedColor === color
-                          ? "border border-primary border-3 shadow-lg"
-                          : "border-secondary"
-                      }`}
-                      style={{
-                        width: selectedColor === color ? "50px" : "40px",
-                        height: selectedColor === color ? "50px" : "40px",
-                        backgroundColor: color === "Hết Hàng" ? "gray" : color,
-                        cursor: "pointer",
-                        transition: "all 0.3s ease-in-out",
-                      }}
-                      onClick={() => handleColorSelection(color)}
-                    ></div>
-                  ) : null
-                )}
-              </div>
+              <div className="d-flex align-items-center gap-2 mt-3">
+  <h5 className="mb-0">Màu sắc:</h5>
+  <div className="d-flex gap-2">
+    {[product.Mau1, product.Mau2, product.Mau3].map((color, index) =>
+      color ? (
+        <div
+          key={index}
+          className={`border p-2 rounded ${
+            selectedColor === color
+              ? "border border-primary border-3 shadow-lg"
+              : "border-secondary"
+          }`}
+          style={{
+            width: selectedColor === color ? "50px" : "40px",
+            height: selectedColor === color ? "50px" : "40px",
+            backgroundColor: color === "Hết Hàng" ? "gray" : color,
+            cursor: "pointer",
+            transition: "all 0.3s ease-in-out",
+          }}
+          onClick={() => handleColorSelection(color)}
+        ></div>
+      ) : null
+    )}
+  </div>
+</div>
+
 
               {/* Phần "Các Màu Khác" */}
               <div className="mt-4">
@@ -454,7 +454,7 @@ const ProductDetail = () => {
                   <div className="d-flex align-items-center mb-3">
                     <FaCamera className="me-3" />
                     <div>
-                      <strong>Camera Trước:</strong> {product.CamTruoc}
+                      <strong>Camera Trước:</strong> {product.CamTruoc} 
                     </div>
                   </div>
                 </div>

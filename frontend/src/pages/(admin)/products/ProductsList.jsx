@@ -113,6 +113,22 @@ const ProductsList = () => {
       render: (text) => <img src={text} alt="Hình ảnh sản phẩm" style={{ width: 50, height: 50 }} />,
     },
     {
+      title: "Màu sắc",
+      dataIndex: "Mau1",
+      key: "Mau1",
+      render: (color) => (
+        <div
+          style={{
+            width: "30px",
+            height: "30px",
+            backgroundColor: color,
+            borderRadius: "5px",
+            border: "1px solid #ddd",
+          }}
+        ></div>
+      ),
+    },
+    {
       title: "Chi tiết",
       key: "action",
       render: (text, record) => (
