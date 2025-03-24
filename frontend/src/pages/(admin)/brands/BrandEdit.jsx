@@ -3,73 +3,92 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
-import { fetchCategories, getBrandById, updateBrand,uploadImage } from "../../../service/api";
+import { fetchCategories, getBrandById, updateBrand, uploadImage, fetchBrands } from "../../../service/api"; // Added fetchBrands
 
 const BrandEdit = () => {
-  const [categories, setCategories] = useState([]); 
+  const [categories, setCategories] = useState([]);
+  const [existingBrands, setExistingBrands] = useState([]); 
   const {
     reset,
     register,
     handleSubmit,
-    setValue, 
+    setValue,
     formState: { errors },
+    setError,
   } = useForm();
-  const { id } = useParams(); 
+  const { id } = useParams();
   const [imageUrl, setImageUrl] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      try {
+        const res = await fetchBrands();
+        setExistingBrands(res.data.data); 
+      } catch (error) {
+        console.error("Error loading brands:", error);
+      }
+    };
+    loadBrands();
+  }, []);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const formData = new FormData();
-    formData.append('image', file);
-  
+    formData.append("image", file);
+
     try {
       const response = await uploadImage(formData);
       setImageUrl(response.data.imageUrl);
-      setValue("HinhAnh", response.data.imageUrl); // Add setValue
+      setValue("HinhAnh", response.data.imageUrl);
     } catch (error) {
       message.error("Tải ảnh lên thất bại");
     }
   };
 
-  // Lấy thông tin thương hiệu và danh mục
+  const checkDuplicateBrandName = (name) => {
+    const isDuplicate = existingBrands.some(
+      (brand) => brand.TenTH.toLowerCase() === name.toLowerCase() && brand._id !== id
+    );
+    return isDuplicate ? "Tên thương hiệu đã tồn tại" : true;
+  };
   useEffect(() => {
     (async () => {
       try {
         const [brandRes, categoryRes] = await Promise.all([
-          getBrandById(id), // Lấy thông tin thương hiệu
-          fetchCategories(), // Lấy danh sách danh mục
+          getBrandById(id), 
+          fetchCategories(),
         ]);
         setImageUrl(brandRes.data.data.HinhAnh);
-        setCategories(categoryRes.data.data); // Lưu danh mục vào state
+        setCategories(categoryRes.data.data); 
 
         reset({
           TenTH: brandRes.data.data.TenTH,
           HinhAnh: brandRes.data.data.HinhAnh,
           Mota: brandRes.data.data.Mota,
-          MaDM: brandRes.data.data.MaDM.map((dm) => dm._id), // Lấy danh sách ID của danh mục
+          MaDM: brandRes.data.data.MaDM.map((dm) => dm._id),
         });
       } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
+        console.error("Error loading data:", error);
       }
     })();
   }, [id, reset]);
 
-  // Xử lý cập nhật thương hiệu
-   const onSubmit = async (data) => {
+  const onSubmit = async (data) => {
+    const brandData = {
+      ...data,
+      HinhAnh: imageUrl,
+    };
+
     try {
-      const brandData = {
-        ...data,
-        HinhAnh: imageUrl 
-      };
-      await updateBrand(id,brandData);
+      await updateBrand(id, brandData);
       message.success("Cập nhật thành công");
       navigate("/admin/brands");
     } catch (error) {
       message.error("Cập nhật thất bại");
-      console.error("Lỗi khi cập nhật:", error.response);
+      console.error("Error updating brand:", error.response);
     }
   };
 
@@ -92,6 +111,7 @@ const BrandEdit = () => {
                 id="TenTH"
                 {...register("TenTH", {
                   required: "Tên thương hiệu không được bỏ trống",
+                  validate: (value) => checkDuplicateBrandName(value) === true || checkDuplicateBrandName(value),
                 })}
               />
               <small className="text-danger">{errors.TenTH?.message}</small>
@@ -140,7 +160,7 @@ const BrandEdit = () => {
               <select
                 className="form-control"
                 id="MaDM"
-                multiple // Cho phép chọn nhiều danh mục
+                multiple
                 {...register("MaDM", {
                   required: "Danh mục không được bỏ trống",
                 })}
@@ -154,8 +174,8 @@ const BrandEdit = () => {
               <small className="text-danger">{errors.MaDM?.message}</small>
             </div>
 
-            <div className="">
-              <Link to="/admin/brands" className="btn btn-primary">
+            <div className="d-flex justify-content-between">
+              <Link to="/admin/brands" className="btn btn-secondary">
                 Quay lại
               </Link>
               <button type="submit" className="btn btn-success ml-3">
