@@ -9,8 +9,8 @@ const ProductsAdd = () => {
   const [mainProduct, setMainProduct] = useState({
     TenSP: '', // Tên sản phẩm chung
     ThuongHieu: '', // Thương hiệu chung
-    CameraTruoc: '', // Camera trước chung
-    CameraSau: '', // Camera sau chung
+    CamTruoc: '', // Camera trước chung
+    CamSau: '', // Camera sau chung
     CPU: '', // CPU chung
     ManHinh: '', // Màn hình chung
     HDH: '', // Hệ điều hành chung
@@ -35,6 +35,9 @@ const ProductsAdd = () => {
       HinhAnh1: '',
       HinhAnh2: '',
       HinhAnh3: '',
+      HinhAnh4: '',
+      HinhAnh5: '',
+      HinhAnh6: '',
     },
   ]);
   const [error, setError] = useState('');
@@ -123,8 +126,8 @@ const ProductsAdd = () => {
       ...products[index],
       TenSP: mainProduct.TenSP, // Dùng chung TenSP từ form chính
       ThuongHieu: mainProduct.ThuongHieu, // Dùng chung ThuongHieu từ form chính
-      CameraTruoc: mainProduct.CameraTruoc, // Dùng chung CameraTruoc từ form chính
-      CameraSau: mainProduct.CameraSau, // Dùng chung CameraSau từ form chính
+      CamTruoc: mainProduct.CamTruoc, // Dùng chung CamTruoc từ form chính
+      CamSau: mainProduct.CamSau, // Dùng chung CamSau từ form chính
       CPU: mainProduct.CPU, // Dùng chung CPU từ form chính
       ManHinh: mainProduct.ManHinh, // Dùng chung ManHinh từ form chính
       HDH: mainProduct.HDH, // Dùng chung HDH từ form chính
@@ -161,8 +164,8 @@ const ProductsAdd = () => {
           ...product,
           TenSP: mainProduct.TenSP, // Dùng chung TenSP từ form chính
           ThuongHieu: mainProduct.ThuongHieu, // Dùng chung ThuongHieu từ form chính
-          CameraTruoc: mainProduct.CameraTruoc, // Dùng chung CameraTruoc từ form chính
-          CameraSau: mainProduct.CameraSau, // Dùng chung CameraSau từ form chính
+          CamTruoc: mainProduct.CamTruoc, // Dùng chung CamTruoc từ form chính
+          CamSau: mainProduct.CamSau, // Dùng chung CamSau từ form chính
           CPU: mainProduct.CPU, // Dùng chung CPU từ form chính
           ManHinh: mainProduct.ManHinh, // Dùng chung ManHinh từ form chính
           HDH: mainProduct.HDH, // Dùng chung HDH từ form chính
@@ -227,12 +230,12 @@ const ProductsAdd = () => {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="CameraTruoc">Camera Trước</label>
+            <label htmlFor="CamTruoc">Camera Trước</label>
             <select
-              id="CameraTruoc"
-              name="CameraTruoc"
+              id="CamTruoc"
+              name="CamTruoc"
               className="form-control"
-              value={mainProduct.CameraTruoc}
+              value={mainProduct.CamTruoc}
               onChange={handleMainProductChange}
               required
             >
@@ -243,12 +246,12 @@ const ProductsAdd = () => {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="CameraSau">Camera Sau</label>
+            <label htmlFor="CamSau">Camera Sau</label>
             <select
-              id="CameraSau"
-              name="CameraSau"
+              id="CamSau"
+              name="CamSau"
               className="form-control"
-              value={mainProduct.CameraSau}
+              value={mainProduct.CamSau}
               onChange={handleMainProductChange}
               required
             >
@@ -488,22 +491,18 @@ const ProductsAdd = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor={`Mau1-${index}`}>Màu Sắc</label>
-                  <select
-                    id={`Mau1-${index}`}
-                    name="Mau1"
-                    className="form-control"
-                    value={product.Mau1}
-                    onChange={(e) => handleProductChange(index, e)}
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                </div>
+  <label htmlFor={`Mau1-${index}`}>Màu Sắc</label>
+  <input
+    type="text"
+    id={`Mau1-${index}`}
+    name="Mau1"
+    className="form-control"
+    value={product.Mau1}
+    onChange={(e) => handleProductChange(index, e)}
+    placeholder="Nhập màu sắc"
+  />
+</div>
+
                 <div className="form-group">
                   <label htmlFor={`SoLuong1-${index}`}>Số Lượng Bộ Nhớ 1</label>
                   <input
@@ -586,6 +585,57 @@ const ProductsAdd = () => {
                   {product.HinhAnh3 && (
                     <img
                       src={product.HinhAnh3}
+                      alt="Preview 3"
+                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                    />
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor={`HinhAnh4-${index}`}>Hình Ảnh 4</label>
+                  <input
+                    type="file"
+                    id={`HinhAnh4-${index}`}
+                    className="form-control"
+                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh4')}
+                    accept="image/*"
+                  />
+                  {product.HinhAnh4 && (
+                    <img
+                      src={product.HinhAnh5}
+                      alt="Preview 3"
+                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                    />
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor={`HinhAnh5-${index}`}>Hình Ảnh 5</label>
+                  <input
+                    type="file"
+                    id={`HinhAnh5-${index}`}
+                    className="form-control"
+                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh5')}
+                    accept="image/*"
+                  />
+                  {product.HinhAnh5 && (
+                    <img
+                      src={product.HinhAnh5}
+                      alt="Preview 3"
+                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
+                    />
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor={`HinhAnh6-${index}`}>Hình Ảnh 6</label>
+                  <input
+                    type="file"
+                    id={`HinhAnh6-${index}`}
+                    className="form-control"
+                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh6')}
+                    accept="image/*"
+                  />
+                  {product.HinhAnh6 && (
+                    <img
+                      src={product.HinhAnh6}
                       alt="Preview 3"
                       style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
                     />

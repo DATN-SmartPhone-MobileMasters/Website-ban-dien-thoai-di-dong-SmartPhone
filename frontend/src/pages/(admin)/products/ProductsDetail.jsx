@@ -237,7 +237,7 @@ const ProductsDetail = () => {
         </div>
         <div className="card-body">
           <div className="d-flex gap-3">
-            {[1, 2, 3].map(
+            {[1, 2, 3, 4 ,5 ,6].map(
               (index) =>
                 product[`HinhAnh${index}`] && (
                   <img
