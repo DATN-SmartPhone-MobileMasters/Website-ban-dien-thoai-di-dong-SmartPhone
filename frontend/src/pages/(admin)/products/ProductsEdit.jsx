@@ -9,7 +9,7 @@ const ProductsEdit = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState({
     MaSP: "",
-    TenSP: "",
+    // TenSP: "",
     TenTH: "",
     CapSac: "",
     MoTa: "",
@@ -17,8 +17,6 @@ const ProductsEdit = () => {
     BoNhoTrong2: "",
     BoNhoTrong3: "",
     Mau1: "",
-    Mau2: "",
-    Mau3: "",
     ManHinh: "",
     created_at: "",
     HDH: "",
@@ -36,6 +34,9 @@ const ProductsEdit = () => {
     HinhAnh1: "",
     HinhAnh2: "",
     HinhAnh3: "",
+    HinhAnh4: "",
+    HinhAnh5: "",
+    HinhAnh6: "",
   });
 
   const [error, setError] = useState("");
@@ -147,7 +148,7 @@ const handleSubmit = (e) => {
                   />
                 </div>
 
-                <div className="mb-3">
+                {/* <div className="mb-3">
                   <label className="form-label">Tên Sản Phẩm</label>
                   <input
                     type="text"
@@ -160,7 +161,7 @@ const handleSubmit = (e) => {
                   {product.TenSP.trim() === "" && (
                     <div className="text-danger mt-1">Không được bỏ trống</div>
                   )}
-                </div>
+                </div> */}
 
                 <div className="mb-3">
                   <label className="form-label">Bộ Nhớ Trong 1</label>
@@ -374,104 +375,33 @@ const handleSubmit = (e) => {
               <div className="col-md-6">
 
               <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 1</label>
-                    <div
-                      style={{
-                        backgroundColor: product.Mau1,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <label className="form-label">Màu 1</label>
+    <div
+      style={{
+        backgroundColor: product.Mau1,
+        width: "20px",
+        height: "20px",
+        borderRadius: "5px",
+        border: "1px solid #ccc",
+      }}
+    />
+  </div>
 
-                  <select
-                    className="form-control"
-                    name="Mau1"
-                    value={product.Mau1}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="Hết Hàng">Hết Hàng</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                  {product.Mau1.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
+  <input
+    type="text"
+    className="form-control"
+    name="Mau1"
+    value={product.Mau1}
+    onChange={handleChange}
+    placeholder="Nhập màu..."
+    required
+  />
 
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 2</label>
-                    <div
-                      style={{
-                        backgroundColor: product.Mau2,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <select
-                    className="form-control"
-                    name="Mau2"
-                    value={product.Mau2}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="Hết Hàng">Hết Hàng</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                  {product.Mau2.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 3</label>
-                    <div
-                      style={{
-                        backgroundColor: product.Mau3,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <select
-                    className="form-control"
-                    name="Mau3"
-                    value={product.Mau3}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="Hết Hàng">Hết Hàng</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                  {product.Mau3.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
+  {product.Mau1.trim() === "" && (
+    <div className="text-danger mt-1">Không được bỏ trống</div>
+  )}
+</div>
 
                 <div className="mb-3">
                   <label className="form-label">Hệ Điều Hành</label>
@@ -580,6 +510,57 @@ const handleSubmit = (e) => {
                 {product.HinhAnh3 && (
                   <img
                     src={product.HinhAnh3}
+                    alt="Preview 3"
+                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
+                  />
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="HinhAnh4">Hình Ảnh 4</label>
+                <input
+                  type="file"
+                  id="HinhAnh4"
+                  className="form-control"
+                  onChange={(e) => handleImageUpload(e, "HinhAnh4")}
+                  accept="image/*"
+                />
+                {product.HinhAnh4 && (
+                  <img
+                    src={product.HinhAnh4}
+                    alt="Preview 3"
+                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
+                  />
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="HinhAnh5">Hình Ảnh 5</label>
+                <input
+                  type="file"
+                  id="HinhAnh5"
+                  className="form-control"
+                  onChange={(e) => handleImageUpload(e, "HinhAnh5")}
+                  accept="image/*"
+                />
+                {product.HinhAnh5 && (
+                  <img
+                    src={product.HinhAnh5}
+                    alt="Preview 3"
+                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
+                  />
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="HinhAnh6">Hình Ảnh 6</label>
+                <input
+                  type="file"
+                  id="HinhAnh6"
+                  className="form-control"
+                  onChange={(e) => handleImageUpload(e, "HinhAnh6")}
+                  accept="image/*"
+                />
+                {product.HinhAnh6 && (
+                  <img
+                    src={product.HinhAnh6}
                     alt="Preview 3"
                     style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
                   />

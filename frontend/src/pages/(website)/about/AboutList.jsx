@@ -77,11 +77,11 @@ const AboutList = () => {
       {/* Giới thiệu */}
       <section style={{ marginBottom: 48 }}>
         <Title level={2} className="text-center">
-          <RocketOutlined /> Chào mừng đến với MobileStore
+          <RocketOutlined /> Chào mừng đến với SmartPhone
         </Title>
         <Paragraph className="text-center" style={{ fontSize: 16 }}>
-          MobileStore là một trang web bán điện thoại trực tuyến do công ty
-          MobileStore tạo ra và chi phối...
+          SmartPhone là một trang web bán điện thoại trực tuyến do công ty
+          SmartPhone tạo ra và chi phối...
         </Paragraph>
       </section>
 
