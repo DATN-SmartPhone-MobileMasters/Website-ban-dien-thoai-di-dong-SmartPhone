@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProducts, fetchBrands, uploadImage } from "../../../service/api";
+import PermissionCheck from "../../../service/PermissionCheck";
 import { message } from 'antd';
 
 const ProductsAdd = () => {
@@ -191,6 +192,8 @@ const ProductsAdd = () => {
   };
 
   return (
+    <>
+        <PermissionCheck requiredPermission={1} redirectPath="/admin/products" />
     <div className="container">
       <h1 className="mb-4">Thêm Sản Phẩm</h1>
 
@@ -665,6 +668,7 @@ const ProductsAdd = () => {
         </button>
       </div>
     </div>
+    </>
   );
 };
 

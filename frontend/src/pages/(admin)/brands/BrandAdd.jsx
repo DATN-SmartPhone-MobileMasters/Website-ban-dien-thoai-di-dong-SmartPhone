@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
 import { createBrand, fetchCategories, fetchBrands, uploadImage } from "../../../service/api"; // Added fetchBrands
+import PermissionCheck from "../../../service/PermissionCheck";
 
 const BrandAdd = () => {
   const {
@@ -81,6 +82,8 @@ const BrandAdd = () => {
   }, []);
 
   return (
+    <>
+    <PermissionCheck requiredPermission={1} redirectPath="/admin/brands" />
     <div>
       <h1 className="h3 mb-2 text-gray-800">Thêm Thương Hiệu</h1>
       <div className="card shadow mb-4">
@@ -170,6 +173,8 @@ const BrandAdd = () => {
         </div>
       </div>
     </div>
+    </>
+    
   );
 };
 
