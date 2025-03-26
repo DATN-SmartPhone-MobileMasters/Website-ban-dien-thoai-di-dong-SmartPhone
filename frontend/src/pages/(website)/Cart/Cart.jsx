@@ -65,8 +65,9 @@ const Cart = () => {
 
             let newPrice = item.price;
             let newQuantity = item.totalQuantity;
-            const newName = item.name;
+            const newName = productData.TenSP;
 
+            // Logic để xác định giá và số lượng dựa trên bộ nhớ đã chọn
             if (productData.BoNhoTrong1 === item.memory) {
               newPrice = productData.GiaSP1;
               newQuantity = productData.SoLuong1;
@@ -81,8 +82,19 @@ const Cart = () => {
             return {
               ...item,
               price: newPrice,
-              name: productData.TenSP,
+              name: newName,
               totalQuantity: newQuantity,
+              availableMemories: {
+                BoNhoTrong1: productData.BoNhoTrong1,
+                BoNhoTrong2: productData.BoNhoTrong2,
+                BoNhoTrong3: productData.BoNhoTrong3,
+                GiaSP1: productData.GiaSP1,
+                GiaSP2: productData.GiaSP2,
+                GiaSP3: productData.GiaSP3,
+                SoLuong1: productData.SoLuong1,
+                SoLuong2: productData.SoLuong2,
+                SoLuong3: productData.SoLuong3,
+              },
             };
           } catch (error) {
             console.error("Lỗi khi lấy thông tin sản phẩm:", error);
@@ -92,9 +104,10 @@ const Cart = () => {
       );
 
       setCart(updatedCart);
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
       const initialSelection = updatedCart.reduce((acc, _, index) => {
         acc[index] = true;
-        return acc;
+        return acc; // Xóa ký tự Ш và giữ nguyên return
       }, {});
       setSelectedItems(initialSelection);
     }
@@ -122,6 +135,34 @@ const Cart = () => {
       document.removeEventListener("visibilitychange", () => {});
     };
   }, [navigate]);
+
+  const handleMemoryChange = async (index, memoryKey) => {
+    const newCart = [...cart];
+    const productData = newCart[index].availableMemories;
+    const memoryIndex = memoryKey.slice(-1);
+
+    const newMemory = productData[memoryKey];
+    const newPrice = productData[`GiaSP${memoryIndex}`];
+    const newQuantity = productData[`SoLuong${memoryIndex}`];
+
+    newCart[index] = {
+      ...newCart[index],
+      memory: newMemory,
+      price: newPrice,
+      totalQuantity: newQuantity,
+      quantity: Math.min(newCart[index].quantity, newQuantity), // Đảm bảo số lượng không vượt quá tồn kho mới
+    };
+
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+
+    if (userId) {
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+    }
+
+    setCart(newCart);
+    message.success(`Đã thay đổi bộ nhớ thành ${newMemory}`);
+  };
 
   const removeItemFromCart = (index) => {
     const newCart = cart.filter((_, i) => i !== index);
@@ -329,7 +370,23 @@ const Cart = () => {
           <div>
             <Text strong style={{ fontSize: 16 }}>{record.name}</Text>
             <div>
-              <Text type="secondary">Bộ nhớ: {record.memory}</Text>
+              <Text type="secondary">
+                Bộ nhớ: {record.memory}
+                <div className="d-flex gap-2 mt-2">
+                  {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((memoryKey) =>
+                    record.availableMemories[memoryKey] ? (
+                      <Button
+                        key={memoryKey}
+                        type={record.memory === record.availableMemories[memoryKey] ? "primary" : "default"}
+                        size="small"
+                        onClick={() => handleMemoryChange(index, memoryKey)}
+                      >
+                        {record.availableMemories[memoryKey]}
+                      </Button>
+                    ) : null
+                  )}
+                </div>
+              </Text>
             </div>
             <div>
               <Text type="secondary">
