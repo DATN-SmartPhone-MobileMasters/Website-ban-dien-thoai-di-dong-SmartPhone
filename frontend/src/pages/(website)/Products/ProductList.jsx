@@ -25,6 +25,19 @@ const ProductList = () => {
     setCurrentPage(1);
   }, [selectedBrand, selectedStorage, searchQuery, sortOrder]);
 
+  const normalizeBrandName = (name) => {
+    // Chuẩn hóa tên thương hiệu
+    // Ví dụ: "Iphone13" -> "Iphone 13", "Iphone 13" -> "Iphone 13"
+    const match = name.match(/^(Iphone|Samsung|Xiaomi|Oppo)(\d+)/i);
+    if (match) {
+      const brand = match[1]; // "Iphone", "Samsung", v.v.
+      const model = match[2]; // "13", "14", v.v.
+      return `${brand} ${model}`; // Trả về "Iphone 13"
+    }
+    // Nếu không khớp với định dạng "Iphone13", lấy từ đầu tiên
+    return name.split(" ")[0];
+  };
+
   const getProducts = async () => {
     setLoading(true);
     try {
@@ -32,7 +45,11 @@ const ProductList = () => {
       const data = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProducts(data);
 
-      const uniqueBrands = [...new Set(data.map((product) => product.TenSP.split(" ")[0]))];
+      // Lấy danh sách thương hiệu và chuẩn hóa
+      const uniqueBrands = [...new Set(data.map((product) => {
+        const nameParts = product.TenSP.split("|")[0].trim(); // Lấy phần trước dấu "|"
+        return normalizeBrandName(nameParts); // Chuẩn hóa tên thương hiệu
+      }))];
       setBrands(uniqueBrands);
     } catch (error) {
       message.error("Lỗi khi tải danh sách sản phẩm!");
@@ -43,7 +60,11 @@ const ProductList = () => {
 
   const sortedProducts = [...products]
     .filter((product) => selectedStorage ? product.BoNhoTrong1 === selectedStorage : true)
-    .filter((product) => selectedBrand ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase()) : true)
+    .filter((product) => {
+      if (!selectedBrand) return true;
+      const normalizedProductName = normalizeBrandName(product.TenSP.split("|")[0].trim());
+      return normalizedProductName.toLowerCase().startsWith(selectedBrand.toLowerCase());
+    })
     .filter((product) => searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true)
     .sort((a, b) => {
       const priceA = Number(a.GiaSP1) || 0;

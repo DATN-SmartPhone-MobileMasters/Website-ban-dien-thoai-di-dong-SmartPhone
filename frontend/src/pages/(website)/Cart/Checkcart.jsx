@@ -19,7 +19,8 @@ import {
 import { 
   ArrowLeftOutlined, 
   CheckOutlined,
-  ShoppingCartOutlined
+  ShoppingCartOutlined,
+  EditOutlined // Thêm icon chỉnh sửa
 } from "@ant-design/icons";
 import { getUserById, createOrder } from "../../../service/api";
 
@@ -133,6 +134,17 @@ const Checkcart = () => {
     });
   };
 
+  // Hàm điều hướng đến trang chỉnh sửa thông tin người dùng
+  const handleEditProfile = () => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+    if (userId) {
+      navigate(`/account/${userId}`);
+    } else {
+      message.warning("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại!");
+    }
+  };
+
   if (!cart || cart.length === 0) {
     return (
       <Card className="mt-4">
@@ -161,7 +173,18 @@ const Checkcart = () => {
         </Col>
         
         <Col xs={24} lg={16}>
-          <Card title={<Title level={3}>Thông tin giao hàng</Title>}>
+          <Card 
+            title={<Title level={3}>Thông tin giao hàng</Title>}
+            extra={
+              <Button 
+                type="link" 
+                icon={<EditOutlined />} 
+                onClick={handleEditProfile}
+              >
+                Chỉnh sửa
+              </Button>
+            }
+          >
             {userInfo.HoVaTen && (
               <Descriptions bordered column={1}>
                 <Descriptions.Item label="Họ và tên">{userInfo.HoVaTen}</Descriptions.Item>
