@@ -2,672 +2,845 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProducts, fetchBrands, uploadImage } from "../../../service/api";
 import PermissionCheck from "../../../service/PermissionCheck";
-import { message } from 'antd';
+import { Form, Input, Select, Button, Upload, message, Card, Row, Col, Space, Divider } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+
+const { Option } = Select;
 
 const ProductsAdd = () => {
   const [brands, setBrands] = useState([]);
   const navigate = useNavigate();
-  const [mainProduct, setMainProduct] = useState({
-    TenSP: '', // Tên sản phẩm chung
-    ThuongHieu: '', // Thương hiệu chung
-    CamTruoc: '', // Camera trước chung
-    CamSau: '', // Camera sau chung
-    CPU: '', // CPU chung
-    ManHinh: '', // Màn hình chung
-    HDH: '', // Hệ điều hành chung
-    LoaiPin: '', // Loại pin chung
-    CapSac: '', // Cáp sạc chung
-    BoNhoTrong1: '', // Bộ nhớ trong 1 chung
-    BoNhoTrong2: '', // Bộ nhớ trong 2 chung
-    BoNhoTrong3: '', // Bộ nhớ trong 3 chung
-    GiaSP1: '', // Giá sản phẩm 1 chung
-    GiaSP2: '', // Giá sản phẩm 2 chung
-    GiaSP3: '', // Giá sản phẩm 3 chung
-  });
+  const [form] = Form.useForm();
   const [products, setProducts] = useState([
     {
       MaSP: '',
-      MoTa: '',
       Mau1: '',
       SoLuong1: '',
       SoLuong2: '',
       SoLuong3: '',
       TrangThai: '',
-      HinhAnh1: '',
-      HinhAnh2: '',
-      HinhAnh3: '',
-      HinhAnh4: '',
-      HinhAnh5: '',
-      HinhAnh6: '',
+      HinhAnh1: null,
+      HinhAnh2: null,
+      HinhAnh3: null,
+      HinhAnh4: null,
+      HinhAnh5: null,
+      HinhAnh6: null,
     },
   ]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchBrands()
-      .then((res) => setBrands(res.data.data))
-      .catch(console.error);
+    const loadBrands = async () => {
+      try {
+        const response = await fetchBrands();
+        setBrands(response.data.data);
+      } catch (err) {
+        console.error('Error fetching brands:', err);
+        setError('Không thể tải danh sách thương hiệu.');
+      }
+    };
+    loadBrands();
   }, []);
 
-  // Xử lý thay đổi trường Tên Sản Phẩm chung và các trường dùng chung
-  const handleMainProductChange = (e) => {
-    const { name, value } = e.target;
-    setMainProduct({
-      ...mainProduct,
-      [name]: value,
-    });
-  };
-
-  // Xử lý thay đổi các trường trong form sản phẩm
-  const handleProductChange = (index, e) => {
-    const { name, value } = e.target;
+  const handleProductChange = (index, field, value) => {
     const updatedProducts = [...products];
     updatedProducts[index] = {
       ...updatedProducts[index],
-      [name]: value,
+      [field]: value,
     };
     setProducts(updatedProducts);
   };
 
-  // Xử lý upload hình ảnh
-  const handleImageUpload = async (index, e, fieldName) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleImageUpload = async (index, file, fieldName) => {
+    if (!file) return false;
 
     const formData = new FormData();
     formData.append('image', file);
 
     try {
       const response = await uploadImage(formData);
-      console.log('Image upload response:', response.data);
-      const updatedProducts = [...products];
-      updatedProducts[index] = {
-        ...updatedProducts[index],
-        [fieldName]: response.data.imageUrl,
-      };
-      setProducts(updatedProducts);
+      const imageUrl = response.data.imageUrl;
+      handleProductChange(index, fieldName, imageUrl);
+      message.success(`Tải ảnh ${fieldName} thành công!`);
+      return false;
     } catch (error) {
-      console.error('Image upload error:', error);
-      setError(`Tải ảnh ${fieldName} lên thất bại`);
+      console.error(`Error uploading ${fieldName}:`, error);
+      message.error(`Tải ảnh ${fieldName} thất bại`);
+      setError(`Không thể tải ảnh ${fieldName}.`);
+      return false;
     }
   };
 
-  // Thêm form sản phẩm mới
   const handleAddForm = () => {
-    setProducts([
-      ...products,
-      {
-        MaSP: '',
-        MoTa: '',
-        Mau1: '',
-        SoLuong1: '',
-        SoLuong2: '',
-        SoLuong3: '',
-        TrangThai: '',
-        HinhAnh1: '',
-        HinhAnh2: '',
-        HinhAnh3: '',
-      },
-    ]);
+    const newProduct = {
+      MaSP: '',
+      Mau1: '',
+      SoLuong1: '',
+      SoLuong2: '',
+      SoLuong3: '',
+      TrangThai: '',
+      HinhAnh1: null,
+      HinhAnh2: null,
+      HinhAnh3: null,
+      HinhAnh4: null,
+      HinhAnh5: null,
+      HinhAnh6: null,
+    };
+    setProducts([...products, newProduct]);
   };
 
-  // Xóa form sản phẩm
   const handleRemoveForm = (index) => {
-    if (index === 0) return; // Không cho phép xóa form đầu tiên
+    if (index === 0) {
+      message.warning('Không thể xóa form sản phẩm đầu tiên!');
+      return;
+    }
     const updatedProducts = [...products];
     updatedProducts.splice(index, 1);
     setProducts(updatedProducts);
   };
 
-  // Thêm từng sản phẩm
   const handleAddProduct = async (index) => {
     setLoading(true);
-    const productToAdd = {
-      ...products[index],
-      TenSP: mainProduct.TenSP, // Dùng chung TenSP từ form chính
-      ThuongHieu: mainProduct.ThuongHieu, // Dùng chung ThuongHieu từ form chính
-      CamTruoc: mainProduct.CamTruoc, // Dùng chung CamTruoc từ form chính
-      CamSau: mainProduct.CamSau, // Dùng chung CamSau từ form chính
-      CPU: mainProduct.CPU, // Dùng chung CPU từ form chính
-      ManHinh: mainProduct.ManHinh, // Dùng chung ManHinh từ form chính
-      HDH: mainProduct.HDH, // Dùng chung HDH từ form chính
-      LoaiPin: mainProduct.LoaiPin, // Dùng chung LoaiPin từ form chính
-      CapSac: mainProduct.CapSac, // Dùng chung CapSac từ form chính
-      BoNhoTrong1: mainProduct.BoNhoTrong1, // Dùng chung BoNhoTrong1 từ form chính
-      BoNhoTrong2: mainProduct.BoNhoTrong2, // Dùng chung BoNhoTrong2 từ form chính
-      BoNhoTrong3: mainProduct.BoNhoTrong3, // Dùng chung BoNhoTrong3 từ form chính
-      GiaSP1: mainProduct.GiaSP1, // Dùng chung GiaSP1 từ form chính
-      GiaSP2: mainProduct.GiaSP2, // Dùng chung GiaSP2 từ form chính
-      GiaSP3: mainProduct.GiaSP3, // Dùng chung GiaSP3 từ form chính
-    };
-
+    setError('');
     try {
+      const mainValues = await form.validateFields();
+      const product = products[index];
+      if (!product.HinhAnh1) throw new Error('Hình ảnh 1 không được để trống!');
+      const productToAdd = {
+        ...product,
+        TenSP: mainValues.TenSP,
+        ThuongHieu: mainValues.ThuongHieu,
+        MoTa: mainValues.MoTa,
+        CamTruoc: mainValues.CamTruoc,
+        CamSau: mainValues.CamSau,
+        CPU: mainValues.CPU,
+        ManHinh: mainValues.ManHinh,
+        HDH: mainValues.HDH,
+        LoaiPin: mainValues.LoaiPin,
+        CapSac: mainValues.CapSac,
+        BoNhoTrong1: mainValues.BoNhoTrong1,
+        BoNhoTrong2: mainValues.BoNhoTrong2,
+        BoNhoTrong3: mainValues.BoNhoTrong3,
+        GiaSP1: mainValues.GiaSP1,
+        GiaSP2: mainValues.GiaSP2,
+        GiaSP3: mainValues.GiaSP3,
+      };
+
       await createProducts(productToAdd);
       message.success(`Thêm sản phẩm ${index + 1} thành công!`);
       if (index === products.length - 1) {
         navigate('/admin/products');
       }
     } catch (error) {
-      console.error('Create product error:', error.response?.data);
-      setError(error.response?.data?.message || 'Không thể thêm sản phẩm.');
+      console.error('Error adding product:', error.response?.data || error);
+      const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm sản phẩm.';
+      setError(errorMsg);
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Thêm tất cả sản phẩm
   const handleAddAllProducts = async () => {
     setLoading(true);
+    setError('');
     try {
-      for (const product of products) {
+      const mainValues = await form.validateFields();
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        if (!product.HinhAnh1) throw new Error(`Hình ảnh 1 của sản phẩm ${i + 1} không được để trống!`);
         const productToAdd = {
           ...product,
-          TenSP: mainProduct.TenSP, // Dùng chung TenSP từ form chính
-          ThuongHieu: mainProduct.ThuongHieu, // Dùng chung ThuongHieu từ form chính
-          CamTruoc: mainProduct.CamTruoc, // Dùng chung CamTruoc từ form chính
-          CamSau: mainProduct.CamSau, // Dùng chung CamSau từ form chính
-          CPU: mainProduct.CPU, // Dùng chung CPU từ form chính
-          ManHinh: mainProduct.ManHinh, // Dùng chung ManHinh từ form chính
-          HDH: mainProduct.HDH, // Dùng chung HDH từ form chính
-          LoaiPin: mainProduct.LoaiPin, // Dùng chung LoaiPin từ form chính
-          CapSac: mainProduct.CapSac, // Dùng chung CapSac từ form chính
-          BoNhoTrong1: mainProduct.BoNhoTrong1, // Dùng chung BoNhoTrong1 từ form chính
-          BoNhoTrong2: mainProduct.BoNhoTrong2, // Dùng chung BoNhoTrong2 từ form chính
-          BoNhoTrong3: mainProduct.BoNhoTrong3, // Dùng chung BoNhoTrong3 từ form chính
-          GiaSP1: mainProduct.GiaSP1, // Dùng chung GiaSP1 từ form chính
-          GiaSP2: mainProduct.GiaSP2, // Dùng chung GiaSP2 từ form chính
-          GiaSP3: mainProduct.GiaSP3, // Dùng chung GiaSP3 từ form chính
+          TenSP: mainValues.TenSP,
+          ThuongHieu: mainValues.ThuongHieu,
+          MoTa: mainValues.MoTa,
+          CamTruoc: mainValues.CamTruoc,
+          CamSau: mainValues.CamSau,
+          CPU: mainValues.CPU,
+          ManHinh: mainValues.ManHinh,
+          HDH: mainValues.HDH,
+          LoaiPin: mainValues.LoaiPin,
+          CapSac: mainValues.CapSac,
+          BoNhoTrong1: mainValues.BoNhoTrong1,
+          BoNhoTrong2: mainValues.BoNhoTrong2,
+          BoNhoTrong3: mainValues.BoNhoTrong3,
+          GiaSP1: mainValues.GiaSP1,
+          GiaSP2: mainValues.GiaSP2,
+          GiaSP3: mainValues.GiaSP3,
         };
         await createProducts(productToAdd);
+        message.success(`Thêm sản phẩm ${i + 1} thành công!`);
       }
       navigate('/admin/products');
       message.success('Thêm tất cả sản phẩm thành công!');
     } catch (error) {
-      console.error('Create product error:', error.response?.data);
-      setError(error.response?.data?.message || 'Không thể thêm sản phẩm.');
+      console.error('Error adding all products:', error.response?.data || error);
+      const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm tất cả sản phẩm.';
+      setError(errorMsg);
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
+  const noWhitespace = (rule, value) => {
+    if (!value || value.trim() === '') {
+      return Promise.reject('Không được để trống hoặc chỉ nhập khoảng trắng!');
+    }
+    return Promise.resolve();
+  };
+
+  const noNegativeNumber = (rule, value) => {
+    if (!value || value.trim() === '') {
+      return Promise.reject('Không được để trống!');
+    }
+    if (Number(value) < 0) {
+      return Promise.reject('Không được nhập số âm!');
+    }
+    return Promise.resolve();
+  };
+
   return (
     <>
-        <PermissionCheck requiredPermission={1} redirectPath="/admin/products" />
-    <div className="container">
-      <h1 className="mb-4">Thêm Sản Phẩm</h1>
+      <PermissionCheck requiredPermission={1} redirectPath="/admin/products" />
+      <div className="container" style={{ padding: '20px' }}>
+        <h1 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: 'bold' }}>Thêm Sản Phẩm</h1>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div style={{ color: 'red', marginBottom: '20px', fontSize: '16px' }}>{error}</div>
+        )}
 
-      {/* Form chính để nhập Tên Sản Phẩm chung và các trường dùng chung */}
-      <div className="card shadow mb-4">
-        <div className="card-body">
-          <div className="form-group">
-            <label htmlFor="TenSP">Tên Sản Phẩm (Chung)</label>
-            <input
-              type="text"
-              id="TenSP"
-              name="TenSP"
-              className="form-control"
-              value={mainProduct.TenSP}
-              onChange={handleMainProductChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="ThuongHieu">Thương Hiệu</label>
-            <select
-              id="ThuongHieu"
-              name="ThuongHieu"
-              className="form-control"
-              value={mainProduct.ThuongHieu}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn thương hiệu</option>
-              {brands.map((brand) => (
-                <option key={brand._id} value={brand.TenTH}>
-                  {brand.TenTH}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="CamTruoc">Camera Trước</label>
-            <select
-              id="CamTruoc"
-              name="CamTruoc"
-              className="form-control"
-              value={mainProduct.CamTruoc}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn độ phân giải</option>
-              <option value="30px">30 PX</option>
-              <option value="35px">35 PX</option>
-              <option value="40px">40 PX</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="CamSau">Camera Sau</label>
-            <select
-              id="CamSau"
-              name="CamSau"
-              className="form-control"
-              value={mainProduct.CamSau}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn độ phân giải</option>
-              <option value="16px">16 PX</option>
-              <option value="20px">20 PX</option>
-              <option value="25px">25 PX</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="CPU">CPU</label>
-            <select
-              id="CPU"
-              name="CPU"
-              className="form-control"
-              value={mainProduct.CPU}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn loại CPU</option>
-              <option value="APPLE CHIPSET">APPLE CHIPSET</option>
-              <option value="ANDROID CHIPSET">ANDROID CHIPSET</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="ManHinh">Màn Hình</label>
-            <select
-              id="ManHinh"
-              name="ManHinh"
-              className="form-control"
-              value={mainProduct.ManHinh}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn kích thước màn hình</option>
-              <option value="5inch">5 inch</option>
-              <option value="5.1inch">5.1 inch</option>
-              <option value="6inch">6 inch</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="HDH">Hệ Điều Hành</label>
-            <select
-              id="HDH"
-              name="HDH"
-              className="form-control"
-              value={mainProduct.HDH}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn hệ điều hành</option>
-              <option value="IOS">IOS</option>
-              <option value="ANDROID">ANDROID</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="LoaiPin">Loại Pin</label>
-            <select
-              id="LoaiPin"
-              name="LoaiPin"
-              className="form-control"
-              value={mainProduct.LoaiPin}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn loại pin</option>
-              <option value="PISEN">PISEN</option>
-              <option value="Energizer">Energizer</option>
-              <option value="Duracell">Duracell</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="CapSac">Cáp Sạc</label>
-            <select
-              id="CapSac"
-              name="CapSac"
-              className="form-control"
-              value={mainProduct.CapSac}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn loại cáp</option>
-              <option value="Type-C">Type-C</option>
-              <option value="Lightning">Lightning</option>
-              <option value="USB">USB</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="BoNhoTrong1">Bộ Nhớ Trong 1</label>
-            <select
-              id="BoNhoTrong1"
-              name="BoNhoTrong1"
-              className="form-control"
-              value={mainProduct.BoNhoTrong1}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn bộ nhớ</option>
-              <option value="64GB">64GB</option>
-              <option value="128GB">128GB</option>
-              <option value="256GB">256GB</option>
-              <option value="512GB">512GB</option>
-              <option value="1TB">1TB</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="BoNhoTrong2">Bộ Nhớ Trong 2</label>
-            <select
-              id="BoNhoTrong2"
-              name="BoNhoTrong2"
-              className="form-control"
-              value={mainProduct.BoNhoTrong2}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn bộ nhớ</option>
-              <option value="64GB">64GB</option>
-              <option value="128GB">128GB</option>
-              <option value="256GB">256GB</option>
-              <option value="512GB">512GB</option>
-              <option value="1TB">1TB</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="BoNhoTrong3">Bộ Nhớ Trong 3</label>
-            <select
-              id="BoNhoTrong3"
-              name="BoNhoTrong3"
-              className="form-control"
-              value={mainProduct.BoNhoTrong3}
-              onChange={handleMainProductChange}
-              required
-            >
-              <option value="">Chọn bộ nhớ</option>
-              <option value="64GB">64GB</option>
-              <option value="128GB">128GB</option>
-              <option value="256GB">256GB</option>
-              <option value="512GB">512GB</option>
-              <option value="1TB">1TB</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="GiaSP1">Giá 1</label>
-            <input
-              type="number"
-              id="GiaSP1"
-              name="GiaSP1"
-              className="form-control"
-              value={mainProduct.GiaSP1}
-              onChange={handleMainProductChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="GiaSP2">Giá 2</label>
-            <input
-              type="number"
-              id="GiaSP2"
-              name="GiaSP2"
-              className="form-control"
-              value={mainProduct.GiaSP2}
-              onChange={handleMainProductChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="GiaSP3">Giá 3</label>
-            <input
-              type="number"
-              id="GiaSP3"
-              name="GiaSP3"
-              className="form-control"
-              value={mainProduct.GiaSP3}
-              onChange={handleMainProductChange}
-              required
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Danh sách các form sản phẩm */}
-      {products.map((product, index) => (
-        <div key={index} className="card shadow mb-4">
-          <div className="card-body">
-            <div className="d-flex justify-content-between align-items-center">
-              <h3>Form Sản Phẩm {index + 1}</h3>
-              {index > 0 && ( // Chỉ hiển thị nút "x" từ form thứ 2 trở đi
-                <button
-                  type="button"
-                  className="btn btn-danger btn-sm"
-                  onClick={() => handleRemoveForm(index)}
+        <Form form={form} layout="vertical">
+          <Card title="Thông Tin Cơ Bản" style={{ marginBottom: '30px', padding: '20px' }}>
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  label="Tên Sản Phẩm (Chung)"
+                  name="TenSP"
+                  rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }, { validator: noWhitespace }]}
                 >
-                  &times;
-                </button>
-              )}
-            </div>
-            <div className="row">
-              <div className="col-md-6">
-                <div className="form-group">
-                  <label htmlFor={`MaSP-${index}`}>Mã Sản Phẩm</label>
-                  <input
-                    type="text"
-                    id={`MaSP-${index}`}
-                    name="MaSP"
-                    className="form-control"
-                    value={product.MaSP}
-                    onChange={(e) => handleProductChange(index, e)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`MoTa-${index}`}>Mô Tả</label>
-                  <input
-                    type="text"
-                    id={`MoTa-${index}`}
-                    name="MoTa"
-                    className="form-control"
-                    value={product.MoTa}
-                    onChange={(e) => handleProductChange(index, e)}
-                    required
-                  />
-                </div>
+                  <Input placeholder="Nhập tên sản phẩm" size="large" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Thương Hiệu"
+                  name="ThuongHieu"
+                  rules={[{ required: true, message: 'Vui lòng chọn thương hiệu!' }]}
+                >
+                  <Select placeholder="Chọn thương hiệu" size="large">
+                    <Option value="">Chọn thương hiệu</Option>
+                    {brands.map((brand) => (
+                      <Option key={brand._id} value={brand.TenTH}>
+                        {brand.TenTH}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
 
-                <div className="form-group">
-                  <label htmlFor="TrangThai">Trạng Thái</label>
-                  <select
-                    id="TrangThai"
-                    name="TrangThai"
-                    className="form-control"
-                    value={product.TrangThai}
-                    onChange={(e) => handleProductChange(index, e)}
+          <Card title="Thông Số Kỹ Thuật" style={{ marginBottom: '30px', padding: '20px' }}>
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  label="Mô Tả"
+                  name="MoTa"
+                  rules={[{ required: true, message: 'Vui lòng nhập mô tả!' }, { validator: noWhitespace }]}
+                >
+                  <Input placeholder="Nhập mô tả sản phẩm" size="large" />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Camera Trước"
+                  name="CamTruoc"
+                  rules={[{ required: true, message: 'Vui lòng chọn độ phân giải camera trước!' }]}
+                >
+                  <Select placeholder="Chọn độ phân giải" size="large">
+                    <Option value="">Chọn độ phân giải</Option>
+                    <Option value="30px">30 PX</Option>
+                    <Option value="35px">35 PX</Option>
+                    <Option value="40px">40 PX</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Camera Sau"
+                  name="CamSau"
+                  rules={[{ required: true, message: 'Vui lòng chọn độ phân giải camera sau!' }]}
+                >
+                  <Select placeholder="Chọn độ phân giải" size="large">
+                    <Option value="">Chọn độ phân giải</Option>
+                    <Option value="16px">16 PX</Option>
+                    <Option value="20px">20 PX</Option>
+                    <Option value="25px">25 PX</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="CPU"
+                  name="CPU"
+                  rules={[{ required: true, message: 'Vui lòng chọn loại CPU!' }]}
+                >
+                  <Select placeholder="Chọn loại CPU" size="large">
+                    <Option value="">Chọn loại CPU</Option>
+                    <Option value="APPLE CHIPSET">APPLE CHIPSET</Option>
+                    <Option value="ANDROID CHIPSET">ANDROID CHIPSET</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Màn Hình"
+                  name="ManHinh"
+                  rules={[{ required: true, message: 'Vui lòng chọn kích thước màn hình!' }]}
+                >
+                  <Select placeholder="Chọn kích thước màn hình" size="large">
+                    <Option value="">Chọn kích thước màn hình</Option>
+                    <Option value="5inch">5 inch</Option>
+                    <Option value="5.1inch">5.1 inch</Option>
+                    <Option value="6inch">6 inch</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Hệ Điều Hành"
+                  name="HDH"
+                  rules={[{ required: true, message: 'Vui lòng chọn hệ điều hành!' }]}
+                >
+                  <Select placeholder="Chọn hệ điều hành" size="large">
+                    <Option value="">Chọn hệ điều hành</Option>
+                    <Option value="IOS">IOS</Option>
+                    <Option value="ANDROID">ANDROID</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Loại Pin"
+                  name="LoaiPin"
+                  rules={[{ required: true, message: 'Vui lòng chọn loại pin!' }]}
+                >
+                  <Select placeholder="Chọn loại pin" size="large">
+                    <Option value="">Chọn loại pin</Option>
+                    <Option value="PISEN">PISEN</Option>
+                    <Option value="Energizer">Energizer</Option>
+                    <Option value="Duracell">Duracell</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Cáp Sạc"
+                  name="CapSac"
+                  rules={[{ required: true, message: 'Vui lòng chọn loại cáp sạc!' }]}
+                >
+                  <Select placeholder="Chọn loại cáp" size="large">
+                    <Option value="">Chọn loại cáp</Option>
+                    <Option value="Type-C">Type-C</Option>
+                    <Option value="Lightning">Lightning</Option>
+                    <Option value="USB">USB</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+
+          <Card title="Bộ Nhớ và Giá Sản Phẩm" style={{ marginBottom: '30px', padding: '20px' }}>
+            <Row gutter={[16, 16]}>
+              <Col span={8}>
+                <Form.Item
+                  label="Bộ Nhớ Trong 1"
+                  name="BoNhoTrong1"
+                  rules={[{ required: true, message: 'Vui lòng chọn bộ nhớ trong 1!' }]}
+                >
+                  <Select placeholder="Chọn bộ nhớ" size="large">
+                    <Option value="">Chọn bộ nhớ</Option>
+                    <Option value="64GB">64GB</Option>
+                    <Option value="128GB">128GB</Option>
+                    <Option value="256GB">256GB</Option>
+                    <Option value="512GB">512GB</Option>
+                    <Option value="1TB">1TB</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label="Bộ Nhớ Trong 2"
+                  name="BoNhoTrong2"
+                  rules={[{ required: true, message: 'Vui lòng chọn bộ nhớ trong 2!' }]}
+                >
+                  <Select placeholder="Chọn bộ nhớ" size="large">
+                    <Option value="">Chọn bộ nhớ</Option>
+                    <Option value="64GB">64GB</Option>
+                    <Option value="128GB">128GB</Option>
+                    <Option value="256GB">256GB</Option>
+                    <Option value="512GB">512GB</Option>
+                    <Option value="1TB">1TB</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label="Bộ Nhớ Trong 3"
+                  name="BoNhoTrong3"
+                  rules={[{ required: true, message: 'Vui lòng chọn bộ nhớ trong 3!' }]}
+                >
+                  <Select placeholder="Chọn bộ nhớ" size="large">
+                    <Option value="">Chọn bộ nhớ</Option>
+                    <Option value="64GB">64GB</Option>
+                    <Option value="128GB">128GB</Option>
+                    <Option value="256GB">256GB</Option>
+                    <Option value="512GB">512GB</Option>
+                    <Option value="1TB">1TB</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label="Giá Sản Phẩm 1"
+                  name="GiaSP1"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập giá sản phẩm 1!' },
+                    { validator: noNegativeNumber },
+                  ]}
+                >
+                  <Input type="number" placeholder="Nhập giá" size="large" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label="Giá Sản Phẩm 2"
+                  name="GiaSP2"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập giá sản phẩm 2!' },
+                    { validator: noNegativeNumber },
+                  ]}
+                >
+                  <Input type="number" placeholder="Nhập giá" size="large" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
+                  label="Giá Sản Phẩm 3"
+                  name="GiaSP3"
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập giá sản phẩm 3!' },
+                    { validator: noNegativeNumber },
+                  ]}
+                >
+                  <Input type="number" placeholder="Nhập giá" size="large" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+
+          <Divider orientation="left">Danh Sách Sản Phẩm</Divider>
+
+          {products.map((product, index) => (
+            <Card
+              key={index}
+              title={`Form Sản Phẩm ${index + 1}`}
+              style={{ marginBottom: '30px', padding: '20px' }}
+              extra={
+                index > 0 && (
+                  <Button
+                    type="primary"
+                    danger
+                    onClick={() => handleRemoveForm(index)}
+                    style={{ fontSize: '14px' }}
                   >
-                    <option value="">Vui lòng chọn</option>
-                    <option value="Còn hàng">Còn hàng</option>
-                    <option value="Hết hàng">Hết hàng</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-  <label htmlFor={`Mau1-${index}`}>Màu Sắc</label>
-  <input
-    type="text"
-    id={`Mau1-${index}`}
-    name="Mau1"
-    className="form-control"
-    value={product.Mau1}
-    onChange={(e) => handleProductChange(index, e)}
-    placeholder="Nhập màu sắc"
-  />
-</div>
-
-                <div className="form-group">
-                  <label htmlFor={`SoLuong1-${index}`}>Số Lượng Bộ Nhớ 1</label>
-                  <input
-                    type="number"
-                    id={`SoLuong1-${index}`}
-                    name="SoLuong1"
-                    className="form-control"
-                    value={product.SoLuong1}
-                    onChange={(e) => handleProductChange(index, e)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`SoLuong2-${index}`}>Số Lượng Bộ Nhớ 2</label>
-                  <input
-                    type="number"
-                    id={`SoLuong2-${index}`}
-                    name="SoLuong2"
-                    className="form-control"
-                    value={product.SoLuong2}
-                    onChange={(e) => handleProductChange(index, e)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`SoLuong3-${index}`}>Số Lượng Bộ Nhớ 3</label>
-                  <input
-                    type="number"
-                    id={`SoLuong3-${index}`}
-                    name="SoLuong3"
-                    className="form-control"
-                    value={product.SoLuong3}
-                    onChange={(e) => handleProductChange(index, e)}
-                  />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <div className="form-group">
-                  <label htmlFor={`HinhAnh1-${index}`}>Hình Ảnh 1</label>
-                  <input
-                    type="file"
-                    id={`HinhAnh1-${index}`}
-                    className="form-control"
-                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh1')}
-                    accept="image/*"
-                    required
-                  />
-                  {product.HinhAnh1 && (
-                    <img
-                      src={product.HinhAnh1}
-                      alt="Preview 1"
-                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                    />
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`HinhAnh2-${index}`}>Hình Ảnh 2</label>
-                  <input
-                    type="file"
-                    id={`HinhAnh2-${index}`}
-                    className="form-control"
-                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh2')}
-                    accept="image/*"
-                  />
-                  {product.HinhAnh2 && (
-                    <img
-                      src={product.HinhAnh2}
-                      alt="Preview 2"
-                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                    />
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`HinhAnh3-${index}`}>Hình Ảnh 3</label>
-                  <input
-                    type="file"
-                    id={`HinhAnh3-${index}`}
-                    className="form-control"
-                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh3')}
-                    accept="image/*"
-                  />
-                  {product.HinhAnh3 && (
-                    <img
-                      src={product.HinhAnh3}
-                      alt="Preview 3"
-                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                    />
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`HinhAnh4-${index}`}>Hình Ảnh 4</label>
-                  <input
-                    type="file"
-                    id={`HinhAnh4-${index}`}
-                    className="form-control"
-                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh4')}
-                    accept="image/*"
-                  />
-                  {product.HinhAnh4 && (
-                    <img
-                      src={product.HinhAnh5}
-                      alt="Preview 3"
-                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                    />
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`HinhAnh5-${index}`}>Hình Ảnh 5</label>
-                  <input
-                    type="file"
-                    id={`HinhAnh5-${index}`}
-                    className="form-control"
-                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh5')}
-                    accept="image/*"
-                  />
-                  {product.HinhAnh5 && (
-                    <img
-                      src={product.HinhAnh5}
-                      alt="Preview 3"
-                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                    />
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`HinhAnh6-${index}`}>Hình Ảnh 6</label>
-                  <input
-                    type="file"
-                    id={`HinhAnh6-${index}`}
-                    className="form-control"
-                    onChange={(e) => handleImageUpload(index, e, 'HinhAnh6')}
-                    accept="image/*"
-                  />
-                  {product.HinhAnh6 && (
-                    <img
-                      src={product.HinhAnh6}
-                      alt="Preview 3"
-                      style={{ marginTop: '10px', maxWidth: '150px', maxHeight: '150px' }}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => handleAddProduct(index)}
-              disabled={loading}
+                    Xóa Form
+                  </Button>
+                )
+              }
             >
-              {loading ? 'Đang thêm...' : `Thêm Sản Phẩm ${index + 1}`}
-            </button>
-          </div>
-        </div>
-      ))}
+              <Row gutter={[16, 16]}>
+                {/* Hàng 1: Mã Sản Phẩm, Trạng Thái, Màu Sắc */}
+                <Col span={24}>
+                  <Row gutter={[16, 16]}>
+                    <Col span={8}>
+                      <Form.Item
+                        label="Mã Sản Phẩm"
+                        name={`MaSP_${index}`}
+                        rules={[{ required: true, message: 'Vui lòng nhập mã sản phẩm!' }, { validator: noWhitespace }]}
+                      >
+                        <Input
+                          value={product.MaSP}
+                          onChange={(e) => handleProductChange(index, 'MaSP', e.target.value)}
+                          placeholder="Nhập mã sản phẩm"
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        label="Trạng Thái"
+                        name={`TrangThai_${index}`}
+                        rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+                      >
+                        <Select
+                          value={product.TrangThai}
+                          onChange={(value) => handleProductChange(index, 'TrangThai', value)}
+                          placeholder="Chọn trạng thái"
+                          size="large"
+                        >
+                          <Option value="">Vui lòng chọn</Option>
+                          <Option value="Còn hàng">Còn hàng</Option>
+                          <Option value="Hết hàng">Hết hàng</Option>
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        label="Màu Sắc"
+                        name={`Mau1_${index}`}
+                        rules={[{ required: true, message: 'Vui lòng nhập màu sắc!' }, { validator: noWhitespace }]}
+                      >
+                        <Input
+                          value={product.Mau1}
+                          onChange={(e) => handleProductChange(index, 'Mau1', e.target.value)}
+                          placeholder="Nhập màu sắc"
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Col>
 
-      {/* Nút thêm form mới và thêm tất cả sản phẩm */}
-      <div className="mt-4">
-        <button type="button" className="btn btn-secondary mr-2" onClick={handleAddForm}>
-          Thêm Form Sản Phẩm
-        </button>
-        <button type="button" className="btn btn-success" onClick={handleAddAllProducts} disabled={loading}>
-          {loading ? 'Đang thêm tất cả...' : 'Thêm Tất Cả Sản Phẩm'}
-        </button>
+                {/* Hàng 2: Số Lượng Bộ Nhớ 1, 2, 3 */}
+                <Col span={24}>
+                  <Row gutter={[16, 16]}>
+                    <Col span={8}>
+                      <Form.Item
+                        label="Số Lượng Bộ Nhớ 1"
+                        name={`SoLuong1_${index}`}
+                        rules={[
+                          { required: true, message: 'Vui lòng nhập số lượng bộ nhớ 1!' },
+                          { validator: noNegativeNumber },
+                          { validator: noWhitespace },
+                        ]}
+                      >
+                        <Input
+                          type="number"
+                          value={product.SoLuong1}
+                          onChange={(e) => handleProductChange(index, 'SoLuong1', e.target.value)}
+                          placeholder="Nhập số lượng"
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        label="Số Lượng Bộ Nhớ 2"
+                        name={`SoLuong2_${index}`}
+                        rules={[
+                          { required: true, message: 'Vui lòng nhập số lượng bộ nhớ 2!' },
+                          { validator: noNegativeNumber },
+                          { validator: noWhitespace },
+                        ]}
+                      >
+                        <Input
+                          type="number"
+                          value={product.SoLuong2}
+                          onChange={(e) => handleProductChange(index, 'SoLuong2', e.target.value)}
+                          placeholder="Nhập số lượng"
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        label="Số Lượng Bộ Nhớ 3"
+                        name={`SoLuong3_${index}`}
+                        rules={[
+                          { required: true, message: 'Vui lòng nhập số lượng bộ nhớ 3!' },
+                          { validator: noNegativeNumber },
+                          { validator: noWhitespace },
+                        ]}
+                      >
+                        <Input
+                          type="number"
+                          value={product.SoLuong3}
+                          onChange={(e) => handleProductChange(index, 'SoLuong3', e.target.value)}
+                          placeholder="Nhập số lượng"
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Col>
+
+                {/* Hàng 3: Hình Ảnh */}
+                <Col span={24}>
+                  <Card title="Hình Ảnh Sản Phẩm" style={{ padding: '10px' }}>
+                    <Row gutter={[16, 16]}>
+                    <Col span={8}>
+  <Form.Item
+    label="Hình Ảnh 1"
+    name={`HinhAnh1_${index}`}
+    valuePropName="file"
+    getValueFromEvent={() => product.HinhAnh1}
+    // Bỏ rules để không bắt buộc
+  >
+    <Upload
+      beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh1')}
+      showUploadList={false}
+    >
+      <Button icon={<UploadOutlined />} size="large">
+        Tải lên
+      </Button>
+    </Upload>
+    {product.HinhAnh1 && (
+      <div style={{ marginTop: '10px' }}>
+        <img
+          src={product.HinhAnh1}
+          alt="Hình ảnh 1"
+          style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+            console.error('Error loading HinhAnh1:', product.HinhAnh1);
+          }}
+        />
+        <Button
+          type="link"
+          onClick={() => handleProductChange(index, 'HinhAnh1', null)}
+          style={{ marginLeft: '10px', color: 'red' }}
+        >
+          Xóa
+        </Button>
       </div>
-    </div>
+    )}
+  </Form.Item>
+</Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Hình Ảnh 2"
+                          name={`HinhAnh2_${index}`}
+                          valuePropName="file"
+                          getValueFromEvent={() => product.HinhAnh2}
+                        >
+                          <Upload
+                            beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh2')}
+                            showUploadList={false}
+                          >
+                            <Button icon={<UploadOutlined />} size="large">
+                              Tải lên
+                            </Button>
+                          </Upload>
+                          {product.HinhAnh2 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <img
+                                src={product.HinhAnh2}
+                                alt="Hình ảnh 2"
+                                style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+                                  console.error('Error loading HinhAnh2:', product.HinhAnh2);
+                                }}
+                              />
+                              <Button
+                                type="link"
+                                onClick={() => handleProductChange(index, 'HinhAnh2', null)}
+                                style={{ marginLeft: '10px', color: 'red' }}
+                              >
+                                Xóa
+                              </Button>
+                            </div>
+                          )}
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Hình Ảnh 3"
+                          name={`HinhAnh3_${index}`}
+                          valuePropName="file"
+                          getValueFromEvent={() => product.HinhAnh3}
+                        >
+                          <Upload
+                            beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh3')}
+                            showUploadList={false}
+                          >
+                            <Button icon={<UploadOutlined />} size="large">
+                              Tải lên
+                            </Button>
+                          </Upload>
+                          {product.HinhAnh3 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <img
+                                src={product.HinhAnh3}
+                                alt="Hình ảnh 3"
+                                style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+                                  console.error('Error loading HinhAnh3:', product.HinhAnh3);
+                                }}
+                              />
+                              <Button
+                                type="link"
+                                onClick={() => handleProductChange(index, 'HinhAnh3', null)}
+                                style={{ marginLeft: '10px', color: 'red' }}
+                              >
+                                Xóa
+                              </Button>
+                            </div>
+                          )}
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Hình Ảnh 4"
+                          name={`HinhAnh4_${index}`}
+                          valuePropName="file"
+                          getValueFromEvent={() => product.HinhAnh4}
+                        >
+                          <Upload
+                            beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh4')}
+                            showUploadList={false}
+                          >
+                            <Button icon={<UploadOutlined />} size="large">
+                              Tải lên
+                            </Button>
+                          </Upload>
+                          {product.HinhAnh4 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <img
+                                src={product.HinhAnh4}
+                                alt="Hình ảnh 4"
+                                style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+                                  console.error('Error loading HinhAnh4:', product.HinhAnh4);
+                                }}
+                              />
+                              <Button
+                                type="link"
+                                onClick={() => handleProductChange(index, 'HinhAnh4', null)}
+                                style={{ marginLeft: '10px', color: 'red' }}
+                              >
+                                Xóa
+                              </Button>
+                            </div>
+                          )}
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Hình Ảnh 5"
+                          name={`HinhAnh5_${index}`}
+                          valuePropName="file"
+                          getValueFromEvent={() => product.HinhAnh5}
+                        >
+                          <Upload
+                            beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh5')}
+                            showUploadList={false}
+                          >
+                            <Button icon={<UploadOutlined />} size="large">
+                              Tải lên
+                            </Button>
+                          </Upload>
+                          {product.HinhAnh5 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <img
+                                src={product.HinhAnh5}
+                                alt="Hình ảnh 5"
+                                style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+                                  console.error('Error loading HinhAnh5:', product.HinhAnh5);
+                                }}
+                              />
+                              <Button
+                                type="link"
+                                onClick={() => handleProductChange(index, 'HinhAnh5', null)}
+                                style={{ marginLeft: '10px', color: 'red' }}
+                              >
+                                Xóa
+                              </Button>
+                            </div>
+                          )}
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Hình Ảnh 6"
+                          name={`HinhAnh6_${index}`}
+                          valuePropName="file"
+                          getValueFromEvent={() => product.HinhAnh6}
+                        >
+                          <Upload
+                            beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh6')}
+                            showUploadList={false}
+                          >
+                            <Button icon={<UploadOutlined />} size="large">
+                              Tải lên
+                            </Button>
+                          </Upload>
+                          {product.HinhAnh6 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <img
+                                src={product.HinhAnh6}
+                                alt="Hình ảnh 6"
+                                style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+                                  console.error('Error loading HinhAnh6:', product.HinhAnh6);
+                                }}
+                              />
+                              <Button
+                                type="link"
+                                onClick={() => handleProductChange(index, 'HinhAnh6', null)}
+                                style={{ marginLeft: '10px', color: 'red' }}
+                              >
+                                Xóa
+                              </Button>
+                            </div>
+                          )}
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Card>
+                </Col>
+              </Row>
+              <Button
+                type="primary"
+                onClick={() => handleAddProduct(index)}
+                loading={loading}
+                size="large"
+                style={{ marginTop: '20px', width: '200px' }}
+              >
+                {loading ? 'Đang thêm...' : `Thêm Sản Phẩm ${index + 1}`}
+              </Button>
+            </Card>
+          ))}
+
+          <Space style={{ marginTop: '30px', marginBottom: '20px' }}>
+            <Button
+              type="dashed"
+              onClick={handleAddForm}
+              size="large"
+              style={{ width: '200px', fontSize: '16px' }}
+            >
+              Thêm Form Sản Phẩm
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleAddAllProducts}
+              loading={loading}
+              size="large"
+              style={{ width: '200px', fontSize: '16px' }}
+            >
+              {loading ? 'Đang thêm tất cả...' : 'Thêm Tất Cả Sản Phẩm'}
+            </Button>
+          </Space>
+        </Form>
+      </div>
     </>
   );
 };

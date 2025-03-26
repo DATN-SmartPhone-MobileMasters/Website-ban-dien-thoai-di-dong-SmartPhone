@@ -106,13 +106,22 @@ const ProductDetail = () => {
         fetchProducts().then((response) => {
           const allProducts = response.data.data || [];
           setAllProducts(allProducts);
+
+          // Logic mới để lọc các sản phẩm có tên giống nhau
+          const productNameParts = productData.TenSP.split("|").map(part => part.trim());
+          const mainProductName = productNameParts[0]; // Lấy phần tên chính (ví dụ: "Iphone 13")
+
           const related = allProducts
-            .filter(
-              (p) =>
-                p.TenSP.toLowerCase().includes(productData.TenSP.toLowerCase()) &&
-                p._id !== productData._id
-            )
-            .slice(0, 4);
+            .filter((p) => {
+              const relatedNameParts = p.TenSP.split("|").map(part => part.trim());
+              const relatedMainName = relatedNameParts[0]; // Lấy phần tên chính của sản phẩm liên quan
+              return (
+                relatedMainName === mainProductName && // So sánh tên chính
+                p._id !== productData._id // Loại bỏ sản phẩm hiện tại
+              );
+            })
+            .slice(0, 4); // Giới hạn 4 sản phẩm
+
           setRelatedProducts(related);
         });
       })
@@ -250,15 +259,15 @@ const ProductDetail = () => {
                 render: (text) => text || "--",
               },
               {
-                title: "Mô tả",
-                dataIndex: "MoTa",
-                key: "battery",
-                render: (text) => text || "--",
-              },
-              {
                 title: "Cổng sạc",
                 dataIndex: "CapSac",
                 key: "charging",
+                render: (text) => text || "--",
+              },
+              {
+                title: "Mô tả",
+                dataIndex: "MoTa",
+                key: "battery",
                 render: (text) => text || "--",
               },
             ]}
@@ -572,9 +581,9 @@ const ProductDetail = () => {
                   <h5>Các phiên bản màu sắc khác:</h5>
                   <div className="row row-cols-2 row-cols-md-4 g-3">
                     {relatedProducts.map((relatedProduct) => {
-                      const nameParts = relatedProduct.TenSP.split(" ");
-                      const mainName = nameParts.slice(0, 2).join(" ");
-                      const subName = nameParts.slice(2).join(" ");
+                      const nameParts = relatedProduct.TenSP.split("|").map(part => part.trim());
+                      const mainName = nameParts[0]; // Phần tên chính
+                      const subName = nameParts.slice(1).join(" | "); // Phần phụ (nếu có)
 
                       return (
                         <div key={relatedProduct._id} className="col">
