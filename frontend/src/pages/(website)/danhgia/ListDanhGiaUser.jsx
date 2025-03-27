@@ -16,7 +16,7 @@ const ListDanhGiaUser = () => {
       try {
         setLoading(true);
         const response = await fetchDanhGias();
-        setDanhGias(response.data?.data.filter(dg => dg.isApproved) ?? []);
+        setDanhGias(response.data?.data ?? []); // Bỏ filter isApproved
       } catch (error) {
         console.error("Lỗi khi lấy danh sách đánh giá:", error);
         setDanhGias([]);
