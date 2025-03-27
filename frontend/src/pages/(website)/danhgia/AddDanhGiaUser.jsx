@@ -10,7 +10,7 @@ const AddDanhGiaUser = () => {
   const [hinhAnh1, setHinhAnh1] = useState(null);
   const [hinhAnh2, setHinhAnh2] = useState(null);
   const [hinhAnh3, setHinhAnh3] = useState(null);
-  const [order, setOrder] = useState(null); // Lưu thông tin đơn hàng
+  const [order, setOrder] = useState(null);
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const { id: orderId } = useParams();
@@ -19,7 +19,6 @@ const AddDanhGiaUser = () => {
   const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const containsBannedWords = (text) => bannedWords.some(word => normalizeText(text).includes(normalizeText(word)));
 
-  // Lấy thông tin đơn hàng dựa trên orderId
   useEffect(() => {
     const fetchOrderData = async () => {
       try {
@@ -30,7 +29,6 @@ const AddDanhGiaUser = () => {
           const foundOrder = orders.find((o) => o._id === orderId);
           if (foundOrder) {
             setOrder(foundOrder);
-            // Tự động điền tên khách hàng vào form
             form.setFieldsValue({ Ten: foundOrder.shippingInfo.name });
           } else {
             message.error("Không tìm thấy đơn hàng!");
@@ -43,7 +41,6 @@ const AddDanhGiaUser = () => {
       }
     };
 
-    // Kiểm tra xem đơn hàng đã được đánh giá chưa
     const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
     if (reviewedOrders[orderId]) {
       message.error("Đơn hàng này đã được đánh giá trước đó!");
@@ -95,18 +92,17 @@ const AddDanhGiaUser = () => {
       setLoading(true);
       const danhGiaData = {
         Ten: values.Ten,
-        SanPham: order.products.map(p => p.name).join(', '), // Gộp tên sản phẩm
+        SanPham: order.products.map(p => p.name).join(', '),
         NoiDung: values.NoiDung,
         DanhGia: values.DanhGia,
         orderId,
         HinhAnh1: hinhAnh1,
         HinhAnh2: hinhAnh2,
         HinhAnh3: hinhAnh3,
-        isApproved: false,
       };
 
       await createDanhGia(danhGiaData);
-      message.success("Đánh giá của bạn đã được gửi và đang chờ phê duyệt!");
+      message.success("Đánh giá của bạn đã được gửi thành công!");
       form.resetFields();
       setHinhAnh1(null);
       setHinhAnh2(null);
@@ -182,58 +178,58 @@ const AddDanhGiaUser = () => {
           </Form.Item>
 
           <Space direction="vertical" style={{ width: '100%' }}>
-            {[1, 2, 3].map((index) => (
-              <Form.Item key={index} label={`Hình ảnh ${index}`}>
-                <Upload
-                  beforeUpload={(file) => handleImageUpload(file, index === 1 ? setHinhAnh1 : index === 2 ? setHinhAnh2 : setHinhAnh3)}
-                  showUploadList={false}
-                >
-                  <Button size="large" icon={<UploadOutlined />}>
-                    Chọn hình ảnh
-                  </Button>
-                </Upload>
-                {index === 1 && hinhAnh1 && (
-                  <div style={{ marginTop: 10 }}>
-                    <img src={hinhAnh1} alt="Hình ảnh 1" style={{ maxWidth: '150px', borderRadius: '4px' }} />
-                    <Button
-                      type="link"
-                      icon={<DeleteOutlined />}
-                      onClick={() => setHinhAnh1(null)}
-                      style={{ color: '#ff4d4f', marginLeft: '10px' }}
-                    >
-                      Xóa
-                    </Button>
-                  </div>
-                )}
-                {index === 2 && hinhAnh2 && (
-                  <div style={{ marginTop: 10 }}>
-                    <img src={hinhAnh2} alt="Hình ảnh 2" style={{ maxWidth: '150px', borderRadius: '4px' }} />
-                    <Button
-                      type="link"
-                      icon={<DeleteOutlined />}
-                      onClick={() => setHinhAnh2(null)}
-                      style={{ color: '#ff4d4f', marginLeft: '10px' }}
-                    >
-                      Xóa
-                    </Button>
-                  </div>
-                )}
-                {index === 3 && hinhAnh3 && (
-                  <div style={{ marginTop: 10 }}>
-                    <img src={hinhAnh3} alt="Hình ảnh 3" style={{ maxWidth: '150px', borderRadius: '4px' }} />
-                    <Button
-                      type="link"
-                      icon={<DeleteOutlined />}
-                      onClick={() => setHinhAnh3(null)}
-                      style={{ color: '#ff4d4f', marginLeft: '10px' }}
-                    >
-                      Xóa
-                    </Button>
-                  </div>
-                )}
-              </Form.Item>
-            ))}
-          </Space>
+  {[1, 2, 3].map((index) => (
+    <Form.Item key={index} label={`Hình ảnh ${index}`}>
+      <Upload
+        beforeUpload={(file) => handleImageUpload(file, index === 1 ? setHinhAnh1 : index === 2 ? setHinhAnh2 : setHinhAnh3)}
+        showUploadList={false}
+      >
+        <Button size="large" icon={<UploadOutlined />}>
+          Chọn hình ảnh
+        </Button>
+      </Upload>
+      {index === 1 && hinhAnh1 && (
+        <div style={{ marginTop: 10 }}>
+          <img src={hinhAnh1} alt="Hình ảnh 1" style={{ maxWidth: '150px', borderRadius: '4px' }} />
+          <Button
+            type="link"
+            icon={<DeleteOutlined />}
+            onClick={() => setHinhAnh1(null)}
+            style={{ color: '#ff4d4f', marginLeft: '10px' }}
+          >
+            Xóa
+          </Button>
+        </div>
+      )}
+      {index === 2 && hinhAnh2 && (
+        <div style={{ marginTop: 10 }}>
+          <img src={hinhAnh2} alt="Hình ảnh 2" style={{ maxWidth: '150px', borderRadius: '4px' }} />
+          <Button
+            type="link"
+            icon={<DeleteOutlined />}
+            onClick={() => setHinhAnh2(null)}
+            style={{ color: '#ff4d4f', marginLeft: '10px' }}
+          >
+            Xóa
+          </Button>
+        </div>
+      )}
+      {index === 3 && hinhAnh3 && (
+        <div style={{ marginTop: 10 }}>
+          <img src={hinhAnh3} alt="Hình ảnh 3" style={{ maxWidth: '150px', borderRadius: '4px' }} />
+          <Button
+            type="link"
+            icon={<DeleteOutlined />}
+            onClick={() => setHinhAnh3(null)}
+            style={{ color: '#ff4d4f', marginLeft: '10px' }}
+          >
+            Xóa
+          </Button>
+        </div>
+      )}
+    </Form.Item>
+  ))}
+</Space>
 
           <Form.Item>
             <Button

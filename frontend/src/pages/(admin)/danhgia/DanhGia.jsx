@@ -1,17 +1,15 @@
 import React, { useEffect, useState, forwardRef } from 'react';
-import { Table, Rate, Button, Popconfirm, message, Select, Image, Space } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { fetchDanhGias, deleteDanhGia, updateDanhGia } from '../../../service/api';
+import { Table, Rate, Select, Image, Button, Popconfirm, message } from 'antd';
+import { fetchDanhGias, deleteDanhGia } from '../../../service/api';
 import moment from 'moment';
 
 const { Option } = Select;
 
-const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
+const DanhGia = forwardRef((props, ref) => {
   const [danhGias, setDanhGias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStar, setSelectedStar] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
-  const navigate = useNavigate();
 
   const getDanhGias = async () => {
     try {
@@ -36,19 +34,9 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
     try {
       await deleteDanhGia(id);
       message.success("Xóa đánh giá thành công!");
-      getDanhGias();
+      getDanhGias(); // Cập nhật lại danh sách sau khi xóa
     } catch (error) {
       message.error("Xóa thất bại, thử lại sau!");
-    }
-  };
-
-  const handleApprove = async (id) => {
-    try {
-      await updateDanhGia(id, { isApproved: true });
-      message.success("Duyệt đánh giá thành công!");
-      getDanhGias();
-    } catch (error) {
-      message.error("Duyệt thất bại, thử lại sau!");
     }
   };
 
@@ -65,7 +53,7 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
     filteredDanhGias.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   }
 
-  const renderImage = (url) => url ? <Image width={50} src={url} /> : 'Không có ảnh';
+  const renderImage = (url) => (url ? <Image width={50} src={url} /> : 'Không có ảnh');
 
   const columns = [
     { title: 'Tên', dataIndex: 'Ten', key: 'Ten', align: 'center' },
@@ -82,28 +70,20 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
     { title: 'Hình ảnh 1', dataIndex: 'HinhAnh1', key: 'HinhAnh1', align: 'center', render: renderImage },
     { title: 'Hình ảnh 2', dataIndex: 'HinhAnh2', key: 'HinhAnh2', align: 'center', render: renderImage },
     { title: 'Hình ảnh 3', dataIndex: 'HinhAnh3', key: 'HinhAnh3', align: 'center', render: renderImage },
-    { title: 'Trạng thái', dataIndex: 'isApproved', key: 'isApproved', align: 'center',
-      render: (isApproved) => (isApproved ? 'Đã duyệt' : 'Chưa duyệt')
-    }
-  ];
-
-  if (!isReadOnly) {
-    columns.push({
+    {
       title: 'Hành động', key: 'actions', align: 'center',
       render: (record) => (
-        <Space>
-          {!record.isApproved && (
-            <Popconfirm title="Duyệt đánh giá này?" onConfirm={() => handleApprove(record._id)} okText="Có" cancelText="Hủy">
-              <Button type="primary">Duyệt</Button>
-            </Popconfirm>
-          )}
-          <Popconfirm title="Bạn có chắc muốn xóa?" onConfirm={() => handleDelete(record._id)} okText="Có" cancelText="Hủy">
-            <Button type="primary" danger>Xóa</Button>
-          </Popconfirm>
-        </Space>
+        <Popconfirm
+          title="Bạn có chắc muốn xóa đánh giá này?"
+          onConfirm={() => handleDelete(record._id)}
+          okText="Có"
+          cancelText="Hủy"
+        >
+          <Button type="primary" danger>Xóa</Button>
+        </Popconfirm>
       )
-    });
-  }
+    }
+  ];
 
   return (
     <div style={{ padding: 20, width: '100%', height: '100vh' }}>
