@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
-import { Spin, message } from "antd";
+import { Spin, message, Card, Typography } from "antd";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+
+const { Text } = Typography;
+const { Meta } = Card;
 
 const SellerProducts = () => {
   const [products, setProducts] = useState([]);
@@ -44,67 +47,89 @@ const SellerProducts = () => {
   };
 
   return (
-    <div className="w-full text-center py-12 bg-gradient-to-b from-gray-100 to-gray-200">
-      <h2 className="text-3xl font-extrabold text-gray-800 mb-8">
-        💎 Các sản phẩm khác 💎
-      </h2>
+    <div className="w-full py-12 bg-gradient-to-b from-gray-100 to-gray-200">
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-3xl font-extrabold text-center mb-8 text-blue-600">
+          💎 Các sản phẩm khác 💎
+        </h2>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-40">
-          <Spin size="large" />
-        </div>
-      ) : (
-        <Swiper
-          modules={[Navigation, Autoplay, Pagination]}
-          slidesPerView={1}
-          spaceBetween={10}
-          breakpoints={{
-            640: { slidesPerView: 2 },
-            768: { slidesPerView: 3 },
-            1024: { slidesPerView: 4 },
-          }}
-          loop={true}
-          autoplay={{ delay: 2500, disableOnInteraction: false }}
-          navigation={true}
-          pagination={{ clickable: true }}
-          className="w-full max-w-7xl mx-auto"
-        >
-          {products.length > 0 ? (
-            products.map((product) => (
-              <SwiperSlide key={product._id}>
-                <div
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-1 p-5 cursor-pointer border border-gray-200 hover:border-gray-400"
-                  onClick={() => handleCardClick(product._id)}
-                >
-                  <img
-                    src={product.HinhAnh1}
-                    alt={product.TenSP}
-                    title={product.TenSP}
-                    className="h-48 w-full object-cover bg-gray-100 rounded-lg"
-                  />
-                  <div className="mt-4 text-center">
-                    <h3 className="text-lg font-semibold text-gray-800 truncate">
-                      {product.TenSP}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {product.BoNhoTrong1
-                        ? `Bộ nhớ: ${product.BoNhoTrong1}`
-                        : "Chưa có thông tin bộ nhớ"}
-                    </p>
-                    <p className="text-red-600 font-bold text-lg mt-3 bg-yellow-100 px-2 py-1 rounded-md">
-                      {product.GiaSP1
-                        ? product.GiaSP1.toLocaleString() + " VNĐ"
-                        : "Chưa có giá"}
-                    </p>
-                  </div>
-                </div>
-              </SwiperSlide>
-            ))
-          ) : (
-            <p className="text-gray-600 text-lg">Không có sản phẩm nào.</p>
-          )}
-        </Swiper>
-      )}
+        {loading ? (
+          <div className="flex justify-center items-center h-40">
+            <Spin size="large" tip="Đang tải sản phẩm..." />
+          </div>
+        ) : (
+          <Swiper
+            modules={[Navigation, Autoplay, Pagination]}
+            slidesPerView={1}
+            spaceBetween={24} // Đồng bộ với gap-6 của grid (khoảng 24px)
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              768: { slidesPerView: 3 },
+              1024: { slidesPerView: 4 },
+            }}
+            loop={true}
+            autoplay={{ delay: 2500, disableOnInteraction: false }}
+            navigation={true}
+            pagination={{ clickable: true }}
+            className="w-full"
+          >
+            {products.length > 0 ? (
+              products.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <Card
+                    hoverable
+                    cover={
+                      <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
+                        <img
+                          alt={product.TenSP}
+                          src={product.HinhAnh1}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+                    }
+                    className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                    onClick={() => handleCardClick(product._id)}
+                  >
+                    <Meta
+                      title={
+                        <div className="text-center">
+                          <Text
+                            ellipsis={{ tooltip: product.TenSP }}
+                            className="font-semibold text-blue-600"
+                          >
+                            {product.TenSP}
+                          </Text>
+                        </div>
+                      }
+                      description={
+                        <div className="text-center">
+                          <div className="mb-2">
+                            <Text type="secondary" className="text-gray-600">
+                              {product.BoNhoTrong1 || "Chưa có thông tin bộ nhớ"}
+                            </Text>
+                          </div>
+                          <Text strong className="text-blue-600 text-lg">
+                            {product.GiaSP1
+                              ? new Intl.NumberFormat("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                }).format(product.GiaSP1)
+                              : "Liên hệ"}
+                          </Text>
+                        </div>
+                      }
+                    />
+                  </Card>
+                </SwiperSlide>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600 text-lg">Không có sản phẩm nào.</p>
+              </div>
+            )}
+          </Swiper>
+        )}
+      </div>
     </div>
   );
 };

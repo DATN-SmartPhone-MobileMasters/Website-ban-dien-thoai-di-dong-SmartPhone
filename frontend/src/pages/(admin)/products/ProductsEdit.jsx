@@ -1,82 +1,90 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getProducts, updateProducts, fetchBrands } from "../../../service/api";
-import { uploadImage } from "../../../service/api";
+import { getProducts, updateProducts, fetchBrands, uploadImage } from "../../../service/api";
+import {
+  Form,
+  Input,
+  Select,
+  Button,
+  Row,
+  Col,
+  Card,
+  Spin,
+  Alert,
+  Typography,
+  Space,
+  Upload,
+  message,
+} from "antd";
+import { LeftOutlined, UploadOutlined } from "@ant-design/icons";
+
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 const ProductsEdit = () => {
-  const [brands, setBrands] = useState([]);
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState({
-    MaSP: "",
-    TenSP: "",
-    TenTH: "",
-    CapSac: "",
-    MoTa: "",
-    BoNhoTrong1: "",
-    BoNhoTrong2: "",
-    BoNhoTrong3: "",
-    Mau1: "",
-    Mau2: "",
-    Mau3: "",
-    ManHinh: "",
-    created_at: "",
-    HDH: "",
-    CamSau: "",
-    CamTruoc: "",
-    CPU: "",
-    LoaiPin: "",
-    TrangThai: "",
-    SoLuong1: "",
-    SoLuong2: "",
-    SoLuong3: "",
-    GiaSP1: "",
-    GiaSP2: "",
-    GiaSP3: "",
-    HinhAnh1: "",
-    HinhAnh2: "",
-    HinhAnh3: "",
-  });
-
+  const [form] = Form.useForm();
+  const [product, setProduct] = useState({});
+  const [brands, setBrands] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-
-    getProducts(id)
-      .then((response) => {
-        setProduct(response.data.data);
-      })
-      .catch(() => setError("Không thể tải dữ liệu sản phẩm."))
-      .finally(() => setLoading(false));
-
-    fetchBrands()
-      .then((res) => setBrands(res.data.data))
-      .catch(console.error);
-  }, [id]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setProduct((prevProduct) => {
-      if (name === "TrangThai") {
-        return {
-          ...prevProduct,
-          [name]: value,
-          SoLuong1: value === "Hết hàng" ? "0" : prevProduct.SoLuong1,
-          SoLuong2: value === "Hết hàng" ? "0" : prevProduct.SoLuong2,
-          SoLuong3: value === "Hết hàng" ? "0" : prevProduct.SoLuong3,
-        };
-      }
-      return { ...prevProduct, [name]: value };
-    });
+  // Validators
+  const noWhitespace = (_, value) => {
+    if (!value || value.trim() === "") {
+      return Promise.reject(new Error("Không được bỏ trống hoặc chỉ chứa khoảng trắng!"));
+    }
+    return Promise.resolve();
   };
 
-  const handleImageUpload = async (e, fieldName) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const noEmpty = (_, value) => {
+    if (!value || value.trim() === "") {
+      return Promise.reject(new Error("Không được bỏ trống!"));
+    }
+    return Promise.resolve();
+  };
 
+  const noNegativeNumber = (_, value) => {
+    if (value === "" || value === undefined || value === null) {
+      return Promise.reject(new Error("Không được bỏ trống!"));
+    }
+    if (isNaN(value) || Number(value) < 0) {
+      return Promise.reject(new Error("Giá trị phải là số không âm!"));
+    }
+    if (/\s/.test(value)) {
+      return Promise.reject(new Error("Không được chứa khoảng trắng!"));
+    }
+    return Promise.resolve();
+  };
+
+  // Validator kiểm tra ít nhất một số lượng phải lớn hơn 0 khi trạng thái là "Còn hàng"
+  const atLeastOneQuantityGreaterThanZero = () => ({
+    validator(_, values) {
+      if (values.TrangThai === "Còn hàng") {
+        const quantities = [values.SoLuong1, values.SoLuong2, values.SoLuong3];
+        if (quantities.every((q) => Number(q) === 0)) {
+          return Promise.reject(new Error("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!"));
+        }
+      }
+      return Promise.resolve();
+    },
+  });
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([getProducts(id), fetchBrands()])
+      .then(([productRes, brandsRes]) => {
+        const productData = productRes.data.data;
+        setProduct(productData);
+        form.setFieldsValue(productData); // Đồng bộ dữ liệu vào form
+        setBrands(brandsRes.data.data);
+      })
+      .catch(() => setError("Không thể tải dữ liệu sản phẩm hoặc thương hiệu."))
+      .finally(() => setLoading(false));
+  }, [id, form]);
+
+  const handleImageUpload = async (file, fieldName) => {
     const formData = new FormData();
     formData.append("image", file);
 
@@ -86,528 +94,351 @@ const ProductsEdit = () => {
         ...prev,
         [fieldName]: response.data.imageUrl,
       }));
+      form.setFieldsValue({ [fieldName]: response.data.imageUrl });
+      message.success(`Tải ảnh ${fieldName} thành công!`);
+      return false;
     } catch (error) {
-      setError(`Tải ảnh ${fieldName} lên thất bại`);
+      message.error(`Tải ảnh ${fieldName} thất bại!`);
+      return false;
     }
   };
 
-  // Trong ProductsEdit.js
-const handleSubmit = (e) => {
-  e.preventDefault();
-  updateProducts(id, product)
-    .then(() => {
-      alert("Cập nhật sản phẩm thành công!");
-      navigate("/admin/products");
-    })
-    .catch(() => {
-      setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
-    });
-};
+  const onFinish = (values) => {
+    updateProducts(id, values)
+      .then(() => {
+        message.success("Cập nhật sản phẩm thành công!");
+        navigate("/admin/products");
+      })
+      .catch(() => setError("Có lỗi xảy ra khi cập nhật sản phẩm."));
+  };
+
+  const handleStatusChange = (value) => {
+    if (value === "Hết hàng") {
+      form.setFieldsValue({ SoLuong1: 0, SoLuong2: 0, SoLuong3: 0 });
+    }
+    setProduct((prev) => ({
+      ...prev,
+      TrangThai: value,
+    }));
+  };
+
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Đang tải...</span>
-        </div>
-        <p className="mt-2">Đang tải dữ liệu...</p>
+      <div style={{ textAlign: "center", marginTop: 50 }}>
+        <Spin size="large" />
+        <Text style={{ marginTop: 16, display: "block" }}>Đang tải dữ liệu...</Text>
       </div>
     );
   }
 
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return (
+      <Alert
+        message="Lỗi"
+        description={error}
+        type="error"
+        showIcon
+        style={{ margin: "20px auto", maxWidth: 600 }}
+      />
+    );
   }
 
   return (
-    <div className="container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Chỉnh Sửa Sản Phẩm</h1>
-        <Link to="/admin/products">
-          <button className="btn btn-secondary">Quay lại</button>
-        </Link>
-      </div>
+    <div style={{ padding: "24px", background: "#f0f2f5" }}>
+      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+        <Col>
+          <Title level={3}>Chỉnh Sửa Sản Phẩm</Title>
+        </Col>
+        <Col>
+          <Link to="/admin/products">
+            <Button type="default" icon={<LeftOutlined />}>
+              Quay lại
+            </Button>
+          </Link>
+        </Col>
+      </Row>
 
-      <form onSubmit={handleSubmit}>
-        <div className="card shadow mb-4">
-          <div className="card-header py-3">
-            <h6 className="m-0 font-weight-bold text-primary">Thông Tin Sản Phẩm</h6>
-          </div>
-          <div className="card-body">
-            <div className="row">
-              <div className="col-md-6">
-                <div className="mb-3">
-                  <label className="form-label">Mã Sản Phẩm</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="MaSP"
-                    value={product.MaSP}
-                    onChange={handleChange}
-                    disabled
-                  />
-                </div>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={product}
+        validateTrigger="onSubmit" // Chỉ validate khi submit
+      >
+        {/* Thông Tin Cơ Bản - Thêm Tên Sản Phẩm */}
+        <Card
+          title={<Text strong>Thông Tin Cơ Bản</Text>}
+          style={{ marginBottom: 24 }}
+          headStyle={{ background: "#1890ff", color: "#fff" }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Tên Sản Phẩm"
+                name="TenSP"
+                rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }, { validator: noWhitespace }]}
+              >
+                <Input placeholder="Nhập tên sản phẩm" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item label="Mã Sản Phẩm" name="MaSP">
+                <Input disabled />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Trạng Thái"
+                name="TrangThai"
+                rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+              >
+                <Select placeholder="Chọn trạng thái" onChange={handleStatusChange}>
+                  <Option value="Còn hàng">Còn hàng</Option>
+                  <Option value="Hết hàng">Hết hàng</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
 
-                <div className="mb-3">
-                  <label className="form-label">Tên Sản Phẩm</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="TenSP"
-                    value={product.TenSP}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.TenSP.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
+        {/* Phiên Bản Sản Phẩm */}
+        <Card
+          title={<Text strong>Phiên Bản Sản Phẩm</Text>}
+          style={{ marginBottom: 24 }}
+          headStyle={{ background: "#13c2c2", color: "#fff" }}
+        >
+          <Row gutter={[16, 16]}>
+            {/* Màu 1 - Đưa lên trên cùng */}
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Màu 1"
+                name="Mau1"
+                rules={[{ required: true, message: "Vui lòng nhập màu!" }, { validator: noWhitespace }]}
+              >
+                <Input
+                  placeholder="Nhập màu"
+                  addonAfter={
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        backgroundColor: product.Mau1 || "#fff",
+                        border: "1px solid #d9d9d9",
+                        borderRadius: 4,
+                      }}
+                    />
+                  }
+                />
+              </Form.Item>
+            </Col>
 
-                <div className="mb-3">
-                  <label className="form-label">Bộ Nhớ Trong 1</label>
-                  <input
-                    type="text"
-                    className="form-control"
+            {/* Bộ Nhớ 1, Số Lượng 1, Giá 1 trên cùng một hàng */}
+            <Col xs={24}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label="Bộ Nhớ Trong 1"
                     name="BoNhoTrong1"
-                    value={product.BoNhoTrong1}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.BoNhoTrong1.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "red" }}>
-                    Số Lượng Bộ Nhớ trong 1
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
+                    rules={[{ required: true, message: "Vui lòng chọn bộ nhớ trong 1!" }]}
+                  >
+                    <Select placeholder="Chọn bộ nhớ">
+                      <Option value="64GB">64GB</Option>
+                      <Option value="128GB">128GB</Option>
+                      <Option value="256GB">256GB</Option>
+                      <Option value="512GB">512GB</Option>
+                      <Option value="1TB">1TB</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label={<Text>Số Lượng Bộ Nhớ Trong 1</Text>}
                     name="SoLuong1"
-                    value={product.SoLuong1}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuong1 && product.SoLuong1 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Bộ Nhớ Trong 2</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="BoNhoTrong2"
-                    value={product.BoNhoTrong2}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.BoNhoTrong2.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "aqua" }}>
-                    Số Lượng Bộ Nhớ trong 2
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuong2"
-                    value={product.SoLuong2}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuong2 && product.SoLuong2 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Bộ Nhớ Trong 3</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="BoNhoTrong3"
-                    value={product.BoNhoTrong3}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.BoNhoTrong3.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label" style={{ color: "lime" }}>
-                    Số Lượng Bộ Nhớ trong 3
-                  </label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    name="SoLuong3"
-                    value={product.SoLuong3}
-                    onChange={handleChange}
-                    required
-                    disabled={product.TrangThai === "Hết hàng"}
-                  />
-                  {!product.SoLuong3 && product.SoLuong3 !== 0 && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Màn Hình</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="ManHinh"
-                    value={product.ManHinh}
-                    onChange={handleChange}
-                    required
-                  />
-                  {product.ManHinh.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Giá 1</label>
-                  <input
-                    type="number"
-                    className="form-control"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập số lượng!" },
+                      { validator: noNegativeNumber },
+                      atLeastOneQuantityGreaterThanZero(),
+                    ]}
+                  >
+                    <Input
+                      type="number"
+                      placeholder="Nhập số lượng"
+                      disabled={product.TrangThai === "Hết hàng"}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label="Giá 1"
                     name="GiaSP1"
-                    value={product.GiaSP1}
-                    onChange={handleChange}
-                    required
-                  />
-                  {(!product.GiaSP1 || product.GiaSP1 <= 0) && (
-                    <div className="text-danger mt-1">Giá sản phẩm phải lớn hơn 0</div>
-                  )}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập giá!" },
+                      { validator: noNegativeNumber },
+                    ]}
+                  >
+                    <Input type="number" placeholder="Nhập giá sản phẩm 1" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Col>
 
-                  <label className="form-label">Giá 2</label>
-                  <input
-                    type="number"
-                    className="form-control"
+            {/* Bộ Nhớ 2, Số Lượng 2, Giá 2 trên cùng một hàng */}
+            <Col xs={24}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label="Bộ Nhớ Trong 2"
+                    name="BoNhoTrong2"
+                    rules={[{ required: true, message: "Vui lòng chọn bộ nhớ trong 2!" }]}
+                  >
+                    <Select placeholder="Chọn bộ nhớ">
+                      <Option value="64GB">64GB</Option>
+                      <Option value="128GB">128GB</Option>
+                      <Option value="256GB">256GB</Option>
+                      <Option value="512GB">512GB</Option>
+                      <Option value="1TB">1TB</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label={<Text>Số Lượng Bộ Nhớ Trong 2</Text>}
+                    name="SoLuong2"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập số lượng!" },
+                      { validator: noNegativeNumber },
+                      atLeastOneQuantityGreaterThanZero(),
+                    ]}
+                  >
+                    <Input
+                      type="number"
+                      placeholder="Nhập số lượng"
+                      disabled={product.TrangThai === "Hết hàng"}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label="Giá 2"
                     name="GiaSP2"
-                    value={product.GiaSP2}
-                    onChange={handleChange}
-                    required
-                  />
-                  {(!product.GiaSP2 || product.GiaSP2 <= 0) && (
-                    <div className="text-danger mt-1">Giá sản phẩm phải lớn hơn 0</div>
-                  )}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập giá!" },
+                      { validator: noNegativeNumber },
+                    ]}
+                  >
+                    <Input type="number" placeholder="Nhập giá sản phẩm 2" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Col>
 
-                  <label className="form-label">Giá 3</label>
-                  <input
-                    type="number"
-                    className="form-control"
+            {/* Bộ Nhớ 3, Số Lượng 3, Giá 3 trên cùng một hàng */}
+            <Col xs={24}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label="Bộ Nhớ Trong 3"
+                    name="BoNhoTrong3"
+                    rules={[{ required: true, message: "Vui lòng chọn bộ nhớ trong 3!" }]}
+                  >
+                    <Select placeholder="Chọn bộ nhớ">
+                      <Option value="64GB">64GB</Option>
+                      <Option value="128GB">128GB</Option>
+                      <Option value="256GB">256GB</Option>
+                      <Option value="512GB">512GB</Option>
+                      <Option value="1TB">1TB</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label={<Text>Số Lượng Bộ Nhớ Trong 3</Text>}
+                    name="SoLuong3"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập số lượng!" },
+                      { validator: noNegativeNumber },
+                      atLeastOneQuantityGreaterThanZero(),
+                    ]}
+                  >
+                    <Input
+                      type="number"
+                      placeholder="Nhập số lượng"
+                      disabled={product.TrangThai === "Hết hàng"}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    label="Giá 3"
                     name="GiaSP3"
-                    value={product.GiaSP3}
-                    onChange={handleChange}
-                    required
-                  />
-                  {(!product.GiaSP3 || product.GiaSP3 <= 0) && (
-                    <div className="text-danger mt-1">Giá sản phẩm phải lớn hơn 0</div>
-                  )}
-
-<div className="form-group">
-                  <label htmlFor="TenTH">Thương Hiệu</label>
-                  <select
-                    id="TenTH"
-                    name="TenTH"
-                    className="form-control"
-                    value={product.TenTH}
-                    onChange={handleChange}
-                    required
+                    rules={[
+                      { required: true, message: "Vui lòng nhập giá!" },
+                      { validator: noNegativeNumber },
+                    ]}
                   >
-                    <option value="">Chọn thương hiệu</option>
-                    {brands.map((brand) => (
-                      <option key={brand._id} value={brand.TenTH}>
-                        {brand.TenTH}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    <Input type="number" placeholder="Nhập giá sản phẩm 3" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </Card>
 
-                <div className="form-group">
-                  <label htmlFor="CPU">CPU</label>
-                  <select
-                    id="CPU"
-                    name="CPU"
-                    className="form-control"
-                    value={product.CPU}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn Chipset</option>
-                    <option value="APPLE CHIPSET">APPLE CHIPSET</option>
-                    <option value="ANDROID CHIPSET">ANDROID CHIPSET</option>
-                  </select>
-                </div>
+        {/* Hình Ảnh Sản Phẩm */}
+        <Card
+          title={<Text strong>Hình Ảnh Sản Phẩm</Text>}
+          style={{ marginBottom: 24 }}
+          headStyle={{ background: "#52c41a", color: "#fff" }}
+        >
+          <Row gutter={[16, 16]}>
+            {["HinhAnh1", "HinhAnh2", "HinhAnh3", "HinhAnh4", "HinhAnh5", "HinhAnh6"].map(
+              (field, index) => (
+                <Col xs={24} md={12} key={field}>
+                  <Form.Item label={`Hình Ảnh ${index + 1}`} name={field}>
+                    <Upload
+                      beforeUpload={(file) => handleImageUpload(file, field)}
+                      showUploadList={false}
+                      accept="image/*"
+                    >
+                      <Button icon={<UploadOutlined />}>Tải lên</Button>
+                    </Upload>
+                    {product[field] && (
+                      <div style={{ marginTop: 8 }}>
+                        <img
+                          src={product[field]}
+                          alt={`Preview ${index + 1}`}
+                          style={{ maxWidth: 150, maxHeight: 150, borderRadius: 8 }}
+                        />
+                      </div>
+                    )}
+                  </Form.Item>
+                </Col>
+              )
+            )}
+          </Row>
+        </Card>
 
-                <div className="form-group">
-                  <label htmlFor="CapSac">Cáp sạc</label>
-                  <select
-                    id="CapSac"
-                    name="CapSac"
-                    className="form-control"
-                    value={product.CapSac}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn loại cáp</option>
-                    <option value="Type-C">Type-C</option>
-                    <option value="Lightning">Lightning</option>
-                    <option value="USB">USB</option>
-                  </select>
-                </div>
-              
-                </div>
-              </div>
-
-              <div className="col-md-6">
-
-              <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 1</label>
-                    <div
-                      style={{
-                        backgroundColor: product.Mau1,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-
-                  <select
-                    className="form-control"
-                    name="Mau1"
-                    value={product.Mau1}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="Hết Hàng">Hết Hàng</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                  {product.Mau1.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 2</label>
-                    <div
-                      style={{
-                        backgroundColor: product.Mau2,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <select
-                    className="form-control"
-                    name="Mau2"
-                    value={product.Mau2}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="Hết Hàng">Hết Hàng</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                  {product.Mau2.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <label className="form-label">Màu 3</label>
-                    <div
-                      style={{
-                        backgroundColor: product.Mau3,
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "5px",
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </div>
-                  <select
-                    className="form-control"
-                    name="Mau3"
-                    value={product.Mau3}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn màu</option>
-                    <option value="Hết Hàng">Hết Hàng</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="white">White</option>
-                    <option value="grey">Grey</option>
-                    <option value="purple">Purple</option>
-                  </select>
-                  {product.Mau3.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Hệ Điều Hành</label>
-                  <select
-                    className="form-control"
-                    name="HDH"
-                    value={product.HDH}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="">Chọn Hệ Điều Hành</option>
-                    <option value="IOS">IOS</option>
-                    <option value="ANDROID">ANDROID</option>
-                  </select>
-                  {product.HDH.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Pin</label>
-                  <select
-                    className="form-control"
-                    name="LoaiPin"
-                    value={product.LoaiPin}
-                    onChange={handleChange}
-                    required
-                  >
-                    <option value="PISEN">PISEN</option>
-                    <option value="Energizer">Energizer</option>
-                    <option value="Duracell">Duracell</option>
-                  </select>
-                  {product.LoaiPin.trim() === "" && (
-                    <div className="text-danger mt-1">Không được bỏ trống</div>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Trạng Thái</label>
-                  <select
-                    className="form-control"
-                    name="TrangThai"
-                    value={product.TrangThai}
-                    onChange={handleChange}
-                  >
-                    <option value="Còn Hàng">Còn hàng</option>
-                    <option value="Hết hàng">Hết hàng</option>
-                  </select>
-                </div>
-
-                
-            </div>
-            </div>
-            
-
-            <hr />
-
-            <div className="row">
-              <div className="col-md-6"></div>
-
-              <div className="form-group">
-                <label htmlFor="HinhAnh1">Hình Ảnh 1</label>
-                <input
-                  type="file"
-                  id="HinhAnh1"
-                  className="form-control"
-                  onChange={(e) => handleImageUpload(e, "HinhAnh1")}
-                  accept="image/*"
-                />
-                {product.HinhAnh1 && (
-                  <img
-                    src={product.HinhAnh1}
-                    alt="Preview 1"
-                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
-                  />
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="HinhAnh2">Hình Ảnh 2</label>
-                <input
-                  type="file"
-                  id="HinhAnh2"
-                  className="form-control"
-                  onChange={(e) => handleImageUpload(e, "HinhAnh2")}
-                  accept="image/*"
-                />
-                {product.HinhAnh2 && (
-                  <img
-                    src={product.HinhAnh2}
-                    alt="Preview 2"
-                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
-                  />
-                )}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="HinhAnh3">Hình Ảnh 3</label>
-                <input
-                  type="file"
-                  id="HinhAnh3"
-                  className="form-control"
-                  onChange={(e) => handleImageUpload(e, "HinhAnh3")}
-                  accept="image/*"
-                />
-                {product.HinhAnh3 && (
-                  <img
-                    src={product.HinhAnh3}
-                    alt="Preview 3"
-                    style={{ marginTop: "10px", maxWidth: "150px", maxHeight: "150px" }}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="MoTa">Mô tả</label>
-          <textarea
-            id="MoTa"
+        {/* Mô Tả Sản Phẩm */}
+        <Card
+          title={<Text strong>Mô Tả Sản Phẩm</Text>}
+          style={{ marginBottom: 24 }}
+          headStyle={{ background: "#faad14", color: "#fff" }}
+        >
+          <Form.Item
+            label="Mô Tả"
             name="MoTa"
-            className="form-control"
-            value={product.MoTa}
-            onChange={handleChange}
-            required
-            rows={4}
-          />
-        </div>
+            rules={[{ required: true, message: "Vui lòng nhập mô tả!" }, { validator: noEmpty }]}
+          >
+            <Input.TextArea rows={4} placeholder="Nhập mô tả sản phẩm" />
+          </Form.Item>
+        </Card>
 
-        <div className="mt-4 text-center">
-          <button type="submit" className="btn btn-primary">
+        <Form.Item>
+          <Button type="primary" htmlType="submit" block>
             Cập Nhật
-          </button>
-        </div>
-      </form>
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
 };
