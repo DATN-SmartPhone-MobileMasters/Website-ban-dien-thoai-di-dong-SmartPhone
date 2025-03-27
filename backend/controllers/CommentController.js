@@ -10,7 +10,8 @@ class CommentController {
       res.status(500).json({ error: err.message });
     }
   }
-  // theem bl
+
+  // Thêm bình luận
   async cmtCreate(req, res) {
     try {
       const data = req.body;
@@ -26,12 +27,13 @@ class CommentController {
       });
     }
   }
+
   // Chi tiết bình luận
   async cmtDetail(req, res) {
     try {
       const comment = await binhluan.findById(req.params.id);
       if (!comment)
-        return res.status(404).json({ message: "Không Lấy được dữ liệu" });
+        return res.status(404).json({ message: "Không lấy được dữ liệu" });
 
       res.status(200).json({ data: comment });
     } catch (err) {
@@ -44,11 +46,45 @@ class CommentController {
     try {
       const deletedComment = await binhluan.findByIdAndDelete(req.params.id);
       if (!deletedComment)
-        return res.status(404).json({ message: "Không tìm thấy cmt " });
+        return res.status(404).json({ message: "Không tìm thấy bình luận" });
 
       res.status(200).json({ message: "Yeeee, xóa thành công dồi" });
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  }
+
+  // Trả lời bình luận (Thêm mới)
+  async cmtReply(req, res) {
+    try {
+      const { id } = req.params;
+      const { Content, Date, AdminEmail } = req.body;
+
+      // Tìm bình luận theo ID
+      const comment = await binhluan.findById(id);
+      if (!comment) {
+        return res.status(404).json({ message: "Không tìm thấy bình luận" });
+      }
+
+      // Cập nhật trường Reply
+      comment.Reply = {
+        Content,
+        Date,
+        AdminEmail,
+      };
+
+      // Lưu thay đổi
+      const updatedComment = await comment.save();
+
+      res.status(200).json({
+        message: "Trả lời bình luận thành công",
+        data: updatedComment,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi trả lời bình luận",
+        error: error.message,
+      });
     }
   }
 }

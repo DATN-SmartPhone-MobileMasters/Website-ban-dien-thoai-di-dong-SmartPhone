@@ -19,6 +19,11 @@ const binhLuanSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  Reply: {
+    Content: { type: String },
+    Date: { type: Date },
+    AdminEmail: { type: String },
+  },
   NgayBL: {
     type: Date,
     default: Date.now,

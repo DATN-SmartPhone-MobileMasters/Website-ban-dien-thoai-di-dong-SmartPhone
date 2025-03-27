@@ -166,6 +166,10 @@ const ProfileReceiptDetails = () => {
                   <p className="font-medium">{orders.total.toLocaleString()}đ</p>
                 </div>
                 <div>
+                <p className="text-sm text-gray-600">Phương thức thanh toán:</p>
+                <p className="font-medium">{orders.paymentMethod}</p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-600">Phí vận chuyển:</p>
                   <p className="font-medium">20,000đ</p>
                 </div>
