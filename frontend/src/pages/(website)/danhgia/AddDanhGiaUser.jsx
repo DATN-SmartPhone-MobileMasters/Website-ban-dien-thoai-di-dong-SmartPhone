@@ -1,21 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { confirmAlert } from 'react-confirm-alert';
 import { Form, Input, Button, Rate, message, Upload, Space, Card } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { createDanhGia, uploadImage } from '../../../service/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createDanhGia, uploadImage, fetchOrdersByUserId } from '../../../service/api';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 
-const AddDanhGiaUser = ({ orderId }) => {
+const AddDanhGiaUser = () => {
   const [loading, setLoading] = useState(false);
   const [hinhAnh1, setHinhAnh1] = useState(null);
   const [hinhAnh2, setHinhAnh2] = useState(null);
   const [hinhAnh3, setHinhAnh3] = useState(null);
+  const [order, setOrder] = useState(null); // Lưu thông tin đơn hàng
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const { id: orderId } = useParams();
 
   const bannedWords = ["lừa đảo", "chiếm đoạt", "ăn cắp", "bốc phét"];
   const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const containsBannedWords = (text) => bannedWords.some(word => normalizeText(text).includes(normalizeText(word)));
+
+  // Lấy thông tin đơn hàng dựa trên orderId
+  useEffect(() => {
+    const fetchOrderData = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (userData && userData.id) {
+          const response = await fetchOrdersByUserId(userData.id);
+          const orders = response.data.data;
+          const foundOrder = orders.find((o) => o._id === orderId);
+          if (foundOrder) {
+            setOrder(foundOrder);
+            // Tự động điền tên khách hàng vào form
+            form.setFieldsValue({ Ten: foundOrder.shippingInfo.name });
+          } else {
+            message.error("Không tìm thấy đơn hàng!");
+            navigate('/profile-receipt');
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+        message.error("Không thể tải thông tin đơn hàng!");
+      }
+    };
+
+    // Kiểm tra xem đơn hàng đã được đánh giá chưa
+    const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
+    if (reviewedOrders[orderId]) {
+      message.error("Đơn hàng này đã được đánh giá trước đó!");
+      navigate('/profile-receipt');
+    } else {
+      fetchOrderData();
+    }
+  }, [orderId, navigate, form]);
 
   const handleImageUpload = async (file, setHinhAnh) => {
     if (!file) return false;
@@ -59,20 +95,20 @@ const AddDanhGiaUser = ({ orderId }) => {
       setLoading(true);
       const danhGiaData = {
         Ten: values.Ten,
-        SanPham: values.SanPham,
+        SanPham: order.products.map(p => p.name).join(', '), // Gộp tên sản phẩm
         NoiDung: values.NoiDung,
         DanhGia: values.DanhGia,
         orderId,
         HinhAnh1: hinhAnh1,
         HinhAnh2: hinhAnh2,
         HinhAnh3: hinhAnh3,
-        isApproved: false, // This indicates the review is pending approval
+        isApproved: false,
       };
 
       await createDanhGia(danhGiaData);
-      message.success("Đánh giá của bạn đã được gửi và đang chờ phê duyệt!"); // Updated message
-      form.resetFields(); // Reset form fields after submission
-      setHinhAnh1(null); // Clear uploaded images
+      message.success("Đánh giá của bạn đã được gửi và đang chờ phê duyệt!");
+      form.resetFields();
+      setHinhAnh1(null);
       setHinhAnh2(null);
       setHinhAnh3(null);
 
@@ -89,6 +125,10 @@ const AddDanhGiaUser = ({ orderId }) => {
     }
   };
 
+  if (!order) {
+    return <div className="text-center py-8">Đang tải...</div>;
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5', padding: '20px' }}>
       <Card
@@ -102,19 +142,21 @@ const AddDanhGiaUser = ({ orderId }) => {
           style={{ padding: '0 20px' }}
         >
           <Form.Item
-            label="Tên"
+            label="Tên khách hàng"
             name="Ten"
             rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
           >
-            <Input size="large" placeholder="Nhập tên của bạn" />
+            <Input size="large" placeholder="Nhập tên của bạn" disabled />
           </Form.Item>
 
-          <Form.Item
-            label="Sản phẩm"
-            name="SanPham"
-            rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }]}
-          >
-            <Input size="large" placeholder="Nhập tên sản phẩm" />
+          <Form.Item label="Sản phẩm">
+            <div>
+              {order.products.map((product, index) => (
+                <p key={index} className="font-medium">
+                  {product.name} ({product.memory} - {product.color})
+                </p>
+              ))}
+            </div>
           </Form.Item>
 
           <Form.Item

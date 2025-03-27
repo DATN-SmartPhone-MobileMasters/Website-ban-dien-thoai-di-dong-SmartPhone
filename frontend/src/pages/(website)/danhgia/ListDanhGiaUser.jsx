@@ -11,21 +11,19 @@ const ListDanhGiaUser = () => {
   const [selectedStar, setSelectedStar] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
 
-  const getDanhGias = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchDanhGias();
-      // Chỉ lấy các đánh giá đã được duyệt
-      setDanhGias(response.data?.data.filter(dg => dg.isApproved) ?? []);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách đánh giá:", error);
-      setDanhGias([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const getDanhGias = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchDanhGias();
+        setDanhGias(response.data?.data.filter(dg => dg.isApproved) ?? []);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách đánh giá:", error);
+        setDanhGias([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     getDanhGias();
   }, []);
 
@@ -42,12 +40,21 @@ const ListDanhGiaUser = () => {
     filteredDanhGias.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   }
 
-  const renderImage = (url) => (url ? <Image width={50} src={url} /> : 'Không có ảnh');
+  const renderImage = (url) => (
+    url ? <Image width={100} height={100} style={{ objectFit: 'cover', borderRadius: 10 }} src={url} /> : 'Không có ảnh'
+  );
 
   const columns = [
-    { title: 'Tên', dataIndex: 'Ten', key: 'Ten', align: 'center' },
-    { title: 'Sản phẩm', dataIndex: 'SanPham', key: 'SanPham', align: 'center' },
-    { title: 'Nội dung', dataIndex: 'NoiDung', key: 'NoiDung' },
+    { title: 'Tên', dataIndex: 'Ten', key: 'Ten', align: 'center', width: 150 },
+    { 
+      title: 'Sản phẩm', 
+      dataIndex: 'SanPham', 
+      key: 'SanPham', 
+      align: 'center', 
+      width: 200, 
+      render: (sanPham) => sanPham.split(',').map((item, index) => <div key={index}>{item}</div>)
+    },
+    { title: 'Nội dung', dataIndex: 'NoiDung', key: 'NoiDung', width: 300 },
     {
       title: 'Đánh giá', dataIndex: 'DanhGia', key: 'DanhGia', align: 'center',
       render: (value) => <Rate disabled defaultValue={Number(value)} />
@@ -64,7 +71,7 @@ const ListDanhGiaUser = () => {
   return (
     <div style={{ padding: 20, width: '100%', height: '100vh' }}>
       <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Danh sách đánh giá</h2>
-      <div style={{ marginBottom: 20, display: 'flex', gap: 20 }}>
+      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', gap: 20 }}>
         <div>
           <span style={{ marginRight: 10 }}>Lọc theo số sao:</span>
           <Select placeholder="Chọn số sao" style={{ width: 120 }} onChange={handleSelectChange} allowClear>
@@ -86,6 +93,7 @@ const ListDanhGiaUser = () => {
         bordered
         pagination={{ pageSize: 10 }}
         loading={loading}
+        style={{ backgroundColor: 'white', borderRadius: 10, overflow: 'hidden' }}
       />
     </div>
   );
