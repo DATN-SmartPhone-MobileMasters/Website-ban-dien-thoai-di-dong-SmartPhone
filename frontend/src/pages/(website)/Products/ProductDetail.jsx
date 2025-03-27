@@ -62,8 +62,11 @@ const ProductDetail = () => {
   const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
 
   const productListRef = useRef(null);
+  const relatedProductsRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  const [showRelatedLeftArrow, setShowRelatedLeftArrow] = useState(false);
+  const [showRelatedRightArrow, setShowRelatedRightArrow] = useState(false); // Ban đầu ẩn cả hai nút
 
   const scrollProducts = (direction) => {
     const container = productListRef.current;
@@ -76,12 +79,37 @@ const ProductDetail = () => {
     updateArrowVisibility();
   };
 
+  const scrollRelatedProducts = (direction) => {
+    const container = relatedProductsRef.current;
+    const scrollAmount = 300;
+    if (direction === "left") {
+      container.scrollLeft -= scrollAmount;
+    } else {
+      container.scrollLeft += scrollAmount;
+    }
+    updateRelatedArrowVisibility();
+  };
+
   const updateArrowVisibility = () => {
     const container = productListRef.current;
-    setShowLeftArrow(container.scrollLeft > 0);
-    setShowRightArrow(
-      container.scrollLeft < container.scrollWidth - container.clientWidth
-    );
+    if (container) {
+      setShowLeftArrow(container.scrollLeft > 0);
+      setShowRightArrow(
+        container.scrollLeft < container.scrollWidth - container.clientWidth
+      );
+    }
+  };
+
+  const updateRelatedArrowVisibility = () => {
+    const container = relatedProductsRef.current;
+    if (container) {
+      const isOverflowing = container.scrollWidth > container.clientWidth;
+      setShowRelatedLeftArrow(isOverflowing && container.scrollLeft > 0);
+      setShowRelatedRightArrow(
+        isOverflowing &&
+          container.scrollLeft < container.scrollWidth - container.clientWidth
+      );
+    }
   };
 
   useEffect(() => {
@@ -90,6 +118,32 @@ const ProductDetail = () => {
     container?.addEventListener("scroll", handleScroll);
     return () => container?.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const container = relatedProductsRef.current;
+    const handleScroll = () => updateRelatedArrowVisibility();
+
+    // Kiểm tra ban đầu khi component được render
+    const checkOverflow = () => {
+      if (container) {
+        const isOverflowing = container.scrollWidth > container.clientWidth;
+        setShowRelatedLeftArrow(isOverflowing && container.scrollLeft > 0);
+        setShowRelatedRightArrow(
+          isOverflowing &&
+            container.scrollLeft < container.scrollWidth - container.clientWidth
+        );
+      }
+    };
+
+    container?.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", checkOverflow); // Kiểm tra lại khi cửa sổ thay đổi kích thước
+    checkOverflow(); // Kiểm tra ngay khi component được render
+
+    return () => {
+      container?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkOverflow);
+    };
+  }, [relatedProducts]); // Thêm relatedProducts vào dependency để kiểm tra lại khi danh sách sản phẩm thay đổi
 
   useEffect(() => {
     setLoading(true);
@@ -149,7 +203,6 @@ const ProductDetail = () => {
     };
     fetchProductComments();
 
-    // Lắng nghe sự kiện cập nhật bình luận
     const handleCommentUpdate = () => fetchProductComments();
     window.addEventListener("commentUpdated", handleCommentUpdate);
     return () => window.removeEventListener("commentUpdated", handleCommentUpdate);
@@ -526,41 +579,136 @@ const ProductDetail = () => {
               </Button>
             </Space>
 
+            {/* Phần "Phiên bản khác" được cải thiện */}
             {relatedProducts.length > 0 && (
               <>
                 <Divider orientation="left">Phiên bản khác</Divider>
-                <Row gutter={[16, 16]}>
-                  {relatedProducts.map((relatedProduct) => (
-                    <Col key={relatedProduct._id} xs={12} sm={6}>
+                <div style={{ position: "relative" }}>
+                  {showRelatedLeftArrow && (
+                    <Button
+                      shape="circle"
+                      icon={<FaChevronLeft />}
+                      onClick={() => scrollRelatedProducts("left")}
+                      style={{
+                        position: "absolute",
+                        left: -20,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        zIndex: 1,
+                        backgroundColor: "#fff",
+                        border: "1px solid #d9d9d9",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                      }}
+                    />
+                  )}
+                  <div
+                    ref={relatedProductsRef}
+                    style={{
+                      display: "flex",
+                      overflowX: "auto",
+                      scrollBehavior: "smooth",
+                      paddingBottom: 16,
+                      gap: "16px",
+                    }}
+                    className="scrollbar-hidden"
+                  >
+                    {relatedProducts.map((relatedProduct) => (
                       <Card
+                        key={relatedProduct._id}
                         hoverable
+                        style={{
+                          minWidth: 200,
+                          width: 200,
+                          borderRadius: 8,
+                          overflow: "hidden",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        }}
+                        styles={{
+                          body: {
+                            padding: "12px",
+                            textAlign: "center",
+                          },
+                        }}
                         cover={
-                          <img
-                            alt={relatedProduct.TenSP}
-                            src={relatedProduct.HinhAnh1}
-                            style={{ height: 150, objectFit: "contain" }}
-                          />
+                          <div
+                            style={{
+                              height: 150,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: "#f5f5f5",
+                            }}
+                          >
+                            <img
+                              alt={relatedProduct.TenSP}
+                              src={relatedProduct.HinhAnh1}
+                              style={{
+                                maxHeight: "100%",
+                                maxWidth: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                          </div>
                         }
                         onClick={() =>
                           navigate(`/products/product_detail/${relatedProduct._id}`)
                         }
                       >
                         <Card.Meta
-                          title={relatedProduct.TenSP}
+                          title={
+                            <Text
+                              strong
+                              style={{
+                                fontSize: "14px",
+                                display: "block",
+                                whiteSpace: "normal",
+                                lineHeight: "1.4",
+                              }}
+                            >
+                              {relatedProduct.TenSP}
+                            </Text>
+                          }
                           description={
-                            <>
-                              <Text type="danger">
+                            <Space direction="vertical" size={4}>
+                              <Text type="danger" strong>
                                 {formatCurrency(relatedProduct.GiaSP1)}
                               </Text>
-                              <br />
-                              <Text>{relatedProduct.BoNhoTrong1}</Text>
-                            </>
+                              <Text style={{ fontSize: "12px" }}>
+                                {relatedProduct.BoNhoTrong1}
+                              </Text>
+                              <Badge
+                                status={
+                                  relatedProduct.SoLuong1 > 0 ? "success" : "error"
+                                }
+                                text={
+                                  relatedProduct.SoLuong1 > 0 ? "Còn hàng" : "Hết hàng"
+                                }
+                                style={{ fontSize: "12px" }}
+                              />
+                            </Space>
                           }
                         />
                       </Card>
-                    </Col>
-                  ))}
-                </Row>
+                    ))}
+                  </div>
+                  {showRelatedRightArrow && (
+                    <Button
+                      shape="circle"
+                      icon={<FaChevronRight />}
+                      onClick={() => scrollRelatedProducts("right")}
+                      style={{
+                        position: "absolute",
+                        right: -20,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        zIndex: 1,
+                        backgroundColor: "#fff",
+                        border: "1px solid #d9d9d9",
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                      }}
+                    />
+                  )}
+                </div>
               </>
             )}
           </Card>
@@ -823,6 +971,10 @@ style.innerHTML = `
   .scrollbar-hidden {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  .ant-card-hoverable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 `;
 document.head.appendChild(style);
