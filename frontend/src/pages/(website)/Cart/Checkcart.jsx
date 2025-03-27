@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Button,
   Card,
@@ -17,65 +17,62 @@ import {
   Descriptions,
   List,
   message,
-} from "antd"
-import { ArrowLeftOutlined, CheckOutlined, ShoppingCartOutlined } from "@ant-design/icons"
-import { getUserById, createOrder, createVNPayPayment } from "../../../service/api"
+} from "antd";
+import { ArrowLeftOutlined, CheckOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { getUserById, createOrder, createVNPayPayment, fetchPromotion, updateVoucherStatus } from "../../../service/api";
 
-const { Title, Text } = Typography
-const { TextArea } = Input
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const Checkcart = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     cart: initialCart,
     total: initialTotal = 0,
     finalTotal: initialFinalTotal = 0,
     discount: initialDiscount = 0,
     additionalDiscount: initialAdditionalDiscount = 0,
-  } = location.state || {}
+  } = location.state || {};
 
-  const [userInfo, setUserInfo] = useState({})
-  const [cart, setCart] = useState(initialCart || [])
-  const [total, setTotal] = useState(initialTotal)
-  const [finalTotal, setFinalTotal] = useState(initialFinalTotal)
-  const [discount, setDiscount] = useState(initialDiscount)
-  const [additionalDiscount, setAdditionalDiscount] = useState(initialAdditionalDiscount)
-  const [orderNote, setOrderNote] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("COD")
+  const [userInfo, setUserInfo] = useState({});
+  const [cart, setCart] = useState(initialCart || []);
+  const [total, setTotal] = useState(initialTotal);
+  const [finalTotal, setFinalTotal] = useState(initialFinalTotal);
+  const [discount, setDiscount] = useState(initialDiscount);
+  const [additionalDiscount, setAdditionalDiscount] = useState(initialAdditionalDiscount);
+  const [orderNote, setOrderNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
 
-  // Hàm định dạng tiền tệ
   const formatCurrency = (value) => {
     if (typeof value !== "number" || isNaN(value)) {
-      return "0 VND"
+      return "0 VND";
     }
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value)
-  }
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  };
 
-  // Lấy thông tin người dùng
   useEffect(() => {
     const fetchUserData = async () => {
-      const userData = JSON.parse(localStorage.getItem("userData"))
+      const userData = JSON.parse(localStorage.getItem("userData"));
       if (userData && userData.id) {
         try {
-          const response = await getUserById(userData.id)
-          setUserInfo(response.data)
+          const response = await getUserById(userData.id);
+          setUserInfo(response.data);
         } catch (error) {
-          console.error("Lỗi khi lấy thông tin người dùng:", error)
-          message.error("Lỗi khi lấy thông tin người dùng")
+          console.error("Lỗi khi lấy thông tin người dùng:", error);
+          message.error("Lỗi khi lấy thông tin người dùng");
         }
       } else {
-        console.error("Không có dữ liệu người dùng")
-        message.warning("Vui lòng đăng nhập để tiếp tục")
+        console.error("Không có dữ liệu người dùng");
+        message.warning("Vui lòng đăng nhập để tiếp tục");
       }
-    }
-    fetchUserData()
-  }, [])
+    };
+    fetchUserData();
+  }, []);
 
-  // Xử lý đặt hàng
   const handleSubmitOrder = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     Modal.confirm({
       title: "Xác nhận đặt hàng",
@@ -84,7 +81,7 @@ const Checkcart = () => {
       cancelText: "Hủy",
       icon: <CheckOutlined />,
       onOk: async () => {
-        setIsSubmitting(true)
+        setIsSubmitting(true);
 
         const orderData = {
           userId: userInfo._id,
@@ -106,33 +103,43 @@ const Checkcart = () => {
             address: userInfo.DiaChi,
           },
           orderNote,
-        }
+        };
 
         try {
-          const response = await createOrder(orderData)
+          const response = await createOrder(orderData);
           if (response.data) {
-            const userData = JSON.parse(localStorage.getItem("userData"))
-            const userId = userData?.id
+            const userData = JSON.parse(localStorage.getItem("userData"));
+            const userId = userData?.id;
 
             if (userId) {
-              localStorage.removeItem(`cart_${userId}`)
+              const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+              if (storedVoucher && storedVoucher.code) {
+                const promotionResponse = await fetchPromotion();
+                const promotion = promotionResponse.data.data.find(
+                  (promo) => promo.MaKM === storedVoucher.code
+                );
+                if (promotion) {
+                  await updateVoucherStatus(promotion._id, 1); // Cập nhật trạng thái thành "Đã sử dụng"
+                }
+              }
+              localStorage.removeItem(`cart_${userId}`);
+              localStorage.removeItem(`voucher_${userId}`);
             }
 
-            window.dispatchEvent(new Event("cartUpdated"))
-            message.success("Đặt hàng thành công!")
-            navigate(`/profile-receipt/${response.data._id}`)
+            window.dispatchEvent(new Event("cartUpdated"));
+            message.success("Đặt hàng thành công!");
+            navigate(`/profile-receipt/${response.data._id}`);
           }
         } catch (error) {
-          console.error("Lỗi khi tạo đơn hàng:", error)
-          message.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!")
+          console.error("Lỗi khi tạo đơn hàng:", error);
+          message.error("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
         } finally {
-          setIsSubmitting(false)
+          setIsSubmitting(false);
         }
       },
-    })
-  }
+    });
+  };
 
-  // In Checkcart.jsx, modify the handleVNPayPayment function:
   const handleVNPayPayment = async () => {
     Modal.confirm({
       title: "Xác nhận thanh toán VNPay",
@@ -141,9 +148,8 @@ const Checkcart = () => {
       cancelText: "Hủy",
       icon: <CheckOutlined />,
       onOk: async () => {
-        setIsSubmitting(true)
+        setIsSubmitting(true);
         try {
-          // First create the order
           const orderData = {
             userId: userInfo._id,
             products: cart.map((item) => ({
@@ -165,40 +171,46 @@ const Checkcart = () => {
             },
             orderNote,
             paymentMethod: "VNPay",
-          }
+          };
 
-          // Create order in your backend
-          const response = await createOrder(orderData)
-          const orderId = response.data._id
+          const response = await createOrder(orderData);
+          const orderId = response.data._id;
 
-          // Clear cart from localStorage before redirecting
-          const userData = JSON.parse(localStorage.getItem("userData"))
-          const userId = userData?.id
+          const userData = JSON.parse(localStorage.getItem("userData"));
+          const userId = userData?.id;
           if (userId) {
-            localStorage.removeItem(`cart_${userId}`)
+            const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+            if (storedVoucher && storedVoucher.code) {
+              const promotionResponse = await fetchPromotion();
+              const promotion = promotionResponse.data.data.find(
+                (promo) => promo.MaKM === storedVoucher.code
+              );
+              if (promotion) {
+                await updateVoucherStatus(promotion._id, 1); // Cập nhật trạng thái thành "Đã sử dụng"
+              }
+            }
+            localStorage.removeItem(`cart_${userId}`);
+            localStorage.removeItem(`voucher_${userId}`);
           }
 
-          // Dispatch event to update cart UI
-          window.dispatchEvent(new Event("cartUpdated"))
+          window.dispatchEvent(new Event("cartUpdated"));
 
-          // Create VNPay payment URL
           const vnpayResponse = await createVNPayPayment({
             amount: finalTotal,
             orderId: orderId,
             orderInfo: `Thanh toan don hang ${orderId}`,
             returnUrl: `${window.location.origin}/order-return`,
-          })
+          });
 
-          // Redirect to VNPay
-          window.location.href = vnpayResponse.data.paymentUrl
+          window.location.href = vnpayResponse.data.paymentUrl;
         } catch (error) {
-          console.error("Error processing VNPay payment:", error)
-          message.error("Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại!")
-          setIsSubmitting(false)
+          console.error("Lỗi xử lý thanh toán VNPay:", error);
+          message.error("Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại!");
+          setIsSubmitting(false);
         }
       },
-    })
-  }
+    });
+  };
 
   if (!cart || cart.length === 0) {
     return (
@@ -211,7 +223,7 @@ const Checkcart = () => {
           </Button>
         </Space>
       </Card>
-    )
+    );
   }
 
   return (
@@ -353,8 +365,7 @@ const Checkcart = () => {
         </Col>
       </Row>
     </div>
-  )
-}
+  );
+};
 
-export default Checkcart
-
+export default Checkcart;

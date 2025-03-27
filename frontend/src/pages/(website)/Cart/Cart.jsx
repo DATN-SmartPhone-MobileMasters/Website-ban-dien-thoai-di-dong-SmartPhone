@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { fetchPromotion, updateVoucherStatus, getProducts } from "../../../service/api";
+import { useNavigate } from "react-router-dom";
+import { fetchPromotion, getProducts } from "../../../service/api";
 import {
   Table,
   Button,
@@ -111,7 +111,6 @@ const Cart = () => {
       }, {});
       setSelectedItems(initialSelection);
 
-      // Khôi phục voucher đã áp dụng nếu có
       if (storedVoucher && storedVoucher.code) {
         setVoucher(storedVoucher.code);
         setDiscount(storedVoucher.discount);
@@ -177,6 +176,11 @@ const Cart = () => {
 
     if (userId) {
       localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+      if (newCart.length === 0) {
+        localStorage.removeItem(`voucher_${userId}`);
+        setVoucher("");
+        setDiscount(0);
+      }
     }
 
     setCart(newCart);
@@ -207,6 +211,9 @@ const Cart = () => {
     }
 
     setCart(newCart);
+
+    const newTotal = calculateTotal();
+    checkVoucherValidity(newTotal);
   };
 
   const decreaseQuantity = (index) => {
@@ -221,6 +228,9 @@ const Cart = () => {
       }
 
       setCart(newCart);
+
+      const newTotal = calculateTotal();
+      checkVoucherValidity(newTotal);
     }
   };
 
@@ -231,6 +241,29 @@ const Cart = () => {
       }
       return total;
     }, 0);
+  };
+
+  const checkVoucherValidity = (total) => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+    const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+
+    if (storedVoucher && storedVoucher.code) {
+      const promotion = promotions.data.find((promo) => promo.MaKM === storedVoucher.code);
+      if (promotion && promotion.LoaiKM === "fixed") {
+        const requiredTotal = promotion.GiaTriKM * 10;
+        if (total < requiredTotal) {
+          setDiscount(0);
+          localStorage.removeItem(`voucher_${userId}`);
+          setVoucher("");
+          message.error(
+            `Giá trị đơn hàng hiện tại là ${formatCurrency(total)}. Đơn hàng phải từ ${formatCurrency(requiredTotal)} trở lên để áp dụng mã giảm giá này.`
+          );
+          return false;
+        }
+      }
+    }
+    return true;
   };
 
   const applyVoucher = async () => {
@@ -262,14 +295,13 @@ const Cart = () => {
 
     const total = calculateTotal();
 
-    // Kiểm tra điều kiện cho loại khuyến mãi cố định
     if (promotion.LoaiKM === "fixed") {
-      const requiredTotal = promotion.GiaTriKM * 10; // Tổng đơn hàng phải gấp 10 lần giá trị khuyến mãi
+      const requiredTotal = promotion.GiaTriKM * 10;
       if (total < requiredTotal) {
         message.error(
           `Giá trị đơn hàng hiện tại là ${formatCurrency(total)}. Đơn hàng phải từ ${formatCurrency(requiredTotal)} trở lên để áp dụng mã giảm giá này.`
         );
-        return; // Không áp dụng và giữ nguyên trạng thái voucher
+        return;
       }
     }
 
@@ -283,7 +315,6 @@ const Cart = () => {
     setDiscount(discountAmount);
     message.success("Áp dụng mã giảm giá thành công!");
 
-    // Lưu thông tin voucher vào localStorage
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
     if (userId) {
@@ -291,20 +322,6 @@ const Cart = () => {
         `voucher_${userId}`,
         JSON.stringify({ code: voucher, discount: discountAmount })
       );
-    }
-
-    // Cập nhật trạng thái voucher thành "đã sử dụng" (status = 1)
-    try {
-      await updateVoucherStatus(promotion._id, 1); // Giả sử API chấp nhận tham số status
-      setPromotions((prev) => ({
-        ...prev,
-        data: prev.data.map((promo) =>
-          promo._id === promotion._id ? { ...promo, TrangThai: 1 } : promo
-        ),
-      }));
-      console.log("Voucher đã được cập nhật thành đã sử dụng");
-    } catch (error) {
-      console.error("Lỗi khi cập nhật trạng thái voucher:", error.message);
     }
   };
 
@@ -364,6 +381,23 @@ const Cart = () => {
         localStorage.removeItem(`voucher_${userId}`);
       }
     }
+  };
+
+  const handleCheckout = () => {
+    const total = calculateTotal();
+    if (!checkVoucherValidity(total)) {
+      return;
+    }
+
+    navigate("/checkcart", {
+      state: {
+        cart: cart.filter((_, index) => selectedItems[index]),
+        total: calculateOriginalTotal(),
+        finalTotal: calculateFinalTotal(),
+        discount: discount,
+        additionalDiscount: calculateAdditionalDiscount(),
+      },
+    });
   };
 
   const columns = [
@@ -549,25 +583,22 @@ const Cart = () => {
                 placeholder="Nhập mã giảm giá"
                 value={voucher}
                 onChange={handleVoucherChange}
-                onSearch={applyVoucher}
-                enterButton="Áp dụng"
+                enterButton={
+                  <Popconfirm
+                    title="Mỗi một voucher chỉ có thể áp dụng 1 lần. Bạn có chắc chắn muốn áp dụng không?"
+                    onConfirm={applyVoucher}
+                    okText="OK"
+                    cancelText="Hủy"
+                  >
+                    <Button type="primary">Áp dụng</Button>
+                  </Popconfirm>
+                }
                 style={{ marginTop: 16 }}
               />
 
-              <Link
-                to="/checkcart"
-                state={{
-                  cart: cart.filter((_, index) => selectedItems[index]),
-                  total: calculateOriginalTotal(),
-                  finalTotal: calculateFinalTotal(),
-                  discount: discount,
-                  additionalDiscount: calculateAdditionalDiscount(),
-                }}
-              >
-                <Button type="primary" block size="large">
-                  Thanh toán
-                </Button>
-              </Link>
+              <Button type="primary" block size="large" onClick={handleCheckout}>
+                Thanh toán
+              </Button>
             </Space>
           </div>
         </>
