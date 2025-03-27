@@ -81,11 +81,20 @@ const ProfileReceipt = () => {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        (record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-          <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
-            Huỷ đơn
-          </Button>
-        )
+        <>
+          {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+            <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+              Huỷ đơn
+            </Button>
+          )}
+          {record.paymentStatus === 'Hoàn thành' && (
+            <Link to={`/adddanhgiauser`}>
+              <Button type="primary">
+                Đánh giá
+              </Button>
+            </Link>
+          )}
+        </>
       ),
     },
   ];

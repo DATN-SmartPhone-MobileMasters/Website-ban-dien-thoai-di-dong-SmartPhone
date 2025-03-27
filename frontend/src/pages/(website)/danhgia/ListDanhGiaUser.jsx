@@ -1,23 +1,22 @@
-import React, { useEffect, useState, forwardRef } from 'react';
-import { Table, Rate, Button, Popconfirm, message, Select, Image, Space } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { fetchDanhGias, deleteDanhGia, updateDanhGia } from '../../../service/api';
+import React, { useEffect, useState } from 'react';
+import { Table, Rate, Select, Image } from 'antd';
+import { fetchDanhGias } from '../../../service/api';
 import moment from 'moment';
 
 const { Option } = Select;
 
-const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
+const ListDanhGiaUser = () => {
   const [danhGias, setDanhGias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStar, setSelectedStar] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
-  const navigate = useNavigate();
 
   const getDanhGias = async () => {
     try {
       setLoading(true);
       const response = await fetchDanhGias();
-      setDanhGias(response.data?.data ?? []);
+      // Chỉ lấy các đánh giá đã được duyệt
+      setDanhGias(response.data?.data.filter(dg => dg.isApproved) ?? []);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách đánh giá:", error);
       setDanhGias([]);
@@ -26,31 +25,9 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
     }
   };
 
-  React.useImperativeHandle(ref, () => ({ getDanhGias }));
-
   useEffect(() => {
     getDanhGias();
   }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      await deleteDanhGia(id);
-      message.success("Xóa đánh giá thành công!");
-      getDanhGias();
-    } catch (error) {
-      message.error("Xóa thất bại, thử lại sau!");
-    }
-  };
-
-  const handleApprove = async (id) => {
-    try {
-      await updateDanhGia(id, { isApproved: true });
-      message.success("Duyệt đánh giá thành công!");
-      getDanhGias();
-    } catch (error) {
-      message.error("Duyệt thất bại, thử lại sau!");
-    }
-  };
 
   const handleSelectChange = (value) => setSelectedStar(value || null);
   const handleSortChange = (value) => setSortOrder(value);
@@ -65,7 +42,7 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
     filteredDanhGias.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   }
 
-  const renderImage = (url) => url ? <Image width={50} src={url} /> : 'Không có ảnh';
+  const renderImage = (url) => (url ? <Image width={50} src={url} /> : 'Không có ảnh');
 
   const columns = [
     { title: 'Tên', dataIndex: 'Ten', key: 'Ten', align: 'center' },
@@ -81,29 +58,8 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
     },
     { title: 'Hình ảnh 1', dataIndex: 'HinhAnh1', key: 'HinhAnh1', align: 'center', render: renderImage },
     { title: 'Hình ảnh 2', dataIndex: 'HinhAnh2', key: 'HinhAnh2', align: 'center', render: renderImage },
-    { title: 'Hình ảnh 3', dataIndex: 'HinhAnh3', key: 'HinhAnh3', align: 'center', render: renderImage },
-    { title: 'Trạng thái', dataIndex: 'isApproved', key: 'isApproved', align: 'center',
-      render: (isApproved) => (isApproved ? 'Đã duyệt' : 'Chưa duyệt')
-    }
+    { title: 'Hình ảnh 3', dataIndex: 'HinhAnh3', key: 'HinhAnh3', align: 'center', render: renderImage }
   ];
-
-  if (!isReadOnly) {
-    columns.push({
-      title: 'Hành động', key: 'actions', align: 'center',
-      render: (record) => (
-        <Space>
-          {!record.isApproved && (
-            <Popconfirm title="Duyệt đánh giá này?" onConfirm={() => handleApprove(record._id)} okText="Có" cancelText="Hủy">
-              <Button type="primary">Duyệt</Button>
-            </Popconfirm>
-          )}
-          <Popconfirm title="Bạn có chắc muốn xóa?" onConfirm={() => handleDelete(record._id)} okText="Có" cancelText="Hủy">
-            <Button type="primary" danger>Xóa</Button>
-          </Popconfirm>
-        </Space>
-      )
-    });
-  }
 
   return (
     <div style={{ padding: 20, width: '100%', height: '100vh' }}>
@@ -133,6 +89,6 @@ const DanhGia = forwardRef(({ isReadOnly = false }, ref) => {
       />
     </div>
   );
-});
+};
 
-export default DanhGia;
+export default ListDanhGiaUser;
