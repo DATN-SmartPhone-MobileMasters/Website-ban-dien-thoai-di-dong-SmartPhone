@@ -29,10 +29,12 @@ const HoaDonControl = new HoaDonController();
 // API thực hiện các chức năng hóa đơn (chỉ lấy danh sách, chi tiết và chỉnh sửa)
 apiRouter.post("/hoadons", HoaDonControl.apiCreate);
 apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
+apiRouter.get("/hoadons/vnpay-return", HoaDonControl.apiHandleVNPayReturn);
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
 apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
 apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
+apiRouter.post("/hoadons/create-vnpay-payment", HoaDonControl.apiCreateVNPayPayment);
 
 // API thực hiện thống kê doanh thu
 apiRouter.get("/hoadons/thongke/doanhthu", HoaDonControl.thongKeDoanhThu);
