@@ -53,6 +53,7 @@ import ListDanhgia2 from "./pages/(website)/danhgia/ListDanhgia2";
 import ListContact from "./pages/(website)/contact/ListContact";
 import { getUserById } from "./service/api";
 import AddComment from "./pages/(admin)/comments/AddComment";
+import OrderReturn from "./pages/(website)/Cart/OrderReturn";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -247,6 +248,10 @@ function App() {
         {
           path: "/cart",
           element: <Cart />,
+        },
+        {
+          path: "/order-return",
+          element: <OrderReturn />,
         },
         {
           path: "/about",
