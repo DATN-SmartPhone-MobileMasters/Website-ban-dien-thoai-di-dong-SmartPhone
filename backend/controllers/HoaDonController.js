@@ -98,8 +98,10 @@ class HoaDonController {
   }
   async apiDelete(req, res) {
     try {
+
       const id = req.params.id
       const deletedHoaDon = await hoadon.findByIdAndDelete(id)
+
 
       if (!deletedHoaDon) {
         return res.status(404).json({
