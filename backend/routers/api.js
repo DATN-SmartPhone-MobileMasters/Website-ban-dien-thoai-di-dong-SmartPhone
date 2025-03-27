@@ -72,6 +72,7 @@ apiRouter.get("/comments", CommentControl.cmtList);
 apiRouter.get("/comments/:id", CommentControl.cmtDetail);
 apiRouter.delete("/comments/:id", CommentControl.cmtDelete);
 apiRouter.post("/comments", CommentControl.cmtCreate);
+apiRouter.put("/comments/:id/reply", CommentControl.cmtReply);
 
 const PromotionControl = new PromotionController();
 apiRouter.get("/promotions", PromotionControl.getListPromotion);
