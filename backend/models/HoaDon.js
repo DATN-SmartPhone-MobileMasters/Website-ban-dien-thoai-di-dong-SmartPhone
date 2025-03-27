@@ -1,3 +1,4 @@
+// HoaDon.js
 import mongoose from 'mongoose';
 
 const HoaDonSchema = new mongoose.Schema({
@@ -28,6 +29,13 @@ const HoaDonSchema = new mongoose.Schema({
     enum: ['Chờ xử lý', 'Đã Xác Nhận','Đang Giao', 'Hoàn thành','Huỷ Đơn'],
     default: 'Chờ xử lý'
   },
+  paymentMethod: {
+    type: String,
+    enum: ['COD', 'VNPay'],
+    default: 'COD'
+  },
+  vnp_TransactionNo: String, // Store VNPay transaction number
+  vnp_ResponseCode: String, // Store VNPay response code
   createdAt: {
     type: Date,
     default: Date.now
