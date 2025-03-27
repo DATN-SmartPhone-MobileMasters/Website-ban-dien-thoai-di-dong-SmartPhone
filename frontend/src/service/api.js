@@ -54,7 +54,10 @@ export const updateOrder = async (id, data) =>
   axios.put(`${API_URL}/hoadons/${id}`, data);
 export const deleteOrder = async (id) =>
   axios.delete(`${API_URL}/hoadons/${id}`);
-
+export const createVNPayPayment = async (data) => 
+  axios.post(`${API_URL}/hoadons/create-vnpay-payment`, data);
+export const handleVNPayReturn = async (queryParams) => 
+  axios.get(`${API_URL}/hoadons/vnpay-return`, { params: queryParams });
 // Thêm API lấy thống kê doanh thu
 export const fetchThongKeDoanhThu = async () =>
   axios.get(`${API_URL}/hoadons/thongke/doanhthu`);
