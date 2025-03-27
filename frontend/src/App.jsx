@@ -190,7 +190,7 @@ function App() {
           element: <ListDanhGiaUser />,
         },
         {
-          path: "/adddanhgiauser",
+          path: "/adddanhgiauser/:id",
           element: <AddDanhGiaUser />,
         },
         {

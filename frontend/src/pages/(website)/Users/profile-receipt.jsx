@@ -9,7 +9,6 @@ const API_URL = `http://localhost:5000/api`;
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  
   const [userData, setUserData] = useState({
     Email: '',
     id: '',
@@ -80,22 +79,32 @@ const ProfileReceipt = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      render: (_, record) => (
-        <>
-          {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-            <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
-              Huỷ đơn
-            </Button>
-          )}
-          {record.paymentStatus === 'Hoàn thành' && (
-            <Link to={`/adddanhgiauser`}>
-              <Button type="primary">
-                Đánh giá
+      render: (_, record) => {
+        const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
+        const isReviewed = reviewedOrders[record._id];
+
+        return (
+          <>
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+                Huỷ đơn
               </Button>
-            </Link>
-          )}
-        </>
-      ),
+            )}
+            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
+              <Link to={`/adddanhgiauser/${record._id}`}>
+                <Button type="primary">
+                  Đánh giá
+                </Button>
+              </Link>
+            )}
+            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
+              <Button type="primary" disabled>
+                Đã đánh giá
+              </Button>
+            )}
+          </>
+        );
+      },
     },
   ];
 
