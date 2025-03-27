@@ -192,6 +192,10 @@ const Orderdetail = () => {
                 </p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-600">Phương thức thanh toán:</p>
+                <p className="font-medium text-blue-800">{hoaDon.paymentMethod}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <p className="text-sm text-blue-600">Tổng tiền:</p>
                 <p className="font-medium text-blue-800">
                   {hoaDon.total?.toLocaleString()}đ
