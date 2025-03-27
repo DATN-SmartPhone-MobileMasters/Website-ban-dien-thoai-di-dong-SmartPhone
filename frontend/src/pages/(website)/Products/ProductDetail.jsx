@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -12,7 +11,6 @@ import LatestProducts from "../../(website)/components/LatestProducts";
 import {
   FaShoppingCart,
   FaExchangeAlt,
-  FaTimes,
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
@@ -150,6 +148,11 @@ const ProductDetail = () => {
       }
     };
     fetchProductComments();
+
+    // Lắng nghe sự kiện cập nhật bình luận
+    const handleCommentUpdate = () => fetchProductComments();
+    window.addEventListener("commentUpdated", handleCommentUpdate);
+    return () => window.removeEventListener("commentUpdated", handleCommentUpdate);
   }, [id]);
 
   const openCompareModal = () => {
@@ -172,15 +175,14 @@ const ProductDetail = () => {
       return;
     }
 
-    // Tạo bản sao của sản phẩm hiện tại và cập nhật bộ nhớ và giá đã chọn
     const updatedProduct = {
       ...product,
-      BoNhoTrong1: selectedMemory.memory || product.BoNhoTrong1, // Cập nhật bộ nhớ đã chọn
-      GiaSP1: selectedMemory.price || product.GiaSP1, // Cập nhật giá của bộ nhớ đã chọn
+      BoNhoTrong1: selectedMemory.memory || product.BoNhoTrong1,
+      GiaSP1: selectedMemory.price || product.GiaSP1,
     };
 
     const productsToCompare = [
-      updatedProduct, // Sử dụng sản phẩm đã được cập nhật
+      updatedProduct,
       ...compareProducts.filter((p) => selectedCompareProducts.includes(p._id)),
     ];
 
@@ -225,7 +227,7 @@ const ProductDetail = () => {
               {
                 title: "Bộ nhớ trong",
                 key: "storage",
-                render: (text, record) => record.BoNhoTrong1 || "--", // Lấy giá trị bộ nhớ đã được cập nhật
+                render: (text, record) => record.BoNhoTrong1 || "--",
               },
               {
                 title: "Camera sau",
@@ -325,7 +327,7 @@ const ProductDetail = () => {
     }
 
     if (!product || !selectedMemory.memory || !selectedColor) {
-      message.warning("Vui lòng màu sắc!");
+      message.warning("Vui lòng chọn màu sắc!");
       return;
     }
 
@@ -608,7 +610,6 @@ const ProductDetail = () => {
           </Card>
         </Col>
 
-        {/* Card riêng cho phần mô tả */}
         <Col span={24}>
           <Card title={<Title level={4}>Mô tả sản phẩm</Title>}>
             <Paragraph style={{ whiteSpace: "pre-line", textAlign: "justify" }}>
@@ -637,7 +638,7 @@ const ProductDetail = () => {
                   border: selectedCompareProducts.includes(product._id)
                     ? "2px solid #1890ff"
                     : "1px solid #e8e8e8",
-                  height: "100%", // Đảm bảo tất cả card có chiều cao bằng nhau
+                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -778,6 +779,28 @@ const ProductDetail = () => {
                     </Space>
                     <Rate disabled value={parseInt(comment.DanhGia)} />
                     <Paragraph>{comment.NoiDung}</Paragraph>
+                    {comment.Reply && (
+                      <div
+                        style={{
+                          backgroundColor: "#f5f5f5",
+                          padding: "8px",
+                          borderRadius: "4px",
+                          marginTop: "8px",
+                        }}
+                      >
+                        <Space direction="vertical">
+                          <Space>
+                            <Text strong style={{ color: "#1890ff" }}>
+                              {comment.Reply.AdminEmail} (Admin)
+                            </Text>
+                            <Text type="secondary">
+                              {new Date(comment.Reply.Date).toLocaleDateString("vi-VN")}
+                            </Text>
+                          </Space>
+                          <Paragraph>{comment.Reply.Content}</Paragraph>
+                        </Space>
+                      </div>
+                    )}
                   </Space>
                   <Divider />
                 </div>
