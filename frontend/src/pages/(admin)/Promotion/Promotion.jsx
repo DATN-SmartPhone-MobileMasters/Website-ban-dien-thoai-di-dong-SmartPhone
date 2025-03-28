@@ -146,12 +146,12 @@ const Promotion = () => {
                           </span>
                         </td>
                         <td className="d-flex justify-content-center gap-3">
-                          <Link
+                          {/* <Link
                             to={`/admin/vouchers/edit/${promotion._id}`}
                             className="btn btn-warning btn-sm"
                           >
                             <i className="fas fa-edit"></i> Chỉnh Sửa
-                          </Link>
+                          </Link> */}
                           <button
                             className="btn btn-danger btn-sm"
                             onClick={() => handleDelete(promotion._id)}
