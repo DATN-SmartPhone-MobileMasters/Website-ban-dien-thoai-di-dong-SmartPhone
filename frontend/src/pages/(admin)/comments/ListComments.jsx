@@ -1,4 +1,4 @@
-import { message, Rate } from "antd";
+import { message, Rate, Table, Button, Input, Typography, Space, Card } from "antd";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -7,6 +7,9 @@ import {
   fetchUsers,
   replyComment,
 } from "../../../service/api";
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 const AdminListComment = () => {
   const [comments, setComments] = useState([]);
@@ -43,6 +46,24 @@ const AdminListComment = () => {
     }
   };
 
+  const handleDeleteReply = async (commentId) => {
+    if (window.confirm("Bạn có chắc muốn xóa câu trả lời này không?")) {
+      try {
+        const updatedComment = { ...comments.find(c => c._id === commentId), Reply: null };
+        setComments(prevComments =>
+          prevComments.map(comment =>
+            comment._id === commentId ? updatedComment : comment
+          )
+        );
+        message.success("Đã xóa câu trả lời thành công!");
+        window.dispatchEvent(new Event("commentUpdated"));
+      } catch (error) {
+        console.error("Lỗi khi xóa câu trả lời:", error);
+        message.error("Xóa câu trả lời thất bại!");
+      }
+    }
+  };
+
   const toggleReplyForm = (commentId) => {
     setShowReplyForm((prev) => ({
       ...prev,
@@ -72,20 +93,17 @@ const AdminListComment = () => {
       const response = await replyComment(commentId, replyData);
       message.success("Đã gửi câu trả lời thành công!");
 
-      // Cập nhật state comments trực tiếp với câu trả lời mới
       setComments((prevComments) =>
         prevComments.map((comment) =>
           comment._id === commentId
-            ? { ...comment, Reply: response.data.data.Reply } // Giả sử backend trả về dữ liệu bình luận đã cập nhật
+            ? { ...comment, Reply: response.data.data.Reply }
             : comment
         )
       );
 
-      // Reset form
       setReplyContent((prev) => ({ ...prev, [commentId]: "" }));
       setShowReplyForm((prev) => ({ ...prev, [commentId]: false }));
 
-      // Thông báo cập nhật cho các giao diện khác (nếu cần)
       window.dispatchEvent(new Event("commentUpdated"));
     } catch (error) {
       console.error("Lỗi khi gửi câu trả lời:", error);
@@ -97,116 +115,134 @@ const AdminListComment = () => {
     }
   };
 
+  const columns = [
+    {
+      title: "Email",
+      dataIndex: "Email",
+      key: "Email",
+      width: 200,
+    },
+    {
+      title: "Nội dung",
+      dataIndex: "NoiDung",
+      key: "NoiDung",
+      ellipsis: true, // Cắt ngắn nội dung nếu quá dài
+    },
+    {
+      title: "Đánh giá",
+      dataIndex: "DanhGia",
+      key: "DanhGia",
+      render: (text) => <Rate disabled value={parseInt(text)} />,
+      width: 150,
+    },
+    {
+      title: "Ngày bình luận",
+      dataIndex: "NgayBL",
+      key: "NgayBL",
+      render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+      width: 150,
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Link to={`/admin/comments/${record._id}`}>
+            <Button type="primary" size="small">
+              Xem
+            </Button>
+          </Link>
+          <Button
+            type="danger"
+            size="small"
+            onClick={() => handleDelete(record._id)}
+          >
+            Xóa
+          </Button>
+          <Button
+            type="default"
+            size="small"
+            onClick={() => toggleReplyForm(record._id)}
+          >
+            Trả lời
+          </Button>
+        </Space>
+      ),
+      width: 200,
+    },
+  ];
+
+  const expandedRowRender = (record) => (
+    <Space direction="vertical" style={{ width: "100%", padding: "0 16px" }}>
+      {record.Reply && (
+        <Card
+          size="small"
+          style={{ backgroundColor: "#f5f5f5", borderRadius: "4px" }}
+        >
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Space>
+              <Text strong style={{ color: "#1890ff" }}>
+                {record.Reply.AdminEmail} (Admin)
+              </Text>
+              <Text type="secondary">
+                {new Date(record.Reply.Date).toLocaleDateString("vi-VN")}
+              </Text>
+            </Space>
+            <Text>{record.Reply.Content}</Text>
+            <Button
+              type="danger"
+              size="small"
+              onClick={() => handleDeleteReply(record._id)}
+            >
+              Xóa câu trả lời
+            </Button>
+          </Space>
+        </Card>
+      )}
+      {showReplyForm[record._id] && (
+        <Card size="small" style={{ borderRadius: "4px" }}>
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <TextArea
+              rows={3}
+              placeholder="Nhập câu trả lời của bạn..."
+              value={replyContent[record._id] || ""}
+              onChange={(e) => handleReplyChange(record._id, e.target.value)}
+            />
+            <Button
+              type="primary"
+              onClick={() => handleReplySubmit(record._id)}
+              style={{ marginTop: "8px" }}
+            >
+              Gửi
+            </Button>
+          </Space>
+        </Card>
+      )}
+    </Space>
+  );
+
   return (
-    <div>
-      <h1 className="h3 mb-2 text-gray-800">Danh Sách Bình Luận</h1>
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">
-            Database bình luận
-          </h6>
-        </div>
-        <div className="card-body">
-          <div className="table-responsive">
-            <table className="table table-hover table-bordered">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Nội dung</th>
-                  <th>Đánh giá</th>
-                  <th>Ngày bình luận</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {comments.map((comment) => (
-                  <React.Fragment key={comment._id}>
-                    <tr>
-                      <td>{comment.Email}</td>
-                      <td className="text-truncate" style={{ maxWidth: "200px" }}>
-                        {comment.NoiDung}
-                      </td>
-                      <td>
-                        <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
-                      </td>
-                      <td>{new Date(comment.NgayBL).toLocaleDateString()}</td>
-                      <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Link
-                            to={`/admin/comments/${comment._id}`}
-                            className="btn btn-info"
-                            style={{ flex: "1", marginRight: "5px" }}
-                          >
-                            Xem
-                          </Link>
-                          <button
-                            className="btn btn-danger"
-                            style={{ flex: "1", marginRight: "5px" }}
-                            onClick={() => handleDelete(comment._id)}
-                          >
-                            Xóa
-                          </button>
-                          <button
-                            className="btn btn-primary"
-                            style={{ flex: "1" }}
-                            onClick={() => toggleReplyForm(comment._id)}
-                          >
-                            Trả lời
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    {/* Hiển thị câu trả lời của admin nếu có */}
-                    {comment.Reply && (
-                      <tr>
-                        <td colSpan="5" style={{ backgroundColor: "#f5f5f5", padding: "10px" }}>
-                          <div>
-                            <strong style={{ color: "#1890ff" }}>
-                              {comment.Reply.AdminEmail} (Admin)
-                            </strong>
-                            <span style={{ marginLeft: "10px", color: "#888" }}>
-                              {new Date(comment.Reply.Date).toLocaleDateString()}
-                            </span>
-                            <p>{comment.Reply.Content}</p>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                    {/* Form trả lời */}
-                    {showReplyForm[comment._id] && (
-                      <tr>
-                        <td colSpan="5">
-                          <div style={{ padding: "10px" }}>
-                            <textarea
-                              className="form-control"
-                              placeholder="Nhập câu trả lời của bạn..."
-                              value={replyContent[comment._id] || ""}
-                              onChange={(e) =>
-                                handleReplyChange(comment._id, e.target.value)
-                              }
-                            />
-                            <button
-                              className="btn btn-success mt-2"
-                              onClick={() => handleReplySubmit(comment._id)}
-                            >
-                              Gửi
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+      <Title level={2} style={{ marginBottom: "24px" }}>
+        Danh Sách Bình Luận
+      </Title>
+      <Card
+        title={<Text strong style={{ color: "#1890ff" }}>Database bình luận</Text>}
+        bordered={false}
+        style={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", borderRadius: "8px" }}
+      >
+        <Table
+          columns={columns}
+          dataSource={comments}
+          rowKey="_id"
+          expandable={{
+            expandedRowRender,
+            expandRowByClick: true, // Mở rộng khi nhấp vào hàng
+          }}
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: "max-content" }} // Hỗ trợ cuộn ngang nếu nội dung quá dài
+        />
+      </Card>
     </div>
   );
 };
