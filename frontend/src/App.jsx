@@ -48,12 +48,12 @@ import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
 import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
-import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
-import ListDanhgia2 from "./pages/(website)/danhgia/ListDanhgia2";
 import ListContact from "./pages/(website)/contact/ListContact";
 import { getUserById } from "./service/api";
 import AddComment from "./pages/(admin)/comments/AddComment";
 import OrderReturn from "./pages/(website)/Cart/OrderReturn";
+import AddDanhGiaUser from "./pages/(website)/danhgia/AddDanhGiaUser";
+import ListDanhGiaUser from "./pages/(website)/danhgia/ListDanhGiaUser";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -186,12 +186,12 @@ function App() {
       element: <LayoutWebsite />,
       children: [
         {
-          path: "/listdanhgia2",
-          element: <ListDanhgia2 />,
+          path: "/listdanhgiauser",
+          element: <ListDanhGiaUser />,
         },
         {
-          path: "/listdanhgia",
-          element: <ListDanhgia />,
+          path: "/adddanhgiauser/:id",
+          element: <AddDanhGiaUser />,
         },
         {
           path: "/checkcart",
