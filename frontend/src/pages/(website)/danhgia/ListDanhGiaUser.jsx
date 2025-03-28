@@ -1,44 +1,31 @@
-import React, { useEffect, useState, forwardRef } from 'react';
-import { Table, Rate, Select, Image, Button, Popconfirm, message } from 'antd';
-import { fetchDanhGias, deleteDanhGia } from '../../../service/api';
+import React, { useEffect, useState } from 'react';
+import { Table, Rate, Select, Image } from 'antd';
+import { fetchDanhGias } from '../../../service/api';
 import moment from 'moment';
 
 const { Option } = Select;
 
-const DanhGia = forwardRef((props, ref) => {
+const ListDanhGiaUser = () => {
   const [danhGias, setDanhGias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStar, setSelectedStar] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
 
-  const getDanhGias = async () => {
-    try {
-      setLoading(true);
-      const response = await fetchDanhGias();
-      setDanhGias(response.data?.data ?? []);
-    } catch (error) {
-      console.error("Lỗi khi lấy danh sách đánh giá:", error);
-      setDanhGias([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  React.useImperativeHandle(ref, () => ({ getDanhGias }));
-
   useEffect(() => {
+    const getDanhGias = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchDanhGias();
+        setDanhGias(response.data?.data ?? []); // Bỏ filter isApproved
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách đánh giá:", error);
+        setDanhGias([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     getDanhGias();
   }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      await deleteDanhGia(id);
-      message.success("Xóa đánh giá thành công!");
-      getDanhGias(); // Cập nhật lại danh sách sau khi xóa
-    } catch (error) {
-      message.error("Xóa thất bại, thử lại sau!");
-    }
-  };
 
   const handleSelectChange = (value) => setSelectedStar(value || null);
   const handleSortChange = (value) => setSortOrder(value);
@@ -53,12 +40,21 @@ const DanhGia = forwardRef((props, ref) => {
     filteredDanhGias.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   }
 
-  const renderImage = (url) => (url ? <Image width={50} src={url} /> : 'Không có ảnh');
+  const renderImage = (url) => (
+    url ? <Image width={100} height={100} style={{ objectFit: 'cover', borderRadius: 10 }} src={url} /> : 'Không có ảnh'
+  );
 
   const columns = [
-    { title: 'Tên', dataIndex: 'Ten', key: 'Ten', align: 'center' },
-    { title: 'Sản phẩm', dataIndex: 'SanPham', key: 'SanPham', align: 'center' },
-    { title: 'Nội dung', dataIndex: 'NoiDung', key: 'NoiDung' },
+    { title: 'Tên', dataIndex: 'Ten', key: 'Ten', align: 'center', width: 150 },
+    { 
+      title: 'Sản phẩm', 
+      dataIndex: 'SanPham', 
+      key: 'SanPham', 
+      align: 'center', 
+      width: 200, 
+      render: (sanPham) => sanPham.split(',').map((item, index) => <div key={index}>{item}</div>)
+    },
+    { title: 'Nội dung', dataIndex: 'NoiDung', key: 'NoiDung', width: 300 },
     {
       title: 'Đánh giá', dataIndex: 'DanhGia', key: 'DanhGia', align: 'center',
       render: (value) => <Rate disabled defaultValue={Number(value)} />
@@ -69,26 +65,13 @@ const DanhGia = forwardRef((props, ref) => {
     },
     { title: 'Hình ảnh 1', dataIndex: 'HinhAnh1', key: 'HinhAnh1', align: 'center', render: renderImage },
     { title: 'Hình ảnh 2', dataIndex: 'HinhAnh2', key: 'HinhAnh2', align: 'center', render: renderImage },
-    { title: 'Hình ảnh 3', dataIndex: 'HinhAnh3', key: 'HinhAnh3', align: 'center', render: renderImage },
-    {
-      title: 'Hành động', key: 'actions', align: 'center',
-      render: (record) => (
-        <Popconfirm
-          title="Bạn có chắc muốn xóa đánh giá này?"
-          onConfirm={() => handleDelete(record._id)}
-          okText="Có"
-          cancelText="Hủy"
-        >
-          <Button type="primary" danger>Xóa</Button>
-        </Popconfirm>
-      )
-    }
+    { title: 'Hình ảnh 3', dataIndex: 'HinhAnh3', key: 'HinhAnh3', align: 'center', render: renderImage }
   ];
 
   return (
     <div style={{ padding: 20, width: '100%', height: '100vh' }}>
       <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Danh sách đánh giá</h2>
-      <div style={{ marginBottom: 20, display: 'flex', gap: 20 }}>
+      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center', gap: 20 }}>
         <div>
           <span style={{ marginRight: 10 }}>Lọc theo số sao:</span>
           <Select placeholder="Chọn số sao" style={{ width: 120 }} onChange={handleSelectChange} allowClear>
@@ -110,9 +93,10 @@ const DanhGia = forwardRef((props, ref) => {
         bordered
         pagination={{ pageSize: 10 }}
         loading={loading}
+        style={{ backgroundColor: 'white', borderRadius: 10, overflow: 'hidden' }}
       />
     </div>
   );
-});
+};
 
-export default DanhGia;
+export default ListDanhGiaUser;

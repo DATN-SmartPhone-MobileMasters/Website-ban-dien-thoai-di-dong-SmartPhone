@@ -105,7 +105,7 @@ const UserList = () => {
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
                     <td>
-                      {user.MaQuyen === 1 ? "Admin" : user.MaQuyen === 2 ? "Editor" : "User"}
+                      {user.MaQuyen === 1 ? "Admin" : user.MaQuyen === 2 ? "Quản trị viên" : "User"}
                     </td>
                     <td className="space-x-2">
                     <Link to={`/admin/accounts-details/${user._id}`} className="text-blue-500 hover:underline">
