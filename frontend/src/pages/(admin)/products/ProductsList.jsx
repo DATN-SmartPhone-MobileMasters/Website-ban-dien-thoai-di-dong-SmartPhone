@@ -50,8 +50,10 @@ const ProductsList = () => {
       setProducts(data);
       setFilteredProducts(data);
 
-      // Tạo danh sách thương hiệu dựa vào chữ đầu tiên của TenSP
-      const uniqueBrands = [...new Set(data.map((p) => p.TenSP.split(" ")[0]))];
+      // Tạo danh sách thương hiệu dựa vào chữ đầu tiên của TenSP, chuẩn hóa dữ liệu
+      const uniqueBrands = [
+        ...new Set(data.map((p) => p.TenSP.split(" ")[0].trim().toLowerCase()))
+      ].map((brand) => brand.charAt(0).toUpperCase() + brand.slice(1));
       setBrands(uniqueBrands);
     } catch (error) {
       message.error("Lỗi khi lấy danh sách sản phẩm!");
@@ -107,7 +109,9 @@ const ProductsList = () => {
     }
 
     if (brand) {
-      filtered = filtered.filter((p) => p.TenSP.startsWith(brand));
+      filtered = filtered.filter((p) =>
+        p.TenSP.split(" ")[0].trim().toLowerCase() === brand.toLowerCase()
+      );
     }
 
     setFilteredProducts(filtered);
@@ -124,8 +128,8 @@ const ProductsList = () => {
       title: "Tên Sản Phẩm",
       dataIndex: "TenSP",
       key: "TenSP",
-      width: 250, // Giới hạn chiều rộng
-      ellipsis: true, // Cắt ngắn nội dung nếu quá dài
+      width: 250,
+      ellipsis: true,
       render: (text) => (
         <Tooltip title={text}>
           <span>{text}</span>
@@ -203,7 +207,7 @@ const ProductsList = () => {
         </Space>
       ),
       width: 150,
-      fixed: "right", // Cố định cột Hành Động bên phải
+      fixed: "right",
     },
   ];
 
@@ -289,7 +293,7 @@ const ProductsList = () => {
         }}
         bordered
         pagination={{ pageSize: 10 }}
-        scroll={{ x: 1200 }} // Đặt chiều rộng tối thiểu để tránh mất cân đối
+        scroll={{ x: 1200 }}
       />
     </div>
   );

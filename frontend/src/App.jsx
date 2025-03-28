@@ -54,6 +54,7 @@ import AddComment from "./pages/(admin)/comments/AddComment";
 import OrderReturn from "./pages/(website)/Cart/OrderReturn";
 import AddDanhGiaUser from "./pages/(website)/danhgia/AddDanhGiaUser";
 import ListDanhGiaUser from "./pages/(website)/danhgia/ListDanhGiaUser";
+import SpDaMua from "./pages/(website)/sanphamdamua/SpDaMua";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -185,6 +186,10 @@ function App() {
     {
       element: <LayoutWebsite />,
       children: [
+        {
+          path: "/sanphamdamua",
+          element: <SpDaMua />,
+        },
         {
           path: "/listdanhgiauser",
           element: <ListDanhGiaUser />,
