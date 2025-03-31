@@ -1,31 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar } from 'react-chartjs-2';
+import { Chart, registerables } from 'chart.js';
 import { fetchDanhGias } from '../../../service/api';
 import moment from 'moment';
-import { Spin, Select } from 'antd';
+import { Card, Typography, Select, Spin } from 'antd';
 
+Chart.register(...registerables);
+
+const { Title } = Typography;
 const { Option } = Select;
-const COLORS = ["#ff5252", "#ff9800", "#ffeb3b", "#8bc34a", "#2196f3"];
-
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div style={{ background: '#fff', padding: '10px', border: '1px solid #ccc', borderRadius: '5px' }}>
-        <p><strong>{payload[0].payload.date}</strong></p>
-        {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color }}>{entry.name}: {entry.value}</p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+const COLORS = [
+  'rgba(255, 82, 82, 0.6)',    // 1 sao
+  'rgba(255, 152, 0, 0.6)',   // 2 sao
+  'rgba(255, 235, 59, 0.6)',  // 3 sao
+  'rgba(139, 195, 74, 0.6)',  // 4 sao
+  'rgba(33, 150, 243, 0.6)',  // 5 sao
+];
 
 const ThongKeDanhGia = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [year, setYear] = useState(null); // Mặc định là "Tất cả năm"
-  const [month, setMonth] = useState(null); // Thêm giá trị null cho tháng "Tất cả tháng"
+  const [year, setYear] = useState(null);
+  const [month, setMonth] = useState(null);
   const [availableYears, setAvailableYears] = useState([]);
 
   useEffect(() => {
@@ -35,39 +31,29 @@ const ThongKeDanhGia = () => {
         const response = await fetchDanhGias();
         const danhGias = response.data?.data ?? [];
 
-        const groupedData = [];
-        const starCountsByDate = {};
         const yearsSet = new Set();
+        danhGias.forEach((dg) => yearsSet.add(moment(dg.created_at).year()));
+        setAvailableYears([...yearsSet].sort((a, b) => b - a));
 
+        const stats = {};
         danhGias.forEach((dg) => {
           const date = moment(dg.created_at);
-          const formattedDate = date.format("YYYY-MM-DD");
+          const formattedDate = date.format('YYYY-MM-DD');
           const star = Number(dg.DanhGia);
-          yearsSet.add(date.year());
 
-          // Kiểm tra điều kiện lọc
-          if ((year !== null && date.year() !== year) || (month !== null && date.month() + 1 !== month)) {
+          if ((year && date.year() !== year) || (month && date.month() + 1 !== month)) {
             return;
           }
 
-          if (!starCountsByDate[formattedDate]) {
-            starCountsByDate[formattedDate] = { date: formattedDate };
-            [1, 2, 3, 4, 5].forEach((s) => {
-              starCountsByDate[formattedDate][s] = 0;
-            });
+          if (!stats[formattedDate]) {
+            stats[formattedDate] = { date: formattedDate, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
           }
-
-          starCountsByDate[formattedDate][star] += 1;
+          stats[formattedDate][star]++;
         });
 
-        Object.values(starCountsByDate).forEach((entry) => {
-          groupedData.push(entry);
-        });
-
-        setAvailableYears(Array.from(yearsSet).sort((a, b) => b - a));
-        setData(groupedData);
+        setData(Object.values(stats));
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu thống kê đánh giá:", error);
+        console.error('Lỗi khi lấy dữ liệu thống kê đánh giá:', error);
         setData([]);
       } finally {
         setLoading(false);
@@ -77,51 +63,88 @@ const ThongKeDanhGia = () => {
     getData();
   }, [year, month]);
 
+  const getChartData = () => {
+    const labels = data.map((item) => item.date).sort();
+    const datasets = [1, 2, 3, 4, 5].map((star, index) => ({
+      label: `${star} Sao`,
+      data: labels.map((label) => data.find((d) => d.date === label)?.[star] || 0),
+      backgroundColor: COLORS[index],
+      borderColor: COLORS[index].replace('0.6', '1'),
+      borderWidth: 1,
+    }));
+
+    return { labels, datasets };
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px 0' }}>
+        <Spin size="large" />
+        <p style={{ marginTop: 16, color: '#1890ff' }}>Đang tải thông tin thống kê...</p>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ textAlign: 'center' }}>Thống kê số lượng đánh giá theo ngày</h2>
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-        {/* Dropdown chọn năm */}
-        <Select value={year} onChange={setYear} style={{ width: 120, marginRight: 10 }}>
-          <Option value={null}>Tất cả năm</Option>
+    <Card
+      style={{
+        margin: '20px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      }}
+    >
+      <Title level={3} style={{ textAlign: 'center', marginBottom: '24px', color: '#1890ff' }}>
+        Thống Kê Đánh Giá Theo Ngày
+      </Title>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px' }}>
+        <Select
+          value={year}
+          onChange={setYear}
+          style={{ width: 140 }}
+          placeholder="Chọn năm"
+          allowClear
+        >
           {availableYears.map((y) => (
             <Option key={y} value={y}>{y}</Option>
           ))}
         </Select>
 
-        {/* Dropdown chọn tháng */}
-        <Select value={month} onChange={setMonth} style={{ width: 120 }} allowClear placeholder="Chọn tháng">
-          <Option value={null}>Tất cả tháng</Option> {/* Thêm tùy chọn "Tất cả tháng" */}
-          {[...Array(12)].map((_, index) => (
-            <Option key={index + 1} value={index + 1}>{index + 1}</Option>
+        <Select
+          value={month}
+          onChange={setMonth}
+          style={{ width: 140 }}
+          placeholder="Chọn tháng"
+          allowClear
+        >
+          {Array.from({ length: 12 }, (_, i) => (
+            <Option key={i + 1} value={i + 1}>Tháng {i + 1}</Option>
           ))}
         </Select>
       </div>
 
-      {loading ? (
-        <Spin size="large" style={{ display: 'block', textAlign: 'center', marginTop: 50 }} />
-      ) : (
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <XAxis dataKey="date" />
-            <YAxis allowDecimals={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }} />
-            <Legend />
-            {[1, 2, 3, 4, 5].map((star, index) => (
-              <Bar
-                key={star}
-                dataKey={star}
-                fill={COLORS[index]}
-                stroke={COLORS[index]}
-                barSize={50}
-                stackId="a"
-                name={`${star} Sao`}
-              />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      )}
-    </div>
+      <div style={{ height: '500px' }}>
+        <Bar
+          data={getChartData()}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'top' },
+              tooltip: { enabled: true },
+            },
+            scales: {
+              x: {
+                ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 },
+              },
+              y: {
+                beginAtZero: true,
+              },
+            },
+          }}
+        />
+      </div>
+    </Card>
   );
 };
 
