@@ -31,6 +31,7 @@ import {
   Typography,
   Badge,
   Tag,
+  Flex,
 } from "antd";
 
 const { Title, Text, Paragraph } = Typography;
@@ -205,7 +206,8 @@ const ProductDetail = () => {
 
     const handleCommentUpdate = () => fetchProductComments();
     window.addEventListener("commentUpdated", handleCommentUpdate);
-    return () => window.removeEventListener("commentUpdated", handleCommentUpdate);
+    return () =>
+      window.removeEventListener("commentUpdated", handleCommentUpdate);
   }, [id]);
 
   const openCompareModal = () => {
@@ -444,7 +446,8 @@ const ProductDetail = () => {
 
   if (loading) return <div className="text-center mt-5">Đang tải...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!product) return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
+  if (!product)
+    return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
 
   return (
     <div className="container mt-4">
@@ -493,7 +496,9 @@ const ProductDetail = () => {
                             : "1px solid #e8e8e8",
                         borderRadius: 4,
                       }}
-                      onClick={() => setSelectedImage(product[`HinhAnh${index}`])}
+                      onClick={() =>
+                        setSelectedImage(product[`HinhAnh${index}`])
+                      }
                     />
                   </Col>
                 ) : null
@@ -502,215 +507,193 @@ const ProductDetail = () => {
           </Card>
         </Col>
         <Col xs={24} md={12}>
-          <Card>
-            <Title level={2}>{product.TenSP}</Title>
-            <Text type="secondary">Mã sản phẩm: {product.MaSP}</Text>
-            <Title level={3} type="danger">
-              {formatCurrency(selectedMemory.price)}
-            </Title>
-            <Badge
-              status={selectedMemory.quantity > 0 ? "success" : "error"}
-              text={selectedMemory.quantity > 0 ? "Còn hàng" : "Hết hàng"}
-            />
+          <Card style={{ padding: 16 }}>
+            <Flex vertical>
+              <Title level={2}>{product.TenSP}</Title>
+              <Text type="secondary">Mã sản phẩm: {product.MaSP}</Text>
+              <Text type="secondary">Thương hiệu: {product.TenTH}</Text>
+              <Title level={3} type="danger">
+                {formatCurrency(selectedMemory.price)}
+              </Title>
+              <Badge
+                status={selectedMemory.quantity > 0 ? "success" : "error"}
+                text={selectedMemory.quantity > 0 ? "Còn hàng" : "Hết hàng"}
+              />
 
-            <Divider orientation="left">Bộ nhớ trong</Divider>
-            <Space wrap>
-              {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
-                (memoryKey, index) =>
-                  product[memoryKey] ? (
-                    <Button
-                      key={index}
-                      type={
-                        selectedMemory.memory === product[memoryKey]
-                          ? "primary"
-                          : "default"
-                      }
-                      onClick={() => handleMemorySelection(memoryKey)}
-                    >
-                      {product[memoryKey]}{" "}
-                      {selectedMemory.memory === product[memoryKey] && (
-                        <span>({product[`SoLuong${memoryKey.slice(-1)}`]})</span>
-                      )}
-                    </Button>
-                  ) : null
-              )}
-            </Space>
-
-            <Divider orientation="left">Màu sắc</Divider>
-            <Space wrap>
-              {[product.Mau1, product.Mau2, product.Mau3].map(
-                (color, index) =>
-                  color ? (
-                    <Tag
-                      key={index}
-                      color={color === "Hết Hàng" ? "gray" : "blue"}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: "50%",
-                        cursor: "pointer",
-                        backgroundColor: color !== "Hết Hàng" ? color : "gray",
-                        border:
-                          selectedColor === color
-                            ? "2px solid #1890ff"
-                            : "none",
-                      }}
-                      onClick={() => handleColorSelection(color)}
-                    />
-                  ) : null
-              )}
-            </Space>
-
-            <Space style={{ marginTop: 16 }}>
-              <Button
-                type="primary"
-                icon={<FaShoppingCart />}
-                onClick={addToCart}
-                disabled={
-                  !isColorAvailable ||
-                  selectedColor === "Hết Hàng" ||
-                  selectedMemory.quantity <= 0
-                }
-              >
-                Thêm vào giỏ hàng
-              </Button>
-              <Button icon={<FaExchangeAlt />} onClick={openCompareModal}>
-                So sánh sản phẩm
-              </Button>
-            </Space>
-
-            {/* Phần "Phiên bản khác" được cải thiện */}
-            {relatedProducts.length > 0 && (
-              <>
-                <Divider orientation="left">Phiên bản khác</Divider>
-                <div style={{ position: "relative" }}>
-                  {showRelatedLeftArrow && (
-                    <Button
-                      shape="circle"
-                      icon={<FaChevronLeft />}
-                      onClick={() => scrollRelatedProducts("left")}
-                      style={{
-                        position: "absolute",
-                        left: -20,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        zIndex: 1,
-                        backgroundColor: "#fff",
-                        border: "1px solid #d9d9d9",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                      }}
-                    />
-                  )}
-                  <div
-                    ref={relatedProductsRef}
-                    style={{
-                      display: "flex",
-                      overflowX: "auto",
-                      scrollBehavior: "smooth",
-                      paddingBottom: 16,
-                      gap: "16px",
-                    }}
-                    className="scrollbar-hidden"
-                  >
-                    {relatedProducts.map((relatedProduct) => (
-                      <Card
-                        key={relatedProduct._id}
-                        hoverable
-                        style={{
-                          minWidth: 200,
-                          width: 200,
-                          borderRadius: 8,
-                          overflow: "hidden",
-                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                        }}
-                        styles={{
-                          body: {
-                            padding: "12px",
-                            textAlign: "center",
-                          },
-                        }}
-                        cover={
-                          <div
-                            style={{
-                              height: 150,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: "#f5f5f5",
-                            }}
-                          >
-                            <img
-                              alt={relatedProduct.TenSP}
-                              src={relatedProduct.HinhAnh1}
-                              style={{
-                                maxHeight: "100%",
-                                maxWidth: "100%",
-                                objectFit: "contain",
-                              }}
-                            />
-                          </div>
+              <Divider orientation="left">Bộ nhớ trong</Divider>
+              <Space wrap justify="center">
+                {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
+                  (memoryKey, index) =>
+                    product[memoryKey] ? (
+                      <Button
+                        key={index}
+                        type={
+                          selectedMemory.memory === product[memoryKey]
+                            ? "primary"
+                            : "default"
                         }
-                        onClick={() =>
-                          navigate(`/products/product_detail/${relatedProduct._id}`)
-                        }
+                        onClick={() => handleMemorySelection(memoryKey)}
                       >
-                        <Card.Meta
-                          title={
-                            <Text
-                              strong
+                        {product[memoryKey]}
+                        {selectedMemory.memory === product[memoryKey] && (
+                          <span>
+                            {" "}
+                            ({product[`SoLuong${memoryKey.slice(-1)}`]})
+                          </span>
+                        )}
+                      </Button>
+                    ) : null
+                )}
+              </Space>
+
+              <Divider orientation="left">Màu sắc</Divider>
+              <Space wrap justify="center">
+                {[product.Mau1, product.Mau2, product.Mau3].map(
+                  (color, index) =>
+                    color ? (
+                      <Tag
+                        key={index}
+                        color={color === "Hết Hàng" ? "gray" : "blue"}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: "50%",
+                          cursor: "pointer",
+                          backgroundColor:
+                            color !== "Hết Hàng" ? color : "gray",
+                          border:
+                            selectedColor === color
+                              ? "2px solid #1890ff"
+                              : "none",
+                        }}
+                        onClick={() => handleColorSelection(color)}
+                      />
+                    ) : null
+                )}
+              </Space>
+
+              <Space style={{ marginTop: 16 }} size="large">
+                <Button
+                  type="primary"
+                  icon={<FaShoppingCart />}
+                  onClick={addToCart}
+                  disabled={
+                    !isColorAvailable ||
+                    selectedColor === "Hết Hàng" ||
+                    selectedMemory.quantity <= 0
+                  }
+                >
+                  Thêm vào giỏ hàng
+                </Button>
+                <Button icon={<FaExchangeAlt />} onClick={openCompareModal}>
+                  So sánh sản phẩm
+                </Button>
+              </Space>
+
+              {relatedProducts.length > 0 && (
+                <>
+                  <Divider orientation="left">Phiên bản khác</Divider>
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      ref={relatedProductsRef}
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        overflowX: "auto",
+                        scrollBehavior: "smooth",
+                        paddingBottom: 16,
+                        gap: "16px",
+                      }}
+                      className="scrollbar-hidden"
+                    >
+                      {relatedProducts.map((relatedProduct) => (
+                        <Card
+                          key={relatedProduct._id}
+                          hoverable
+                          style={{
+                            minWidth: 200,
+                            width: 200,
+                            borderRadius: 8,
+                            transition:
+                              "transform 0.3s ease, box-shadow 0.3s ease",
+                          }}
+                          cover={
+                            <div
                               style={{
-                                fontSize: "14px",
-                                display: "block",
-                                whiteSpace: "normal",
-                                lineHeight: "1.4",
+                                height: 150,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor: "#f5f5f5",
                               }}
                             >
-                              {relatedProduct.TenSP}
-                            </Text>
-                          }
-                          description={
-                            <Space direction="vertical" size={4}>
-                              <Text type="danger" strong>
-                                {formatCurrency(relatedProduct.GiaSP1)}
-                              </Text>
-                              <Text style={{ fontSize: "12px" }}>
-                                {relatedProduct.BoNhoTrong1}
-                              </Text>
-                              <Badge
-                                status={
-                                  relatedProduct.SoLuong1 > 0 ? "success" : "error"
-                                }
-                                text={
-                                  relatedProduct.SoLuong1 > 0 ? "Còn hàng" : "Hết hàng"
-                                }
-                                style={{ fontSize: "12px" }}
+                              <img
+                                alt={relatedProduct.TenSP}
+                                src={relatedProduct.HinhAnh1}
+                                style={{
+                                  maxHeight: "100%",
+                                  maxWidth: "100%",
+                                  objectFit: "contain",
+                                }}
                               />
-                            </Space>
+                            </div>
                           }
-                        />
-                      </Card>
-                    ))}
+                          onClick={() =>
+                            navigate(
+                              `/products/product_detail/${relatedProduct._id}`
+                            )
+                          }
+                        >
+                          <Card.Meta
+                            title={
+                              <Text
+                                strong
+                                style={{
+                                  fontSize: "14px",
+                                  whiteSpace: "normal",
+                                  lineHeight: "1.4",
+                                }}
+                              >
+                                {relatedProduct.TenSP}
+                              </Text>
+                            }
+                            description={
+                              <Space direction="vertical" size={4}>
+                                <Text type="danger" strong>
+                                  {formatCurrency(relatedProduct.GiaSP1)}
+                                </Text>
+                                <Text style={{ fontSize: "12px" }}>
+                                  {relatedProduct.BoNhoTrong1}
+                                </Text>
+                                <Badge
+                                  status={
+                                    relatedProduct.SoLuong1 > 0
+                                      ? "success"
+                                      : "error"
+                                  }
+                                  text={
+                                    relatedProduct.SoLuong1 > 0
+                                      ? "Còn hàng"
+                                      : "Hết hàng"
+                                  }
+                                  style={{ fontSize: "12px" }}
+                                />
+                              </Space>
+                            }
+                          />
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                  {showRelatedRightArrow && (
-                    <Button
-                      shape="circle"
-                      icon={<FaChevronRight />}
-                      onClick={() => scrollRelatedProducts("right")}
-                      style={{
-                        position: "absolute",
-                        right: -20,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        zIndex: 1,
-                        backgroundColor: "#fff",
-                        border: "1px solid #d9d9d9",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                      }}
-                    />
-                  )}
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </Flex>
           </Card>
         </Col>
       </Row>
@@ -791,11 +774,23 @@ const ProductDetail = () => {
                   flexDirection: "column",
                 }}
                 cover={
-                  <div style={{ height: 150, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: 150,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
                     <img
                       alt={product.TenSP}
                       src={product.HinhAnh1}
-                      style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
+                      style={{
+                        maxHeight: "100%",
+                        maxWidth: "100%",
+                        objectFit: "contain",
+                      }}
                     />
                   </div>
                 }
@@ -803,8 +798,16 @@ const ProductDetail = () => {
                 <Card.Meta
                   title={product.TenSP}
                   description={
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <Text type="danger">{formatCurrency(product.GiaSP1)}</Text>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text type="danger">
+                        {formatCurrency(product.GiaSP1)}
+                      </Text>
                       <Text>{product.BoNhoTrong1}</Text>
                     </div>
                   }
@@ -891,10 +894,16 @@ const ProductDetail = () => {
                 name="NoiDung"
                 label="Nội dung đánh giá"
                 rules={[
-                  { required: true, message: "Vui lòng nhập nội dung đánh giá" },
+                  {
+                    required: true,
+                    message: "Vui lòng nhập nội dung đánh giá",
+                  },
                 ]}
               >
-                <Input.TextArea rows={4} placeholder="Chia sẻ cảm nhận của bạn..." />
+                <Input.TextArea
+                  rows={4}
+                  placeholder="Chia sẻ cảm nhận của bạn..."
+                />
               </Form.Item>
               <Form.Item
                 name="DanhGia"
@@ -942,7 +951,9 @@ const ProductDetail = () => {
                               {comment.Reply.AdminEmail} (Admin)
                             </Text>
                             <Text type="secondary">
-                              {new Date(comment.Reply.Date).toLocaleDateString("vi-VN")}
+                              {new Date(comment.Reply.Date).toLocaleDateString(
+                                "vi-VN"
+                              )}
                             </Text>
                           </Space>
                           <Paragraph>{comment.Reply.Content}</Paragraph>
