@@ -67,7 +67,7 @@ const ProductDetail = () => {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [showRelatedLeftArrow, setShowRelatedLeftArrow] = useState(false);
-  const [showRelatedRightArrow, setShowRelatedRightArrow] = useState(false); // Ban đầu ẩn cả hai nút
+  const [showRelatedRightArrow, setShowRelatedRightArrow] = useState(false);
 
   const scrollProducts = (direction) => {
     const container = productListRef.current;
@@ -82,7 +82,7 @@ const ProductDetail = () => {
 
   const scrollRelatedProducts = (direction) => {
     const container = relatedProductsRef.current;
-    const scrollAmount = 300;
+    const scrollAmount = 200;
     if (direction === "left") {
       container.scrollLeft -= scrollAmount;
     } else {
@@ -124,7 +124,6 @@ const ProductDetail = () => {
     const container = relatedProductsRef.current;
     const handleScroll = () => updateRelatedArrowVisibility();
 
-    // Kiểm tra ban đầu khi component được render
     const checkOverflow = () => {
       if (container) {
         const isOverflowing = container.scrollWidth > container.clientWidth;
@@ -137,14 +136,14 @@ const ProductDetail = () => {
     };
 
     container?.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", checkOverflow); // Kiểm tra lại khi cửa sổ thay đổi kích thước
-    checkOverflow(); // Kiểm tra ngay khi component được render
+    window.addEventListener("resize", checkOverflow);
+    checkOverflow();
 
     return () => {
       container?.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", checkOverflow);
     };
-  }, [relatedProducts]); // Thêm relatedProducts vào dependency để kiểm tra lại khi danh sách sản phẩm thay đổi
+  }, [relatedProducts]);
 
   useEffect(() => {
     setLoading(true);
@@ -171,7 +170,7 @@ const ProductDetail = () => {
           );
           const mainProductName = productNameParts[0];
           const related = allProducts
-            .filter((p) => {
+             .filter((p) => {
               const relatedNameParts = p.TenSP.split("|").map((part) =>
                 part.trim()
               );
@@ -600,6 +599,20 @@ const ProductDetail = () => {
                       textAlign: "center",
                     }}
                   >
+                    {showRelatedLeftArrow && (
+                      <Button
+                        shape="circle"
+                        icon={<FaChevronLeft />}
+                        onClick={() => scrollRelatedProducts("left")}
+                        style={{
+                          position: "absolute",
+                          left: -20,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          zIndex: 1,
+                        }}
+                      />
+                    )}
                     <div
                       ref={relatedProductsRef}
                       style={{
@@ -690,6 +703,20 @@ const ProductDetail = () => {
                         </Card>
                       ))}
                     </div>
+                    {showRelatedRightArrow && (
+                      <Button
+                        shape="circle"
+                        icon={<FaChevronRight />}
+                        onClick={() => scrollRelatedProducts("right")}
+                        style={{
+                          position: "absolute",
+                          right: -20,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          zIndex: 1,
+                        }}
+                      />
+                    )}
                   </div>
                 </>
               )}
