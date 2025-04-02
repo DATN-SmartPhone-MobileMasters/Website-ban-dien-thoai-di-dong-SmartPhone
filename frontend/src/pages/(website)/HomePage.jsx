@@ -13,7 +13,7 @@ const HomePage = () => {
         <div className="bg-white shadow-md rounded-lg p-4">
           <Slider />
         </div>
-        
+
         {/* Latest Products */}
         <div className="bg-white shadow-md rounded-lg p-4">
           <LatestProducts />
