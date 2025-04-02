@@ -54,19 +54,20 @@ export const updateOrder = async (id, data) =>
   axios.put(`${API_URL}/hoadons/${id}`, data);
 export const deleteOrder = async (id) =>
   axios.delete(`${API_URL}/hoadons/${id}`);
-
+export const createVNPayPayment = async (data) => 
+  axios.post(`${API_URL}/hoadons/create-vnpay-payment`, data);
+export const handleVNPayReturn = async (queryParams) => 
+  axios.get(`${API_URL}/hoadons/vnpay-return`, { params: queryParams });
 // Thêm API lấy thống kê doanh thu
 export const fetchThongKeDoanhThu = async () =>
   axios.get(`${API_URL}/hoadons/thongke/doanhthu`);
 
 // Comments
 export const fetchComments = async () => axios.get(`${API_URL}/comments`);
-export const deleteComment = async (id) =>
-  axios.delete(`${API_URL}/comments/${id}`);
-export const fetchCommentById = async (id) =>
-  axios.get(`${API_URL}/comments/${id}`);
-export const createComment = async (data) =>
-  axios.post(`${API_URL}/comments`, data);
+export const deleteComment = async (id) => axios.delete(`${API_URL}/comments/${id}`);
+export const fetchCommentById = async (id) => axios.get(`${API_URL}/comments/${id}`);
+export const createComment = async (data) => axios.post(`${API_URL}/comments`, data);
+export const replyComment = async (id, replyData) => axios.put(`${API_URL}/comments/${id}/reply`, replyData);
 
 // chitiethoadon
 export const fetchChitiethoadons = async () =>

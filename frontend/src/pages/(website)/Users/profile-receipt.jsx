@@ -9,43 +9,15 @@ const API_URL = `http://localhost:5000/api`;
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [hiddenReviews, setHiddenReviews] = useState(() => {
-    return JSON.parse(localStorage.getItem("hiddenReviews")) || {};
-  });
-  
-  useEffect(() => {
-    const timers = {};
-  
-    orders.forEach((order) => {
-      if (order.paymentStatus === 'Hoàn thành' && !hiddenReviews[order._id]) {
-        timers[order._id] = setTimeout(() => {
-          setHiddenReviews((prev) => {
-            const updated = { ...prev, [order._id]: true };
-            localStorage.setItem("hiddenReviews", JSON.stringify(updated)); 
-            return updated;
-          });
-        }, 60000); // 1 phút
-      }
-    });
-  
-    return () => {
-      Object.values(timers).forEach(clearTimeout);
-    };
-  }, [orders, hiddenReviews]);
   const [userData, setUserData] = useState({
     Email: '',
     id: '',
   });
-  const [reviewedOrders, setReviewedOrders] = useState({});
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
-    const storedReviewedOrders = localStorage.getItem('reviewedOrders');
     if (storedUserData) {
       setUserData(JSON.parse(storedUserData));
-    }
-    if (storedReviewedOrders) {
-      setReviewedOrders(JSON.parse(storedReviewedOrders));
     }
   }, []);
 
@@ -107,39 +79,34 @@ const ProfileReceipt = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      render: (_, record) => (
-        (record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-          <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
-            Huỷ đơn
-          </Button>
-        )
-      ),
-    },
-    {
-      title: 'Đánh giá',
-      key: 'review',
-      render: (_, record) => (
-        record.paymentStatus === 'Hoàn thành' &&
-        !hiddenReviews[record._id] && ( // Kiểm tra trạng thái ẩn
-          <Link
-            to={{
-              pathname: `/listdanhgia`,
-              state: { products: record.products, orderId: record._id },
-            }}
-          >
-            <Button type="primary">Đánh giá</Button>
-          </Link>
-        )
-      ),
+      render: (_, record) => {
+        const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
+        const isReviewed = reviewedOrders[record._id];
+
+        return (
+          <>
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+                Huỷ đơn
+              </Button>
+            )}
+            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
+              <Link to={`/adddanhgiauser/${record._id}`}>
+                <Button type="primary">
+                  Đánh giá
+                </Button>
+              </Link>
+            )}
+            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
+              <Button type="primary" disabled>
+                Đã đánh giá
+              </Button>
+            )}
+          </>
+        );
+      },
     },
   ];
-
-  const handleReviewClick = (orderId) => {
-    const updatedReviewedOrders = { ...reviewedOrders };
-    updatedReviewedOrders[orderId] = (updatedReviewedOrders[orderId] || 0) + 1;
-    setReviewedOrders(updatedReviewedOrders);
-    localStorage.setItem('reviewedOrders', JSON.stringify(updatedReviewedOrders));
-  };
 
   const updateProductQuantities = async (products, action) => {
     for (const product of products) {

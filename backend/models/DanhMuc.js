@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
 
 const DanhMucSchema = new mongoose.Schema({
-  MaDM: { type: String }, // Mã danh mục
   TenDM: { type: String, required: true }, // Tên danh mục
-  SanPham: [
+  MaSP: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SanPham", // Đảm bảo tên model là "SanPham"

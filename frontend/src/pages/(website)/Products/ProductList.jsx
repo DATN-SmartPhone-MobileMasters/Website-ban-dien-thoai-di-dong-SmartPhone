@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
-import { Spin, message, Pagination, Select, Input } from "antd";
+import { Spin, message, Pagination, Select, Input, Slider, Card, Row, Col } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
@@ -16,6 +16,7 @@ const ProductList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
+  const [priceRange, setPriceRange] = useState([0, 100000000]);
 
   useEffect(() => {
     getProducts();
@@ -23,7 +24,17 @@ const ProductList = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedBrand, selectedStorage, searchQuery, sortOrder]);
+  }, [selectedBrand, selectedStorage, searchQuery, sortOrder, priceRange]);
+
+  const normalizeBrandName = (name) => {
+    const match = name.match(/^(Iphone|Samsung|Xiaomi|Oppo)(\d+)/i);
+    if (match) {
+      const brand = match[1];
+      const model = match[2];
+      return `${brand} ${model}`;
+    }
+    return name.split(" ")[0];
+  };
 
   const getProducts = async () => {
     setLoading(true);
@@ -32,7 +43,10 @@ const ProductList = () => {
       const data = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProducts(data);
 
-      const uniqueBrands = [...new Set(data.map((product) => product.TenSP.split(" ")[0]))];
+      const uniqueBrands = [...new Set(data.map((product) => {
+        const nameParts = product.TenSP.split("|")[0].trim();
+        return normalizeBrandName(nameParts);
+      }))];
       setBrands(uniqueBrands);
     } catch (error) {
       message.error("Lỗi khi tải danh sách sản phẩm!");
@@ -43,8 +57,16 @@ const ProductList = () => {
 
   const sortedProducts = [...products]
     .filter((product) => selectedStorage ? product.BoNhoTrong1 === selectedStorage : true)
-    .filter((product) => selectedBrand ? product.TenSP.toLowerCase().includes(selectedBrand.toLowerCase()) : true)
+    .filter((product) => {
+      if (!selectedBrand) return true;
+      const normalizedProductName = normalizeBrandName(product.TenSP.split("|")[0].trim());
+      return normalizedProductName.toLowerCase().startsWith(selectedBrand.toLowerCase());
+    })
     .filter((product) => searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true)
+    .filter((product) => {
+      const price = Number(product.GiaSP1) || 0;
+      return price >= priceRange[0] && price <= priceRange[1];
+    })
     .sort((a, b) => {
       const priceA = Number(a.GiaSP1) || 0;
       const priceB = Number(b.GiaSP1) || 0;
@@ -61,57 +83,101 @@ const ProductList = () => {
     setCurrentPage(page);
   };
 
+  const handlePriceChange = (value) => {
+    setPriceRange(value);
+  };
+
+  const formatPrice = (value) => {
+    return `${value.toLocaleString()} VNĐ`;
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">📢 Danh sách sản phẩm</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-white p-4 shadow-md rounded-lg">
-          <Select
-            placeholder="Tất cả thương hiệu"
-            value={selectedBrand || undefined}
-            onChange={(value) => setSelectedBrand(value)}
-            allowClear
-            className="w-full"
-          >
-            {brands.map((brand) => (
-              <Option key={brand} value={brand}>{brand}</Option>
-            ))}
-          </Select>
+        <Card className="mb-8" title="Bộ lọc sản phẩm" bordered={false}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <Select
+                placeholder="Tất cả thương hiệu"
+                value={selectedBrand || undefined}
+                onChange={(value) => setSelectedBrand(value)}
+                allowClear
+                size="large"
+                style={{ width: "100%" }}
+              >
+                {brands.map((brand) => (
+                  <Option key={brand} value={brand}>{brand}</Option>
+                ))}
+              </Select>
+            </Col>
 
-          <Input
-            placeholder="Tìm kiếm sản phẩm..."
-            prefix={<SearchOutlined />}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            allowClear
-          />
+            <Col xs={24} sm={12} md={6}>
+              <Input
+                placeholder="Tìm kiếm sản phẩm..."
+                prefix={<SearchOutlined />}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                allowClear
+                size="large"
+                style={{ width: "100%" }}
+              />
+            </Col>
 
-          <Select
-            placeholder="Bộ nhớ"
-            value={selectedStorage || undefined}
-            onChange={(value) => setSelectedStorage(value)}
-            allowClear
-            className="w-full"
-          >
-            <Option value="64GB">64GB</Option>
-            <Option value="128GB">128GB</Option>
-            <Option value="256GB">256GB</Option>
-            <Option value="512GB">512GB</Option>
-            <Option value="1TB">1TB</Option>
-          </Select>
+            <Col xs={24} sm={12} md={4}>
+              <Select
+                placeholder="Chọn bộ nhớ"
+                value={selectedStorage || undefined}
+                onChange={(value) => setSelectedStorage(value)}
+                allowClear
+                size="large"
+                style={{ width: "100%" }}
+              >
+                <Option value="64GB">64GB</Option>
+                <Option value="128GB">128GB</Option>
+                <Option value="256GB">256GB</Option>
+                <Option value="512GB">512GB</Option>
+                <Option value="1TB">1TB</Option>
+              </Select>
+            </Col>
 
-          <Select
-            placeholder="Sắp xếp theo"
-            value={sortOrder || undefined}
-            onChange={(value) => setSortOrder(value)}
-            allowClear
-            className="w-full"
-          >
-            <Option value="asc">Giá thấp đến cao</Option>
-            <Option value="desc">Giá cao đến thấp</Option>
-          </Select>
-        </div>
+            <Col xs={24} sm={12} md={4}>
+              <Select
+                placeholder="Sắp xếp theo giá"
+                value={sortOrder || undefined}
+                onChange={(value) => setSortOrder(value)}
+                allowClear
+                size="large"
+                style={{ width: "100%" }}
+              >
+                <Option value="asc">Giá thấp đến cao</Option>
+                <Option value="desc">Giá cao đến thấp</Option>
+              </Select>
+            </Col>
+
+            <Col xs={24} md={4}>
+              <div>
+                <span className="text-sm font-medium text-gray-700">Khoảng giá:</span>
+                <Slider
+                  range
+                  min={0}
+                  max={100000000}
+                  step={100000}
+                  defaultValue={[0, 100000000]}
+                  value={priceRange}
+                  onChange={handlePriceChange}
+                  tooltip={{ formatter: formatPrice }}
+                  style={{ marginTop: 8 }}
+                />
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>{formatPrice(priceRange[0])}</span>
+                  <span>{formatPrice(priceRange[1])}</span>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Card>
 
         {loading ? (
           <div className="flex justify-center items-center h-40">
