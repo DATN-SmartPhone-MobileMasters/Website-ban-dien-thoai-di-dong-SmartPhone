@@ -32,12 +32,12 @@ const SpDaMua = () => {
           // Gộp tất cả sản phẩm từ các đơn hàng "Hoàn thành" vào một mảng
           const allProducts = completedOrders.flatMap((order) => order.products);
 
-          // Loại bỏ sản phẩm trùng lặp dựa trên tên và bộ nhớ
+          // Loại bỏ sản phẩm trùng lặp dựa trên productId, memory và color
           const uniqueProducts = [];
           const seen = new Set();
 
           allProducts.forEach((product) => {
-            const key = `${product.name}|${product.memory}`;
+            const key = `${product.productId}|${product.memory}|${product.color}`;
             if (!seen.has(key)) {
               seen.add(key);
               uniqueProducts.push(product);
@@ -99,11 +99,11 @@ const SpDaMua = () => {
                       style={{
                         width: "20px",
                         height: "20px",
-                        backgroundColor: product.color.toLowerCase(), // Chuyển màu thành chữ thường để tránh lỗi
+                        backgroundColor: product.color.toLowerCase(),
                         borderRadius: "50%",
                         border: "1px solid #ccc",
                       }}
-                      title={product.color} // Hiển thị tên màu khi hover
+                      title={product.color}
                     />
                   </div>
                 </div>
