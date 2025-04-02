@@ -7,7 +7,7 @@ const binhLuanSchema = new mongoose.Schema({
     required: true,
   },
   MaSP: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Sanpham", // Tham chiếu đến bảng SanPham
     required: true,
   },

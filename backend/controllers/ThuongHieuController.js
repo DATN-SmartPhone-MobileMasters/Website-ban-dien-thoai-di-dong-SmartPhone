@@ -65,10 +65,9 @@ class ThuongHieuController {
 
   async apiCreate(req, res) {
     try {
-      const { MaTH, TenTH, HinhAnh, Mota, MaDM } = req.body;
+      const { TenTH, HinhAnh, Mota, MaDM } = req.body;
 
       const newThuongHieu = await thuonghieu.create({
-        MaTH,
         TenTH,
         HinhAnh,
         Mota,
@@ -90,14 +89,10 @@ class ThuongHieuController {
   async apiUpdate(req, res) {
     try {
       const id = req.params.id;
-      const { MaTH, TenTH, HinhAnh, Mota, MaDM } = req.body;
+      const { TenTH, HinhAnh, Mota, MaDM } = req.body;
 
       const thuongHieu = await thuonghieu
-        .findByIdAndUpdate(
-          id,
-          { MaTH, TenTH, HinhAnh, Mota, MaDM },
-          { new: true }
-        )
+        .findByIdAndUpdate(id, { TenTH, HinhAnh, Mota, MaDM }, { new: true })
         .populate("MaDM", "TenDM");
 
       res.status(200).json({
