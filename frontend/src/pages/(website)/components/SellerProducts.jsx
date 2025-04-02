@@ -28,12 +28,19 @@ const SellerProducts = () => {
         ? response.data
         : response.data.data || [];
 
-      // Lọc bỏ sản phẩm có tên chứa "iphone"
-      const filteredProducts = data.filter(
-        (product) => !product.TenSP.toLowerCase().includes("iphone")
-      );
 
-      // Giữ lại tối đa 8 sản phẩm mới nhất
+      const filteredProducts = data.filter((product) => {
+        const nameCondition = !product.TenSP.toLowerCase().includes("iphone");
+        
+        const quantity1 = product.SoLuong1 || 0;
+        const quantity2 = product.SoLuong2 || 0;
+        const quantity3 = product.SoLuong3 || 0;
+        
+        const quantityCondition = !(quantity1 === 0 && quantity2 === 0 && quantity3 === 0);
+
+        return nameCondition && quantityCondition;
+      });
+
       setProducts(filteredProducts.slice(-8));
     } catch (error) {
       message.error("Lỗi khi lấy danh sách sản phẩm!");
@@ -61,7 +68,7 @@ const SellerProducts = () => {
           <Swiper
             modules={[Navigation, Autoplay, Pagination]}
             slidesPerView={1}
-            spaceBetween={24} // Đồng bộ với gap-6 của grid (khoảng 24px)
+            spaceBetween={24}
             breakpoints={{
               640: { slidesPerView: 2 },
               768: { slidesPerView: 3 },
