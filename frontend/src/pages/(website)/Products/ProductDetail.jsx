@@ -61,6 +61,11 @@ const ProductDetail = () => {
   const userData = JSON.parse(localStorage.getItem("userData"));
   const email = userData?.Email;
   const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
+  const [displayedComments, setDisplayedComments] = useState(5);
+
+  const handleShowMore = () => {
+    setDisplayedComments(comments.length); // Hiển thị tất cả bình luận
+  };
 
   const productListRef = useRef(null);
   const relatedProductsRef = useRef(null);
@@ -170,7 +175,7 @@ const ProductDetail = () => {
           );
           const mainProductName = productNameParts[0];
           const related = allProducts
-             .filter((p) => {
+            .filter((p) => {
               const relatedNameParts = p.TenSP.split("|").map((part) =>
                 part.trim()
               );
