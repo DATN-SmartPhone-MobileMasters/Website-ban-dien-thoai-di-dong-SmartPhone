@@ -189,13 +189,6 @@ const AdminListComment = () => {
               </Text>
             </Space>
             <Text>{record.Reply.Content}</Text>
-            <Button
-              type="danger"
-              size="small"
-              onClick={() => handleDeleteReply(record._id)}
-            >
-              Xóa câu trả lời
-            </Button>
           </Space>
         </Card>
       )}
