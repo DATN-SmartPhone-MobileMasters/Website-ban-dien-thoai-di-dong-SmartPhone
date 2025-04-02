@@ -14,6 +14,8 @@ import {
   Space,
   Spin,
   Tooltip,
+  Modal,
+  Checkbox,
 } from "antd";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import queryString from "query-string";
@@ -27,11 +29,12 @@ const ProductsList = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Lấy query params từ URL
   const { search = "", memory = "", status = "", brand = "" } = queryString.parse(location.search);
 
   useEffect(() => {
@@ -50,7 +53,6 @@ const ProductsList = () => {
       setProducts(data);
       setFilteredProducts(data);
 
-      // Tạo danh sách thương hiệu dựa vào chữ đầu tiên của TenSP, chuẩn hóa dữ liệu
       const uniqueBrands = [
         ...new Set(data.map((p) => p.TenSP.split(" ")[0].trim().toLowerCase()))
       ].map((brand) => brand.charAt(0).toUpperCase() + brand.slice(1));
@@ -117,7 +119,38 @@ const ProductsList = () => {
     setFilteredProducts(filtered);
   };
 
+  const handleSelectProduct = (productId) => {
+    setSelectedProducts((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const showCompareModal = () => {
+    if (selectedProducts.length < 2) {
+      message.warning("Vui lòng chọn ít nhất 2 sản phẩm để so sánh!");
+      return;
+    }
+    setIsModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+  };
+
   const columns = [
+    {
+      title: <Checkbox disabled />,
+      key: "select",
+      render: (_, record) => (
+        <Checkbox
+          checked={selectedProducts.includes(record._id)}
+          onChange={() => handleSelectProduct(record._id)}
+        />
+      ),
+      width: 50,
+    },
     {
       title: "STT",
       key: "stt",
@@ -211,6 +244,41 @@ const ProductsList = () => {
     },
   ];
 
+  const compareColumns = [
+    { title: "Tên Sản Phẩm", dataIndex: "TenSP", key: "TenSP" },
+    { title: "Màu 1", dataIndex: "Mau1", key: "Mau1" },
+    { title: "Cam Trước", dataIndex: "CamTruoc", key: "CamTruoc" },
+    { title: "Cam Sau", dataIndex: "CamSau", key: "CamSau" },
+    { title: "CPU", dataIndex: "CPU", key: "CPU" },
+    { title: "Hệ Điều Hành", dataIndex: "HDH", key: "HDH" },
+    { title: "Màn Hình", dataIndex: "ManHinh", key: "ManHinh" },
+    {
+      title: "Bộ Nhớ 1 / Giá",
+      key: "BoNhoTrong1_GiaSP1",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong1 || "-"} / ${record.GiaSP1 ? record.GiaSP1 + "đ" : "-"}`}</span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 2 / Giá",
+      key: "BoNhoTrong2_GiaSP2",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong2 || "-"} / ${record.GiaSP2 ? record.GiaSP2 + "đ" : "-"}`}</span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 3 / Giá",
+      key: "BoNhoTrong3_GiaSP3",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong3 || "-"} / ${record.GiaSP3 ? record.GiaSP3 + "đ" : "-"}`}</span>
+      ),
+    },
+  ];
+
+  const compareData = selectedProducts.map((id) =>
+    products.find((p) => p._id === id)
+  );
+
   return (
     <div style={{ padding: "24px", background: "#f0f2f5" }}>
       <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
@@ -220,11 +288,16 @@ const ProductsList = () => {
           </Title>
         </Col>
         <Col>
-          <Link to="/admin/products/add">
-            <Button type="primary" icon={<PlusOutlined />}>
-              Thêm Sản Phẩm
+          <Space>
+            <Button type="primary" onClick={showCompareModal} disabled={selectedProducts.length < 2}>
+              So Sánh Sản Phẩm
             </Button>
-          </Link>
+            <Link to="/admin/products/add">
+              <Button type="primary" icon={<PlusOutlined />}>
+                Thêm Sản Phẩm
+              </Button>
+            </Link>
+          </Space>
         </Col>
       </Row>
 
@@ -295,6 +368,23 @@ const ProductsList = () => {
         pagination={{ pageSize: 10 }}
         scroll={{ x: 1200 }}
       />
+
+      <Modal
+        title="So Sánh Sản Phẩm"
+        visible={isModalVisible}
+        onCancel={handleModalClose}
+        footer={null}
+        width={1000}
+      >
+        <Table
+          dataSource={compareData}
+          columns={compareColumns}
+          rowKey="_id"
+          pagination={false}
+          bordered
+          scroll={{ x: 800 }}
+        />
+      </Modal>
     </div>
   );
 };
