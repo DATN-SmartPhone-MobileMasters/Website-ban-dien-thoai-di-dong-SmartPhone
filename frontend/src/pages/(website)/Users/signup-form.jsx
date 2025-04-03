@@ -12,15 +12,21 @@ const SignupForm = () => {
     try {
       setLoading(true);
       await signupUsers(values);
-      
       message.success('Đăng ký thành công!');
       navigate('/login');
     } catch (error) {
-      message.error(error.response?.data?.message || 'Đăng ký thất bại');
+      const errorMessage = error.response?.data?.message;
+      if (typeof errorMessage === 'string') {
+        message.error(errorMessage);
+      } else if (Array.isArray(errorMessage)) {
+        errorMessage.forEach(msg => message.error(msg));
+      } else {
+        message.error('Đăng ký thất bại');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  };;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

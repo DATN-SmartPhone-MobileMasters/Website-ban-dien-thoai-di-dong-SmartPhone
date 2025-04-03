@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
   },
   HoVaTen: {
     type: String,
+    unique: true,
   },
   Avata:{
     type: String,
@@ -15,18 +16,23 @@ const userSchema = new mongoose.Schema({
   },
   SDT: {
     type: Number,
+    unique: true,
   },
   Email: {
     type: String,
+    unique: true,
   },
   DiaChi: {
     type: String,
+    unique: true,
   },
   TaiKhoan: {
     type: String,
+    unique: true,
   },
   MatKhau: {
     type: String,
+    unique: true,
   },
   MaQuyen: {
     type: Number,
@@ -37,6 +43,16 @@ const userSchema = new mongoose.Schema({
   created_at: {
     type: Date,
     default: Date.now
+  }
+});
+
+// Add error handling for duplicate keys
+userSchema.post('save', function(error, doc, next) {
+  if (error.name === 'MongoServerError' && error.code === 11000) {
+    const field = Object.keys(error.keyPattern)[0];
+    next(new Error(`${field} đã tồn tại`));
+  } else {
+    next(error);
   }
 });
 

@@ -49,43 +49,67 @@ class UsersController {
       Email: Joi.string().email().required(), 
       DiaChi: Joi.string().required(),
       MatKhau: Joi.string().min(6).required(), 
-      confirmPassword:  Joi.string().min(6).required(),
+      confirmPassword: Joi.string().min(6).required(),
     }).options({ abortEarly: false });
+  
     try {
       const { error } = signUpSchema.validate(req.body, { abortEarly: false });
       if (error) {
         const errorMessages = error.details.map((detail) => detail.message);
         return res.status(400).json({ message: errorMessages });
       }
+  
       if (req.body.confirmPassword !== req.body.MatKhau) {
         return res.status(400).json({ message: 'Mật khẩu và xác nhận mật khẩu không khớp' });
       }
-      const existingUser = await Users.findOne({ Email: req.body.Email });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email đã tồn tại' });
-      }
 
+      const existingFields = await Users.findOne({
+        $or: [
+          { HoVaTen: req.body.HoVaTen },
+          { SDT: req.body.SDT },
+          { Email: req.body.Email },
+          { DiaChi: req.body.DiaChi },
+        ]
+      });
+  
+      if (existingFields) {
+        let message = '';
+        if (existingFields.HoVaTen === req.body.HoVaTen) {
+          message = 'Họ và tên đã tồn tại';
+        } else if (existingFields.SDT === req.body.SDT) {
+          message = 'Số điện thoại đã tồn tại';
+        } else if (existingFields.Email === req.body.Email) {
+          message = 'Email đã tồn tại';
+        } else if (existingFields.DiaChi === req.body.DiaChi) {
+          message = 'Địa chỉ đã tồn tại';
+        }
+        return res.status(400).json({ message });
+      }
+  
       const hashedPassword = await bcrypt.hash(req.body.MatKhau, 10);
       const newUser = new Users({
         MaND: new mongoose.Types.ObjectId().toString(),
         HoVaTen: req.body.HoVaTen,
-        GioiTinh:'Nam',
+        GioiTinh: 'Nam',
         SDT: req.body.SDT,
         Email: req.body.Email,
-        DiaChi:req.body.DiaChi,
-        TaiKhoan:'',
-        MatKhau: hashedPassword, 
+        DiaChi: req.body.DiaChi,
+        TaiKhoan: req.body.HoVaTen, 
+        MatKhau: hashedPassword,
         MaQuyen: 0,
-        TrangThai: 1 
+        TrangThai: 1
       });
-
+  
       const savedUser = await newUser.save();
-
+  
       res.status(201).json({
         id: savedUser._id,
         Email: savedUser.Email
       });
     } catch (error) {
+      if (error.message.includes('đã tồn tại')) {
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: error.message });
     }
   }
