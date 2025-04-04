@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
 import { createCategory, fetchCategories } from "../../../service/api"; // Thêm hàm fetchCategories
-import PermissionCheck from "../../../service/PermissionCheck";
 
 const CategoryAdd = () => {
   const {
@@ -63,7 +62,6 @@ const CategoryAdd = () => {
 
   return (
     <>
-    <PermissionCheck requiredPermission={1} redirectPath="/admin/categorys" />
     <div>
       <h1 className="h3 mb-2 text-gray-800">Thêm Danh Mục</h1>
       <div className="card shadow mb-4">

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { message, Form, Input, Button, Rate } from "antd";
 import { createComment } from "../../../service/api";
-import PermissionCheck from "../../../service/PermissionCheck";
 
 const AddComment = () => {
   const [form] = Form.useForm();
@@ -25,7 +24,6 @@ const AddComment = () => {
 
   return (
     <>
-    <PermissionCheck requiredPermission={1} redirectPath="/admin/comments" />
     <div>
       <h1 className="h3 mb-2 text-gray-800">Thêm Bình Luận</h1>
       <div className="card shadow mb-4">
