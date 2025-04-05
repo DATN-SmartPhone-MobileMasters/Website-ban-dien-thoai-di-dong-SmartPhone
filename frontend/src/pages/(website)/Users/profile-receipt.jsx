@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Tag, Button, message } from 'antd';
+import { Table, Tag, Button, message,Modal  } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import axios from 'axios';
 
@@ -145,20 +145,28 @@ const ProfileReceipt = () => {
   };
 
   const handleCancelOrder = async (orderId, products) => {
-    try {
-      await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
-      const order = orders.find((order) => order._id === orderId);
-      if (order && order.paymentStatus === 'Đã Xác Nhận') {
-        await updateProductQuantities(products, 'add');
-      }
+    Modal.confirm({
+      title: 'Xác nhận huỷ đơn hàng',
+      content: 'Bạn có chắc chắn muốn huỷ đơn hàng này không?',
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
+          const order = orders.find((order) => order._id === orderId);
+          if (order && order.paymentStatus === 'Đã Xác Nhận') {
+            await updateProductQuantities(products, 'add');
+          }
 
-      const response = await fetchOrdersByUserId(userData.id);
-      setOrders(response.data.data);
+          const response = await fetchOrdersByUserId(userData.id);
+          setOrders(response.data.data);
 
-      message.success('Huỷ đơn hàng thành công');
-    } catch (error) {
-      message.error('Huỷ đơn hàng thất bại');
-    }
+          message.success('Huỷ đơn hàng thành công');
+        } catch (error) {
+          message.error('Huỷ đơn hàng thất bại');
+        }
+      },
+    });
   };
 
   useEffect(() => {

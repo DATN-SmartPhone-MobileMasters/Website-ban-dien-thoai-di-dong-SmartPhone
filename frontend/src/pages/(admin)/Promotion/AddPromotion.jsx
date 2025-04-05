@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { createPromotion } from "../../../service/api";
-import PermissionCheck from "../../../service/PermissionCheck";
 
 const AddPromotion = () => {
   const {
@@ -50,7 +49,6 @@ const AddPromotion = () => {
 
   return (
     <>
-      <PermissionCheck requiredPermission={1} redirectPath="/admin/vouchers" />
       <div className="container-fluid">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h1 className="h3 text-gray-800">Thêm Khuyến Mãi</h1>

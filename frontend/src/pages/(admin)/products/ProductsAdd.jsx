@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProducts, fetchBrands, uploadImage } from "../../../service/api";
-import PermissionCheck from "../../../service/PermissionCheck";
 import { Form, Input, Select, Button, Upload, message, Card, Row, Col, Space, Divider } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 
@@ -203,7 +202,6 @@ const ProductsAdd = () => {
 
   return (
     <>
-      <PermissionCheck requiredPermission={1} redirectPath="/admin/products" />
       <div className="container" style={{ padding: '20px' }}>
         <h1 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: 'bold' }}>Thêm Sản Phẩm</h1>
 
