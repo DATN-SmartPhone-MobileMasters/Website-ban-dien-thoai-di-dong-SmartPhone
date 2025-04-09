@@ -6,6 +6,7 @@ import {
   fetchComments,
   fetchUsers,
   replyComment,
+  approveComment,
 } from "../../../service/api";
 
 const { Title, Text } = Typography;
@@ -43,6 +44,22 @@ const AdminListComment = () => {
         console.error(error.message);
         message.error("Xóa thất bại");
       }
+    }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      await approveComment(id);
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === id ? { ...comment, isApproved: true } : comment
+        )
+      );
+      message.success("Đã duyệt bình luận thành công");
+      window.dispatchEvent(new Event("commentUpdated")); // Thông báo cập nhật
+    } catch (error) {
+      console.error(error.message);
+      message.error("Duyệt thất bại");
     }
   };
 
@@ -88,7 +105,7 @@ const AdminListComment = () => {
       const replyData = {
         Content: replyContent[commentId],
         Date: new Date().toISOString(),
-        AdminEmail: "admin@example.com", // Thay bằng email admin thực tế từ localStorage/context
+        AdminEmail: "admin@example.com",
       };
       const response = await replyComment(commentId, replyData);
       message.success("Đã gửi câu trả lời thành công!");
@@ -126,14 +143,7 @@ const AdminListComment = () => {
       title: "Nội dung",
       dataIndex: "NoiDung",
       key: "NoiDung",
-      ellipsis: true, // Cắt ngắn nội dung nếu quá dài
-    },
-    {
-      title: "Đánh giá",
-      dataIndex: "DanhGia",
-      key: "DanhGia",
-      render: (text) => <Rate disabled value={parseInt(text)} />,
-      width: 150,
+      ellipsis: true,
     },
     {
       title: "Ngày bình luận",
@@ -141,6 +151,14 @@ const AdminListComment = () => {
       key: "NgayBL",
       render: (text) => new Date(text).toLocaleDateString("vi-VN"),
       width: 150,
+    },
+    {
+      title: "Trạng thái",
+      key: "isApproved",
+      render: (_, record) => (
+        <Text>{record.isApproved ? "Đã duyệt" : "Chưa duyệt"}</Text>
+      ),
+      width: 100,
     },
     {
       title: "Hành động",
@@ -159,6 +177,15 @@ const AdminListComment = () => {
           >
             Xóa
           </Button>
+          {!record.isApproved && (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleApprove(record._id)}
+            >
+              Duyệt
+            </Button>
+          )}
           <Button
             type="default"
             size="small"
@@ -168,7 +195,7 @@ const AdminListComment = () => {
           </Button>
         </Space>
       ),
-      width: 200,
+      width: 250,
     },
   ];
 
@@ -230,10 +257,10 @@ const AdminListComment = () => {
           rowKey="_id"
           expandable={{
             expandedRowRender,
-            expandRowByClick: true, // Mở rộng khi nhấp vào hàng
+            expandRowByClick: true,
           }}
           pagination={{ pageSize: 10 }}
-          scroll={{ x: "max-content" }} // Hỗ trợ cuộn ngang nếu nội dung quá dài
+          scroll={{ x: "max-content" }}
         />
       </Card>
     </div>
