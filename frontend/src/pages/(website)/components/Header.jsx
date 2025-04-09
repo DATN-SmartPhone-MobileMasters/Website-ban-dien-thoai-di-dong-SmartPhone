@@ -38,14 +38,14 @@ const Header = () => {
     const updateCartCount = () => {
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-
+  
       if (userId) {
         const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-        const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-        setCartCount(totalItems);
+        // Thay vì tính tổng quantity, chỉ đếm số lượng sản phẩm (số phần tử trong mảng)
+        setCartCount(cartItems.length);
       }
     };
-
+  
     updateCartCount();
     window.addEventListener("cartUpdated", updateCartCount);
     return () => {
