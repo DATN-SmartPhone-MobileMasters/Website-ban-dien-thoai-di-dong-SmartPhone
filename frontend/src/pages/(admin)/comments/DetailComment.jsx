@@ -1,6 +1,6 @@
-import { message, Rate, Card, Descriptions, Typography, Button, Space, Image, Row, Col } from "antd";
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { message, Card, Descriptions, Typography, Button, Space, Image, Row, Col } from "antd";
 import { fetchCommentById, getProducts } from "../../../service/api";
 
 const { Title, Text } = Typography;
@@ -29,11 +29,10 @@ const AdminDetailComment = () => {
 
   if (!comment) return <div style={{ textAlign: "center", padding: "20px" }}>Đang tải dữ liệu...</div>;
 
-
   const images = product
     ? [1, 2, 3, 4, 5, 6]
         .map((index) => product[`HinhAnh${index}`])
-        .filter(Boolean) 
+        .filter(Boolean)
     : [];
 
   return (
@@ -65,15 +64,11 @@ const AdminDetailComment = () => {
           <Descriptions.Item label="Nội dung">
             <Text>{comment.NoiDung}</Text>
           </Descriptions.Item>
-          <Descriptions.Item label="Đánh giá">
-            <Rate disabled value={parseInt(comment.DanhGia)} />
-          </Descriptions.Item>
           <Descriptions.Item label="Ngày bình luận">
             <Text>{new Date(comment.NgayBL).toLocaleDateString("vi-VN")}</Text>
           </Descriptions.Item>
         </Descriptions>
 
-        {/* Hiển thị tất cả hình ảnh */}
         {images.length > 0 && (
           <div style={{ marginTop: "24px" }}>
             <Text strong style={{ fontSize: "16px", display: "block", marginBottom: "16px" }}>
@@ -92,7 +87,7 @@ const AdminDetailComment = () => {
                       borderRadius: "8px",
                       boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                     }}
-                    preview // Cho phép xem trước hình ảnh khi nhấp vào
+                    preview
                   />
                 </Col>
               ))}

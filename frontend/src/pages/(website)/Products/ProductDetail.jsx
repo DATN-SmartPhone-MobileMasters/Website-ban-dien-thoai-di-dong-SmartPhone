@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   createComment,
   fetchComments,
@@ -19,7 +19,6 @@ import {
   Form,
   Input,
   message,
-  Rate,
   Modal,
   Table,
   Card,
@@ -64,7 +63,7 @@ const ProductDetail = () => {
   const [displayedComments, setDisplayedComments] = useState(5);
 
   const handleShowMore = () => {
-    setDisplayedComments(comments.length); // Hiển thị tất cả bình luận
+    setDisplayedComments(comments.length);
   };
 
   const productListRef = useRef(null);
@@ -198,9 +197,9 @@ const ProductDetail = () => {
     const fetchProductComments = async () => {
       try {
         const response = await fetchComments();
-        const productComments = response.data.filter(
-          (comment) => comment.MaSP === id
-        );
+        const productComments = response.data
+          .filter((comment) => comment.MaSP === id && comment.isApproved)
+          .sort((a, b) => new Date(b.NgayBL) - new Date(a.NgayBL));
         setComments(productComments);
       } catch (error) {
         console.error("Lỗi khi tải bình luận:", error);
@@ -331,24 +330,25 @@ const ProductDetail = () => {
     const containsForbiddenWords = checkvar.some((word) =>
       new RegExp(`\\b${word}\\b`, "i").test(values.NoiDung)
     );
-
+  
     if (containsForbiddenWords) {
       message.error("Bình luận của bạn có chứa từ ngữ không phù hợp!");
       return;
     }
     try {
       setLoading(true);
-      const commentData = { ...values, MaSP: id, Email: email };
+      const commentData = { ...values, MaSP: id, Email: email, DanhGia: 0 };
       await createComment(commentData);
-      message.success("Bình luận đã được thêm thành công!");
+      message.success("Bình luận đã được gửi, đang chờ duyệt!");
       form.resetFields();
-
+  
       const response = await fetchComments();
-      const productComments = response.data.filter(
-        (comment) => comment.MaSP === id
-      );
+      const productComments = response.data
+        .filter((comment) => comment.MaSP === id && comment.isApproved)
+        .sort((a, b) => new Date(b.NgayBL) - new Date(a.NgayBL));
       setComments(productComments);
     } catch (error) {
+      console.log(error.response);
       message.error(
         "Thêm bình luận thất bại! Bạn vui lòng đăng nhập để sử dụng tính năng này."
       );
@@ -920,35 +920,26 @@ const ProductDetail = () => {
           <SellerProducts />
         </Col>
         <Col span={24}>
-          <Card title={<Title level={4}>Đánh giá sản phẩm</Title>}>
+          <Card title={<Title level={4}>Bình Luận</Title>}>
             <Form form={form} onFinish={onFinish} layout="vertical">
               <Form.Item
                 name="NoiDung"
-                label="Nội dung đánh giá"
+                label="Nội dung bình luận"
                 rules={[
                   {
                     required: true,
-                    message: "Vui lòng nhập nội dung đánh giá",
+                    message: "Vui lòng nhập nội dung bình luận",
                   },
                 ]}
               >
                 <Input.TextArea
                   rows={4}
-                  placeholder="Chia sẻ cảm nhận của bạn..."
+                  placeholder="Viết nội dung"
                 />
-              </Form.Item>
-              <Form.Item
-                name="DanhGia"
-                label="Xếp hạng"
-                rules={[
-                  { required: true, message: "Vui lòng chọn số sao đánh giá" },
-                ]}
-              >
-                <Rate allowHalf />
               </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit" loading={loading}>
-                  Gửi đánh giá
+                  Gửi bình luận
                 </Button>
               </Form.Item>
             </Form>
@@ -957,7 +948,7 @@ const ProductDetail = () => {
         <Col span={24}>
           <Card title={<Title level={4}>Đánh giá từ khách hàng</Title>}>
             {comments.length > 0 ? (
-              comments.map((comment, index) => (
+              comments.slice(0, displayedComments).map((comment, index) => (
                 <div key={index} style={{ marginBottom: 16 }}>
                   <Space direction="vertical" style={{ width: "100%" }}>
                     <Space>
@@ -966,7 +957,6 @@ const ProductDetail = () => {
                         {new Date(comment.NgayBL).toLocaleDateString("vi-VN")}
                       </Text>
                     </Space>
-                    <Rate disabled value={parseInt(comment.DanhGia)} />
                     <Paragraph>{comment.NoiDung}</Paragraph>
                     {comment.Reply && (
                       <div
@@ -997,7 +987,12 @@ const ProductDetail = () => {
                 </div>
               ))
             ) : (
-              <Text type="secondary">Chưa có đánh giá nào.</Text>
+              <Text type="secondary">Chưa có đánh giá nào được duyệt.</Text>
+            )}
+            {comments.length > displayedComments && (
+              <Button type="link" onClick={handleShowMore}>
+                Xem thêm đánh giá
+              </Button>
             )}
           </Card>
         </Col>

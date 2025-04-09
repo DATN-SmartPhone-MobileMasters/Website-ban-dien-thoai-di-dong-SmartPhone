@@ -1,3 +1,4 @@
+// controllers/CommentController.js
 import binhluan from "../models/Comment.js";
 
 class CommentController {
@@ -54,26 +55,23 @@ class CommentController {
     }
   }
 
-  // Trả lời bình luận (Thêm mới)
+  // Trả lời bình luận
   async cmtReply(req, res) {
     try {
       const { id } = req.params;
       const { Content, Date, AdminEmail } = req.body;
 
-      // Tìm bình luận theo ID
       const comment = await binhluan.findById(id);
       if (!comment) {
         return res.status(404).json({ message: "Không tìm thấy bình luận" });
       }
 
-      // Cập nhật trường Reply
       comment.Reply = {
         Content,
         Date,
         AdminEmail,
       };
 
-      // Lưu thay đổi
       const updatedComment = await comment.save();
 
       res.status(200).json({
@@ -83,6 +81,30 @@ class CommentController {
     } catch (error) {
       res.status(500).json({
         message: "Lỗi khi trả lời bình luận",
+        error: error.message,
+      });
+    }
+  }
+
+  // Duyệt bình luận (Thêm mới)
+  async cmtApprove(req, res) {
+    try {
+      const { id } = req.params;
+      const comment = await binhluan.findById(id);
+      if (!comment) {
+        return res.status(404).json({ message: "Không tìm thấy bình luận" });
+      }
+
+      comment.isApproved = true;
+      const updatedComment = await comment.save();
+
+      res.status(200).json({
+        message: "Duyệt bình luận thành công",
+        data: updatedComment,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi duyệt bình luận",
         error: error.message,
       });
     }
