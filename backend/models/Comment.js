@@ -1,6 +1,6 @@
+// models/Comment.js
 import mongoose from "mongoose";
 
-// Schema bình luận
 const binhLuanSchema = new mongoose.Schema({
   Email: {
     type: String,
@@ -8,7 +8,7 @@ const binhLuanSchema = new mongoose.Schema({
   },
   MaSP: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Sanpham", // Tham chiếu đến bảng SanPham
+    ref: "Sanpham",
     required: true,
   },
   NoiDung: {
@@ -27,6 +27,10 @@ const binhLuanSchema = new mongoose.Schema({
   NgayBL: {
     type: Date,
     default: Date.now,
+  },
+  isApproved: {
+    type: Boolean,
+    default: false, // Mặc định là chưa duyệt
   },
 });
 
