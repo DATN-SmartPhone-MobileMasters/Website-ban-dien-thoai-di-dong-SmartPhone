@@ -139,10 +139,7 @@ const Cart = () => {
     const userId = userData?.id;
 
     if (deletedProductId && userId) {
-      // Lấy giỏ hàng từ localStorage
       let storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-      
-      // Kiểm tra và xóa sản phẩm khỏi storedCart
       const newStoredCart = storedCart.filter((item) => item.id !== deletedProductId);
       if (newStoredCart.length !== storedCart.length) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newStoredCart));
@@ -156,14 +153,14 @@ const Cart = () => {
 
         const newSelectedItems = {};
         newStoredCart.forEach((_, index) => {
-          newSelectedItems[index] = true; // Chọn lại tất cả sản phẩm còn lại
+          newSelectedItems[index] = true;
         });
         setSelectedItems(newSelectedItems);
 
         message.info(`Sản phẩm với ID ${deletedProductId} đã bị xóa khỏi giỏ hàng!`);
       }
     } else {
-      updateCart(); // Nếu không có deletedProductId, cập nhật lại giỏ hàng như bình thường
+      updateCart();
     }
   };
 
@@ -250,9 +247,6 @@ const Cart = () => {
     }
 
     setCart(newCart);
-
-    const newTotal = calculateTotal();
-    checkVoucherValidity(newTotal);
   };
 
   const decreaseQuantity = (index) => {
@@ -272,9 +266,6 @@ const Cart = () => {
       }
 
       setCart(newCart);
-
-      const newTotal = calculateTotal();
-      checkVoucherValidity(newTotal);
     }
   };
 
@@ -310,29 +301,6 @@ const Cart = () => {
     }, 0);
   };
 
-  const checkVoucherValidity = (total) => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const userId = userData?.id;
-    const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
-
-    if (storedVoucher && storedVoucher.code) {
-      const promotion = promotions.data.find((promo) => promo.MaKM === storedVoucher.code);
-      if (promotion && promotion.LoaiKM === "fixed") {
-        const requiredTotal = promotion.GiaTriKM * 10;
-        if (total < requiredTotal) {
-          setDiscount(0);
-          localStorage.removeItem(`voucher_${userId}`);
-          setVoucher("");
-          message.error(
-            `Giá trị đơn hàng hiện tại là ${formatCurrency(total)}. Đơn hàng phải từ ${formatCurrency(requiredTotal)} trở lên để áp dụng mã giảm giá này.`
-          );
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
   const applyVoucher = async () => {
     if (!promotions?.data || !Array.isArray(promotions.data)) {
       message.error("Không thể lấy danh sách mã giảm giá.");
@@ -361,16 +329,6 @@ const Cart = () => {
     }
 
     const total = calculateTotal();
-
-    if (promotion.LoaiKM === "fixed") {
-      const requiredTotal = promotion.GiaTriKM * 10;
-      if (total < requiredTotal) {
-        message.error(
-          `Giá trị đơn hàng hiện tại là ${formatCurrency(total)}. Đơn hàng phải từ ${formatCurrency(requiredTotal)} trở lên để áp dụng mã giảm giá này.`
-        );
-        return;
-      }
-    }
 
     let discountAmount = 0;
     if (promotion.LoaiKM === "percentage") {
@@ -426,11 +384,6 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
-    const total = calculateTotal();
-    if (!checkVoucherValidity(total)) {
-      return;
-    }
-
     navigate("/checkcart", {
       state: {
         cart: cart.filter((_, index) => selectedItems[index] && cart[index].totalQuantity > 0),
