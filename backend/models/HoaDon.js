@@ -36,9 +36,24 @@ const HoaDonSchema = new mongoose.Schema({
   },
   vnp_TransactionNo: String,
   vnp_ResponseCode: String,
-  FeedBack: { // New field for cancellation reason
+  FeedBack: { 
     type: String,
     default: ''
+  },
+  cancelledBy: {  
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    role: {
+      type: String,
+      enum: ['Admin', 'Nhân Viên Kiểm Đơn', 'User'],
+      default: 'User'
+    },
+    name: String
+  },
+  cancellationDate: { 
+    type: Date
   },
   createdAt: {
     type: Date,

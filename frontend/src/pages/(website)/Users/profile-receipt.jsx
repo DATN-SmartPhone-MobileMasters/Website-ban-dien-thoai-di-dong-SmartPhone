@@ -170,9 +170,17 @@ const ProfileReceipt = () => {
       onOk: async () => {
         try {
           await form.validateFields();
+          const userData = JSON.parse(localStorage.getItem('userData'));
+          let role = 'User';
+
           await updateOrder(orderId, { 
             paymentStatus: 'Huỷ Đơn',
-            FeedBack: cancellationReason 
+            FeedBack: cancellationReason,
+            cancelledBy: {
+              userId: userData.id,
+              role: role,
+            },
+            cancellationDate: new Date()
           });
           
           const order = orders.find((order) => order._id === orderId);
