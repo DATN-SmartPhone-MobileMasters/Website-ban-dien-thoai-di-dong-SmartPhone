@@ -68,6 +68,10 @@ const ProductsList = () => {
     try {
       await deleteProducts(id);
       message.success("Xóa sản phẩm thành công!");
+
+      // Phát sự kiện cartUpdated kèm theo ID sản phẩm vừa xóa
+      window.dispatchEvent(new CustomEvent("cartUpdated", { detail: { deletedProductId: id } }));
+
       getProducts();
     } catch (error) {
       message.error("Lỗi khi xóa sản phẩm!");
