@@ -29,8 +29,8 @@ import {
   Divider,
   Typography,
   Badge,
-  Tag,
   Flex,
+  Tag,
 } from "antd";
 
 const { Title, Text, Paragraph } = Typography;
@@ -46,17 +46,17 @@ const ProductDetail = () => {
     price: 0,
     quantity: 0,
   });
-  const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
-  const [isColorAvailable, setIsColorAvailable] = useState(true);
   const [comments, setComments] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [form] = Form.useForm();
   const [compareModalVisible, setCompareModalVisible] = useState(false);
   const [compareProducts, setCompareProducts] = useState([]);
+  const [filteredCompareProducts, setFilteredCompareProducts] = useState([]);
   const [selectedCompareProducts, setSelectedCompareProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const userData = JSON.parse(localStorage.getItem("userData"));
   const email = userData?.Email;
   const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
@@ -217,6 +217,8 @@ const ProductDetail = () => {
     setCompareModalVisible(true);
     const availableProducts = allProducts.filter((p) => p._id !== id);
     setCompareProducts(availableProducts);
+    setFilteredCompareProducts(availableProducts);
+    setSearchTerm("");
   };
 
   const toggleCompareProduct = (productId) => {
@@ -225,6 +227,15 @@ const ProductDetail = () => {
         ? prev.filter((id) => id !== productId)
         : [...prev, productId]
     );
+  };
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    const filtered = compareProducts.filter((product) =>
+      product.TenSP.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredCompareProducts(filtered);
   };
 
   const handleCompare = () => {
@@ -330,7 +341,7 @@ const ProductDetail = () => {
     const containsForbiddenWords = checkvar.some((word) =>
       new RegExp(`\\b${word}\\b`, "i").test(values.NoiDung)
     );
-  
+
     if (containsForbiddenWords) {
       message.error("Bình luận của bạn có chứa từ ngữ không phù hợp!");
       return;
@@ -341,7 +352,7 @@ const ProductDetail = () => {
       await createComment(commentData);
       message.success("Bình luận đã được gửi, đang chờ duyệt!");
       form.resetFields();
-  
+
       const response = await fetchComments();
       const productComments = response.data
         .filter((comment) => comment.MaSP === id && comment.isApproved)
@@ -367,16 +378,6 @@ const ProductDetail = () => {
     });
   };
 
-  const handleColorSelection = (color) => {
-    if (color === "Hết Hàng") {
-      setIsColorAvailable(false);
-      message.warning("Màu này đã hết hàng!");
-    } else {
-      setIsColorAvailable(true);
-    }
-    setSelectedColor(color);
-  };
-
   const addToCart = () => {
     const authToken = localStorage.getItem("authToken");
     if (!authToken) {
@@ -385,8 +386,8 @@ const ProductDetail = () => {
       return;
     }
 
-    if (!product || !selectedMemory.memory || !selectedColor) {
-      message.warning("Vui lòng chọn màu sắc!");
+    if (!product || !selectedMemory.memory) {
+      message.warning("Vui lòng chọn bộ nhớ!");
       return;
     }
 
@@ -397,7 +398,7 @@ const ProductDetail = () => {
       (item) =>
         item.id === product._id &&
         item.memory === selectedMemory.memory &&
-        item.color === selectedColor
+        item.color === product.Mau1
     );
 
     if (existingItemIndex !== -1) {
@@ -416,7 +417,7 @@ const ProductDetail = () => {
         id: product._id,
         name: product.TenSP,
         memory: selectedMemory.memory,
-        color: selectedColor,
+        color: product.Mau1,
         image: selectedImage,
         quantity: 1,
         price: selectedMemory.price,
@@ -428,6 +429,7 @@ const ProductDetail = () => {
     localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
     message.success("Sản phẩm đã được thêm vào giỏ hàng!");
     window.dispatchEvent(new Event("cartUpdated"));
+    navigate("/cart");
   };
 
   const formatCurrency = (value) =>
@@ -524,6 +526,24 @@ const ProductDetail = () => {
                 text={selectedMemory.quantity > 0 ? "Còn hàng" : "Hết hàng"}
               />
 
+              <Space align="center">
+                <Divider orientation="left" plain style={{ margin: 0 }}>
+                  Màu sắc
+                </Divider>
+                {product.Mau1 && (
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor:
+                        product.Mau1 !== "Hết Hàng" ? product.Mau1 : "gray",
+                      border: "2px solid #1890ff",
+                    }}
+                  />
+                )}
+              </Space>
+
               <Divider orientation="left">Bộ nhớ trong</Divider>
               <Space wrap justify="center">
                 {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
@@ -550,41 +570,13 @@ const ProductDetail = () => {
                 )}
               </Space>
 
-              <Divider orientation="left">Màu sắc</Divider>
-              <Space wrap justify="center">
-                {[product.Mau1, product.Mau2, product.Mau3].map(
-                  (color, index) =>
-                    color ? (
-                      <Tag
-                        key={index}
-                        color={color === "Hết Hàng" ? "gray" : "blue"}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: "50%",
-                          cursor: "pointer",
-                          backgroundColor:
-                            color !== "Hết Hàng" ? color : "gray",
-                          border:
-                            selectedColor === color
-                              ? "2px solid #1890ff"
-                              : "none",
-                        }}
-                        onClick={() => handleColorSelection(color)}
-                      />
-                    ) : null
-                )}
-              </Space>
-
               <Space style={{ marginTop: 16 }} size="large">
                 <Button
                   type="primary"
                   icon={<FaShoppingCart />}
                   onClick={addToCart}
                   disabled={
-                    !isColorAvailable ||
-                    selectedColor === "Hết Hàng" ||
-                    selectedMemory.quantity <= 0
+                    selectedMemory.quantity <= 0 || product.Mau1 === "Hết Hàng"
                   }
                 >
                   Thêm vào giỏ hàng
@@ -597,13 +589,7 @@ const ProductDetail = () => {
               {relatedProducts.length > 0 && (
                 <>
                   <Divider orientation="left">Phiên bản khác</Divider>
-                  <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      textAlign: "center",
-                    }}
-                  >
+                  <div style={{ position: "relative", width: "100%" }}>
                     {showRelatedLeftArrow && (
                       <Button
                         shape="circle"
@@ -611,22 +597,22 @@ const ProductDetail = () => {
                         onClick={() => scrollRelatedProducts("left")}
                         style={{
                           position: "absolute",
-                          left: -20,
+                          left: 0,
                           top: "50%",
-                          transform: "translateY(-50%)",
-                          zIndex: 1,
+                          transform: "translate(-100%, -50%)",
+                          zIndex: 2,
                         }}
                       />
                     )}
+
                     <div
                       ref={relatedProductsRef}
                       style={{
                         display: "flex",
-                        justifyContent: "center",
+                        gap: "16px",
                         overflowX: "auto",
                         scrollBehavior: "smooth",
-                        paddingBottom: 16,
-                        gap: "16px",
+                        padding: "0 40px 16px",
                       }}
                       className="scrollbar-hidden"
                     >
@@ -638,6 +624,7 @@ const ProductDetail = () => {
                             minWidth: 200,
                             width: 200,
                             borderRadius: 8,
+                            flexShrink: 0,
                             transition:
                               "transform 0.3s ease, box-shadow 0.3s ease",
                           }}
@@ -708,6 +695,7 @@ const ProductDetail = () => {
                         </Card>
                       ))}
                     </div>
+
                     {showRelatedRightArrow && (
                       <Button
                         shape="circle"
@@ -715,10 +703,10 @@ const ProductDetail = () => {
                         onClick={() => scrollRelatedProducts("right")}
                         style={{
                           position: "absolute",
-                          right: -20,
+                          right: 0,
                           top: "50%",
-                          transform: "translateY(-50%)",
-                          zIndex: 1,
+                          transform: "translate(100%, -50%)",
+                          zIndex: 2,
                         }}
                       />
                     )}
@@ -791,62 +779,98 @@ const ProductDetail = () => {
         cancelText="Hủy"
         width={800}
       >
-        <Row gutter={[16, 16]}>
-          {compareProducts.map((product) => (
-            <Col key={product._id} xs={12} sm={8}>
-              <Card
-                hoverable
-                onClick={() => toggleCompareProduct(product._id)}
-                style={{
-                  border: selectedCompareProducts.includes(product._id)
-                    ? "2px solid #1890ff"
-                    : "1px solid #e8e8e8",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-                cover={
-                  <div
-                    style={{
-                      height: 150,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                    }}
+        {/* Hiển thị danh sách sản phẩm đã chọn */}
+        {selectedCompareProducts.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <Text strong>Sản phẩm đã chọn: </Text>
+            <Space wrap>
+              {selectedCompareProducts.map((productId) => {
+                const selectedProduct = compareProducts.find(
+                  (p) => p._id === productId
+                );
+                return (
+                  <Tag
+                    key={productId}
+                    closable
+                    onClose={() => toggleCompareProduct(productId)}
+                    color="blue"
                   >
-                    <img
-                      alt={product.TenSP}
-                      src={product.HinhAnh1}
-                      style={{
-                        maxHeight: "100%",
-                        maxWidth: "100%",
-                        objectFit: "contain",
-                      }}
-                    />
-                  </div>
-                }
-              >
-                <Card.Meta
-                  title={product.TenSP}
-                  description={
+                    {selectedProduct?.TenSP}
+                  </Tag>
+                );
+              })}
+            </Space>
+          </div>
+        )}
+
+        <Input
+          placeholder="Tìm kiếm sản phẩm theo tên"
+          value={searchTerm}
+          onChange={handleSearch}
+          style={{ marginBottom: 16 }}
+        />
+        <Row gutter={[16, 16]}>
+          {filteredCompareProducts.length > 0 ? (
+            filteredCompareProducts.map((product) => (
+              <Col key={product._id} xs={12} sm={8}>
+                <Card
+                  hoverable
+                  onClick={() => toggleCompareProduct(product._id)}
+                  style={{
+                    border: selectedCompareProducts.includes(product._id)
+                      ? "2px solid #1890ff"
+                      : "1px solid #e8e8e8",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                  cover={
                     <div
                       style={{
+                        height: 150,
                         display: "flex",
-                        flexDirection: "column",
                         alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
                     >
-                      <Text type="danger">
-                        {formatCurrency(product.GiaSP1)}
-                      </Text>
-                      <Text>{product.BoNhoTrong1}</Text>
+                      <img
+                        alt={product.TenSP}
+                        src={product.HinhAnh1}
+                        style={{
+                          maxHeight: "100%",
+                          maxWidth: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
                     </div>
                   }
-                />
-              </Card>
+                >
+                  <Card.Meta
+                    title={product.TenSP}
+                    description={
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text type="danger">
+                          {formatCurrency(product.GiaSP1)}
+                        </Text>
+                        <Text>{product.BoNhoTrong1}</Text>
+                      </div>
+                    }
+                  />
+                </Card>
+              </Col>
+            ))
+          ) : (
+            <Col span={24}>
+              <Text type="secondary">Không tìm thấy sản phẩm nào.</Text>
             </Col>
-          ))}
+          )}
         </Row>
       </Modal>
 
@@ -932,10 +956,7 @@ const ProductDetail = () => {
                   },
                 ]}
               >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Viết nội dung"
-                />
+                <Input.TextArea rows={4} placeholder="Viết nội dung" />
               </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit" loading={loading}>
