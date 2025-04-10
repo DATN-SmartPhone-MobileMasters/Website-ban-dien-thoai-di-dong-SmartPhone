@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { message } from "antd";
-import { fetchOrders,deleteOrder  } from "../../../service/api";
+import { fetchOrders  } from "../../../service/api";
 
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
+  const [hiddenOrders, setHiddenOrders] = useState([]);
   const location = useLocation();
+
   useEffect(() => {
     const getHoaDons = async () => {
       try {
         const response = await fetchOrders();
-        setHoaDons(response.data.data || []);
+        // Get hidden order IDs from localStorage
+        const storedHiddenOrders = JSON.parse(localStorage.getItem('hiddenOrders')) || [];
+        setHiddenOrders(storedHiddenOrders);
+        
+        // Filter out hidden orders
+        const visibleOrders = response.data.data.filter(
+          (order) => !storedHiddenOrders.includes(order._id)
+        );
+        setHoaDons(visibleOrders || []);
       } catch (error) {
         console.error("Lỗi khi tải danh sách hóa đơn:", error);
         message.error("Lỗi khi tải danh sách hóa đơn!");
@@ -19,17 +29,23 @@ const OrderList = () => {
     getHoaDons();
   }, [location.key]);
 
-  const handleDelete = async (id) => {
+  const handleHideOrder = async (id) => {
     try {
-      await deleteOrder(id);
-      message.success("Xóa hóa đơn thành công");
-      const response = await fetchOrders();
-      setHoaDons(response.data.data || []);
+      // Add to hidden orders list
+      const updatedHiddenOrders = [...hiddenOrders, id];
+      setHiddenOrders(updatedHiddenOrders);
+      localStorage.setItem('hiddenOrders', JSON.stringify(updatedHiddenOrders));
+      
+      // Update the displayed list
+      setHoaDons(hoaDons.filter(order => order._id !== id));
+      
+      message.success("Đã ẩn đơn hàng thành công");
     } catch (error) {
-      console.error("Lỗi khi xóa hóa đơn:", error);
-      message.error("Xóa hóa đơn thất bại!");
+      console.error("Lỗi khi ẩn đơn hàng:", error);
+      message.error("Ẩn đơn hàng thất bại!");
     }
   };
+
   return (
     <div>
       <h1 className="h3 mb-2 text-gray-800">Danh sách hóa đơn</h1>
@@ -74,12 +90,13 @@ const OrderList = () => {
                         >
                           👁️Xem chi tiết
                         </Link>
-                        {(hoaDon.paymentStatus === "Huỷ Đơn" || hoaDon.paymentStatus === "Hoàn thành") && (
+                        {(hoaDon.paymentStatus === "Huỷ Đơn" || 
+                          hoaDon.paymentStatus === "Hoàn thành") && (
                           <button
-                            onClick={() => handleDelete(hoaDon._id)}
-                            className="btn btn-danger ml-2"
+                            onClick={() => handleHideOrder(hoaDon._id)}
+                            className="btn btn-warning ml-2"
                           >
-                            🗑️Xóa
+                            🚫Ẩn đơn hàng
                           </button>
                         )}
                       </td>

@@ -34,8 +34,12 @@ const HoaDonSchema = new mongoose.Schema({
     enum: ['COD', 'VNPay'],
     default: 'COD'
   },
-  vnp_TransactionNo: String, // Store VNPay transaction number
-  vnp_ResponseCode: String, // Store VNPay response code
+  vnp_TransactionNo: String,
+  vnp_ResponseCode: String,
+  FeedBack: { // New field for cancellation reason
+    type: String,
+    default: ''
+  },
   createdAt: {
     type: Date,
     default: Date.now

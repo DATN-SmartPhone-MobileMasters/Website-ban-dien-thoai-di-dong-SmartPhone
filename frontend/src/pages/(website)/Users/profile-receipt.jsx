@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Tag, Button, message,Modal  } from 'antd';
+import { Table, Tag, Button, message, Modal, Input, Form } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import axios from 'axios';
 
@@ -13,6 +13,7 @@ const ProfileReceipt = () => {
     Email: '',
     id: '',
   });
+  const [form] = Form.useForm()
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
@@ -145,25 +146,50 @@ const ProfileReceipt = () => {
   };
 
   const handleCancelOrder = async (orderId, products) => {
+    let cancellationReason = '';
+    
     Modal.confirm({
       title: 'Xác nhận huỷ đơn hàng',
-      content: 'Bạn có chắc chắn muốn huỷ đơn hàng này không?',
+      content: (
+        <Form form={form}>
+          <Form.Item
+            name="reason"
+            label="Lý Do Huỷ Đơn"
+            rules={[{ required: true, message: 'Vui lòng nhập lý do huỷ đơn' }]}
+          >
+            <Input.TextArea 
+              placeholder="Nhập lý do huỷ đơn hàng..." 
+              rows={4} 
+              onChange={(e) => cancellationReason = e.target.value}
+            />
+          </Form.Item>
+        </Form>
+      ),
       okText: 'Xác nhận',
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
+          await form.validateFields();
+          await updateOrder(orderId, { 
+            paymentStatus: 'Huỷ Đơn',
+            FeedBack: cancellationReason 
+          });
+          
           const order = orders.find((order) => order._id === orderId);
           if (order && order.paymentStatus === 'Đã Xác Nhận') {
             await updateProductQuantities(products, 'add');
           }
 
-          const response = await fetchOrdersByUserId(userData.id);
-          setOrders(response.data.data);
-
+          setOrders(orders.filter(order => order._id !== orderId));
+          
           message.success('Huỷ đơn hàng thành công');
         } catch (error) {
+          if (error.errorFields) {
+            // Form validation failed
+            return Promise.reject();
+          }
           message.error('Huỷ đơn hàng thất bại');
+          console.error(error);
         }
       },
     });
@@ -174,7 +200,11 @@ const ProfileReceipt = () => {
       try {
         if (userData.id) {
           const response = await fetchOrdersByUserId(userData.id);
-          setOrders(response.data.data);
+          // Filter out cancelled orders
+          const visibleOrders = response.data.data.filter(
+            order => order.paymentStatus !== 'Huỷ Đơn'
+          );
+          setOrders(visibleOrders);
         }
       } catch (error) {
         message.error('Lỗi tải danh sách đơn hàng');
