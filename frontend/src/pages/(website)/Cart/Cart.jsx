@@ -44,6 +44,13 @@ const Cart = () => {
     fetchPromotions();
   }, []);
 
+  const getMemoryKey = (memory, availableMemories) => {
+    if (memory === availableMemories.BoNhoTrong1) return "BoNhoTrong1";
+    if (memory === availableMemories.BoNhoTrong2) return "BoNhoTrong2";
+    if (memory === availableMemories.BoNhoTrong3) return "BoNhoTrong3";
+    return "BoNhoTrong1"; // Mặc định
+  };
+
   const updateCart = async () => {
     const authToken = localStorage.getItem("authToken");
     if (!authToken) {
@@ -79,11 +86,19 @@ const Cart = () => {
               newQuantity = productData.SoLuong3;
             }
 
+            // Khởi tạo hoặc giữ nguyên originalQuantities từ dữ liệu đã lưu
+            const originalQuantities = item.originalQuantities || {
+              BoNhoTrong1: productData.BoNhoTrong1 === item.memory ? item.quantity : 0,
+              BoNhoTrong2: productData.BoNhoTrong2 === item.memory ? item.quantity : 0,
+              BoNhoTrong3: productData.BoNhoTrong3 === item.memory ? item.quantity : 0,
+            };
+
             return {
               ...item,
               price: newPrice,
               name: newName,
               totalQuantity: newQuantity,
+              quantity: Math.min(item.quantity, newQuantity),
               availableMemories: {
                 BoNhoTrong1: productData.BoNhoTrong1,
                 BoNhoTrong2: productData.BoNhoTrong2,
@@ -95,6 +110,7 @@ const Cart = () => {
                 SoLuong2: productData.SoLuong2,
                 SoLuong3: productData.SoLuong3,
               },
+              originalQuantities, // Lưu số lượng đã chỉnh sửa cho từng bộ nhớ
             };
           } catch (error) {
             console.error("Lỗi khi lấy thông tin sản phẩm:", error);
@@ -150,12 +166,20 @@ const Cart = () => {
     const newPrice = productData[`GiaSP${memoryIndex}`];
     const newQuantity = productData[`SoLuong${memoryIndex}`];
 
+    // Lấy số lượng đã chỉnh sửa trước đó từ originalQuantities, nếu không có thì dùng quantity hiện tại
+    const originalQuantities = newCart[index].originalQuantities || {};
+    const previousQuantity = originalQuantities[memoryKey] || newCart[index].quantity;
+
+    // Nếu bộ nhớ mới hết hàng, đặt quantity về 0
+    // Nếu không, khôi phục số lượng đã chỉnh sửa trước đó hoặc giới hạn bởi số lượng tồn kho
+    const updatedQuantity = newQuantity === 0 ? 0 : Math.min(previousQuantity, newQuantity);
+
     newCart[index] = {
       ...newCart[index],
       memory: newMemory,
       price: newPrice,
       totalQuantity: newQuantity,
-      quantity: Math.min(newCart[index].quantity, newQuantity),
+      quantity: updatedQuantity,
     };
 
     const userData = JSON.parse(localStorage.getItem("userData"));
@@ -166,7 +190,64 @@ const Cart = () => {
     }
 
     setCart(newCart);
-    message.success(`Đã thay đổi bộ nhớ thành ${newMemory}`);
+    if (newQuantity === 0) {
+      message.warning(`Bộ nhớ ${newMemory} đã hết hàng.`);
+    } else {
+      message.success(`Đã thay đổi bộ nhớ thành ${newMemory}`);
+    }
+  };
+
+  const increaseQuantity = (index) => {
+    const newCart = [...cart];
+    const newQuantity = newCart[index].quantity + 1;
+
+    if (newQuantity > newCart[index].totalQuantity) {
+      message.warning("Đã đạt đến giới hạn sản phẩm.");
+      return;
+    }
+
+    newCart[index].quantity = newQuantity;
+    // Cập nhật originalQuantities cho bộ nhớ hiện tại
+    newCart[index].originalQuantities = {
+      ...newCart[index].originalQuantities,
+      [getMemoryKey(newCart[index].memory, newCart[index].availableMemories)]: newQuantity,
+    };
+
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+
+    if (userId) {
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+    }
+
+    setCart(newCart);
+
+    const newTotal = calculateTotal();
+    checkVoucherValidity(newTotal);
+  };
+
+  const decreaseQuantity = (index) => {
+    const newCart = [...cart];
+    if (newCart[index].quantity > 1) {
+      newCart[index].quantity -= 1;
+      // Cập nhật originalQuantities cho bộ nhớ hiện tại
+      newCart[index].originalQuantities = {
+        ...newCart[index].originalQuantities,
+        [getMemoryKey(newCart[index].memory, newCart[index].availableMemories)]: newCart[index].quantity,
+      };
+
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.id;
+
+      if (userId) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
+      }
+
+      setCart(newCart);
+
+      const newTotal = calculateTotal();
+      checkVoucherValidity(newTotal);
+    }
   };
 
   const removeItemFromCart = (index) => {
@@ -193,50 +274,9 @@ const Cart = () => {
     window.location.reload();
   };
 
-  const increaseQuantity = (index) => {
-    const newCart = [...cart];
-    const newQuantity = newCart[index].quantity + 1;
-
-    if (newQuantity > newCart[index].totalQuantity) {
-      message.warning("Đã đạt đến giới hạn sản phẩm.");
-      return;
-    }
-
-    newCart[index].quantity = newQuantity;
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const userId = userData?.id;
-
-    if (userId) {
-      localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
-    }
-
-    setCart(newCart);
-
-    const newTotal = calculateTotal();
-    checkVoucherValidity(newTotal);
-  };
-
-  const decreaseQuantity = (index) => {
-    const newCart = [...cart];
-    if (newCart[index].quantity > 1) {
-      newCart[index].quantity -= 1;
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      const userId = userData?.id;
-
-      if (userId) {
-        localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
-      }
-
-      setCart(newCart);
-
-      const newTotal = calculateTotal();
-      checkVoucherValidity(newTotal);
-    }
-  };
-
   const calculateTotal = () => {
     return cart.reduce((total, item, index) => {
-      if (selectedItems[index]) {
+      if (selectedItems[index] && item.totalQuantity > 0) {
         return total + item.price * item.quantity;
       }
       return total;
@@ -306,11 +346,12 @@ const Cart = () => {
     }
 
     let discountAmount = 0;
-    if (promotion.LoaiKM === "percentage") {
-      discountAmount = (total * promotion.GiaTriKM) / 100;
-    } else {
-      discountAmount = promotion.GiaTriKM;
-    }
+if (promotion.LoaiKM === "percentage") {
+  discountAmount = (total * promotion.GiaTriKM) / 100;
+} else {
+  discountAmount = promotion.GiaTriKM;
+}
+
 
     setDiscount(discountAmount);
     message.success("Áp dụng mã giảm giá thành công!");
@@ -345,7 +386,7 @@ const Cart = () => {
 
   const calculateOriginalTotal = () => {
     return cart.reduce((total, item, index) => {
-      if (selectedItems[index]) {
+      if (selectedItems[index] && item.totalQuantity > 0) {
         return total + item.price * item.quantity;
       }
       return total;
@@ -391,7 +432,7 @@ const Cart = () => {
 
     navigate("/checkcart", {
       state: {
-        cart: cart.filter((_, index) => selectedItems[index]),
+        cart: cart.filter((_, index) => selectedItems[index] && cart[index].totalQuantity > 0),
         total: calculateOriginalTotal(),
         finalTotal: calculateFinalTotal(),
         discount: discount,
@@ -399,6 +440,8 @@ const Cart = () => {
       },
     });
   };
+
+  const isAnyItemOutOfStock = cart.some((item) => item.totalQuantity === 0);
 
   const columns = [
     {
@@ -509,7 +552,7 @@ const Cart = () => {
             <Button
               icon={<PlusOutlined />}
               onClick={() => increaseQuantity(index)}
-              disabled={quantity >= record.totalQuantity}
+              disabled={quantity >= record.totalQuantity || record.totalQuantity === 0}
             />
           </Space>
           <Text type="secondary">Tối đa: {record.totalQuantity} sản phẩm</Text>
@@ -579,24 +622,43 @@ const Cart = () => {
                 </Text>
               )}
 
+              {isAnyItemOutOfStock && (
+                <Alert
+                  message="Có sản phẩm trong giỏ hàng đã hết. Vui lòng xóa hoặc cập nhật trước khi thanh toán."
+                  type="error"
+                  showIcon
+                  style={{ marginTop: 16 }}
+                />
+              )}
+
               <Input.Search
                 placeholder="Nhập mã giảm giá"
                 value={voucher}
                 onChange={handleVoucherChange}
+                disabled={isAnyItemOutOfStock}
                 enterButton={
                   <Popconfirm
                     title="Mỗi một voucher chỉ có thể áp dụng 1 lần. Bạn có chắc chắn muốn áp dụng không?"
                     onConfirm={applyVoucher}
                     okText="OK"
                     cancelText="Hủy"
+                    disabled={isAnyItemOutOfStock}
                   >
-                    <Button type="primary">Áp dụng</Button>
+                    <Button type="primary" disabled={isAnyItemOutOfStock}>
+                      Áp dụng
+                    </Button>
                   </Popconfirm>
                 }
                 style={{ marginTop: 16 }}
               />
 
-              <Button type="primary" block size="large" onClick={handleCheckout}>
+              <Button
+                type="primary"
+                block
+                size="large"
+                onClick={handleCheckout}
+                disabled={isAnyItemOutOfStock}
+              >
                 Thanh toán
               </Button>
             </Space>
