@@ -3,20 +3,30 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { getUserById } from "../../../service/api";
 
 const API_URL = "http://localhost:5000/api";
 
 const Orderdetail = () => {
   const [hoaDon, setHoaDon] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null); 
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Get order data
         const { data } = await axios.get(`${API_URL}/hoadons/${id}`);
         setHoaDon(data.data);
+
+        // Get current user data
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+          const userResponse = await getUserById(userId);
+          setCurrentUser(userResponse.data.data);
+        }
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       } finally {
@@ -35,20 +45,33 @@ const Orderdetail = () => {
           label: "Có",
           onClick: async () => {
             try {
-              // Cập nhật trạng thái đơn hàng
-              await axios.put(`${API_URL}/hoadons/${id}`, {
-                paymentStatus: newStatus,
-              });
-  
+              const updateData = {
+                paymentStatus: newStatus
+              };
+
+              if (newStatus === "Huỷ Đơn") {
+                let role = "Admin";
+                if (currentUser?.MaQuyen === 1) role = "Admin";
+                else if (currentUser?.MaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
+
+                updateData.FeedBack = "Hủy bởi quản trị"; 
+                updateData.cancelledBy = {
+                  userId: currentUser?._id,
+                  role: role,
+                };
+                updateData.cancellationDate = new Date();
+              }
+
+              await axios.put(`${API_URL}/hoadons/${id}`, updateData);
 
               if (newStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "subtract");
               }
-  
+
               if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "add");
               }
-  
+
               alert("Cập nhật trạng thái thành công!");
               navigate("/admin/orders");
             } catch (error) {
@@ -226,7 +249,32 @@ const Orderdetail = () => {
               </div>
             </div>
           </div>
-
+          {hoaDon.paymentStatus === "Huỷ Đơn" && (
+        <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-100">
+          <h2 className="text-xl font-semibold mb-2 text-red-700">Thông tin hủy đơn</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-red-600">Huỷ Bởi:</p>
+              <p className="font-medium text-red-800">
+                {hoaDon.cancelledBy?.role}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-red-600">Thời gian hủy:</p>
+              <p className="font-medium text-red-800">
+                {hoaDon.cancellationDate ? 
+                  new Date(hoaDon.cancellationDate).toLocaleString() : 'N/A'}
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-red-600">Lý do:</p>
+              <p className="font-medium text-red-800">
+                {hoaDon.FeedBack || 'Không có lý do'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
           {/* Cập nhật trạng thái */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h3 className="text-lg font-semibold mb-3 text-blue-700">Cập nhật trạng thái</h3>
