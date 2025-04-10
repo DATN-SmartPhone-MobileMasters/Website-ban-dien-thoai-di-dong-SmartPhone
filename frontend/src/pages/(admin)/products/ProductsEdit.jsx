@@ -58,7 +58,6 @@ const ProductsEdit = () => {
     return Promise.resolve();
   };
 
-  // Validator kiểm tra ít nhất một số lượng phải lớn hơn 0 khi trạng thái là "Còn hàng"
   const atLeastOneQuantityGreaterThanZero = () => ({
     validator(_, values) {
       if (values.TrangThai === "Còn hàng") {
@@ -77,7 +76,7 @@ const ProductsEdit = () => {
       .then(([productRes, brandsRes]) => {
         const productData = productRes.data.data;
         setProduct(productData);
-        form.setFieldsValue(productData); // Đồng bộ dữ liệu vào form
+        form.setFieldsValue(productData);
         setBrands(brandsRes.data.data);
       })
       .catch(() => setError("Không thể tải dữ liệu sản phẩm hoặc thương hiệu."))
@@ -108,6 +107,8 @@ const ProductsEdit = () => {
       .then(() => {
         message.success("Cập nhật sản phẩm thành công!");
         navigate("/admin/products");
+        // Phát sự kiện để thông báo Cart cập nhật
+        window.dispatchEvent(new Event("cartUpdated"));
       })
       .catch(() => setError("Có lỗi xảy ra khi cập nhật sản phẩm."));
   };
@@ -163,9 +164,8 @@ const ProductsEdit = () => {
         layout="vertical"
         onFinish={onFinish}
         initialValues={product}
-        validateTrigger="onSubmit" // Chỉ validate khi submit
+        validateTrigger="onSubmit"
       >
-        {/* Thông Tin Cơ Bản - Thêm Tên Sản Phẩm */}
         <Card
           title={<Text strong>Thông Tin Cơ Bản</Text>}
           style={{ marginBottom: 24 }}
@@ -201,14 +201,12 @@ const ProductsEdit = () => {
           </Row>
         </Card>
 
-        {/* Phiên Bản Sản Phẩm */}
         <Card
           title={<Text strong>Phiên Bản Sản Phẩm</Text>}
           style={{ marginBottom: 24 }}
           headStyle={{ background: "#13c2c2", color: "#fff" }}
         >
           <Row gutter={[16, 16]}>
-            {/* Màu 1 - Đưa lên trên cùng */}
             <Col xs={24} md={12}>
               <Form.Item
                 label="Màu 1"
@@ -232,7 +230,6 @@ const ProductsEdit = () => {
               </Form.Item>
             </Col>
 
-            {/* Bộ Nhớ 1, Số Lượng 1, Giá 1 trên cùng một hàng */}
             <Col xs={24}>
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={8}>
@@ -282,7 +279,6 @@ const ProductsEdit = () => {
               </Row>
             </Col>
 
-            {/* Bộ Nhớ 2, Số Lượng 2, Giá 2 trên cùng một hàng */}
             <Col xs={24}>
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={8}>
@@ -332,7 +328,6 @@ const ProductsEdit = () => {
               </Row>
             </Col>
 
-            {/* Bộ Nhớ 3, Số Lượng 3, Giá 3 trên cùng một hàng */}
             <Col xs={24}>
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={8}>
@@ -384,7 +379,6 @@ const ProductsEdit = () => {
           </Row>
         </Card>
 
-        {/* Hình Ảnh Sản Phẩm */}
         <Card
           title={<Text strong>Hình Ảnh Sản Phẩm</Text>}
           style={{ marginBottom: 24 }}
@@ -418,7 +412,6 @@ const ProductsEdit = () => {
           </Row>
         </Card>
 
-        {/* Mô Tả Sản Phẩm */}
         <Card
           title={<Text strong>Mô Tả Sản Phẩm</Text>}
           style={{ marginBottom: 24 }}
