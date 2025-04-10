@@ -1,6 +1,5 @@
 import { Router } from "express";
 import SanPhamController from "../controllers/SanPhamController.js";
-import DanhMucController from "../controllers/DanhMucController.js";
 import ThuongHieuController from "../controllers/ThuongHieuController.js";
 import UsersController from "../controllers/UsersController.js";
 import CommentController from "../controllers/CommentController.js";
@@ -17,14 +16,6 @@ apiRouter.delete("/danhgias/:id", DanhGiaControl.apiDelete);
 apiRouter.post("/danhgias", DanhGiaControl.apiCreate);
 apiRouter.put("/danhgias/:id", DanhGiaControl.apiUpdate);
 
-const DanhMucControl = new DanhMucController();
-//api thực hiện các chức năng danh mục
-apiRouter.get("/danhmucs", DanhMucControl.apiList); //lấy danh sách bản ghi
-apiRouter.delete("/danhmucs/:id", DanhMucControl.apiDelete);
-apiRouter.get("/danhmucs/:id", DanhMucControl.apiDetail);
-apiRouter.post("/danhmucs", DanhMucControl.apiCreate);
-apiRouter.put("/danhmucs/:id", DanhMucControl.apiUpdate);
-
 const HoaDonControl = new HoaDonController();
 // API thực hiện các chức năng hóa đơn (chỉ lấy danh sách, chi tiết và chỉnh sửa)
 apiRouter.post("/hoadons", HoaDonControl.apiCreate);
@@ -34,7 +25,10 @@ apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bả
 apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
 apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
-apiRouter.post("/hoadons/create-vnpay-payment", HoaDonControl.apiCreateVNPayPayment);
+apiRouter.post(
+  "/hoadons/create-vnpay-payment",
+  HoaDonControl.apiCreateVNPayPayment
+);
 
 // API thực hiện thống kê doanh thu
 apiRouter.get("/hoadons/thongke/doanhthu", HoaDonControl.thongKeDoanhThu);
