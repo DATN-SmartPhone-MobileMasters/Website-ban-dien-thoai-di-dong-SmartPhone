@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Tag, Button, message, Modal, Select, DatePicker } from 'antd';
+import { Table, Tag, Button, message, Modal, Select, DatePicker, Form, Input } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
-import moment from 'moment'; // Thêm moment để xử lý định dạng ngày
+import moment from 'moment';
+import axios from 'axios';
 
 const { Option } = Select;
 
@@ -14,7 +15,10 @@ const ProfileReceipt = () => {
     Email: '',
     id: '',
   });
-  const [form] = Form.useForm()
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [sortTotal, setSortTotal] = useState('');
+  const [form] = Form.useForm();
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
@@ -28,12 +32,12 @@ const ProfileReceipt = () => {
       try {
         if (userData.id) {
           const response = await fetchOrdersByUserId(userData.id);
-          // Sắp xếp đơn hàng theo createdAt giảm dần
-          const sortedOrders = response.data.data.sort((a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
+          // Sort orders by createdAt in descending order (newest first)
+          const sortedOrders = response.data.data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );
           setOrders(sortedOrders);
-          setFilteredOrders(sortedOrders); // Ban đầu hiển thị tất cả
+          setFilteredOrders(sortedOrders); // Initialize filtered orders
         }
       } catch (error) {
         message.error('Lỗi tải danh sách đơn hàng');
@@ -44,30 +48,31 @@ const ProfileReceipt = () => {
     fetchData();
   }, [userData.id]);
 
-  // Xử lý lọc và sắp xếp khi các bộ lọc thay đổi
+  // Handle filtering and sorting
   useEffect(() => {
     let filtered = [...orders];
 
-    // Lọc theo trạng thái
+    // Filter by status
     if (statusFilter) {
-      filtered = filtered.filter(
-        (order) => order.paymentStatus === statusFilter
-      );
+      filtered = filtered.filter((order) => order.paymentStatus === statusFilter);
     }
 
-    // Lọc theo ngày
+    // Filter by date
     if (dateFilter) {
       filtered = filtered.filter((order) => {
-        const createdAt = moment(order.createdAt).format('MM/DD/YY');
+        const createdAt = moment(order.createdAt).format('DD/MM/YYYY');
         return createdAt === dateFilter;
       });
     }
 
-    // Sắp xếp theo tổng tiền
+    // Sort by total amount
     if (sortTotal === 'high-to-low') {
       filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortTotal === 'low-to-high') {
       filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
+    } else {
+      // Ensure newest orders are at the top when no total sorting is applied
+      filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     setFilteredOrders(filtered);
@@ -90,7 +95,7 @@ const ProfileReceipt = () => {
       title: 'Ngày đặt hàng',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date) => moment(date).format('MM/DD/YY'), 
+      render: (date) => moment(date).format('DD/MM/YYYY'),
     },
     {
       title: 'Tổng tiền',
@@ -122,6 +127,9 @@ const ProfileReceipt = () => {
           case 'Chờ xử lý':
             color = 'orange';
             break;
+          case 'Đang giao':
+            color = 'purple';
+            break;
           case 'Huỷ Đơn':
             color = 'red';
             break;
@@ -144,15 +152,13 @@ const ProfileReceipt = () => {
         return (
           <>
             {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-              <Button danger onClick={() => handleCancelOrder(record._id)}>
+              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
                 Huỷ đơn
               </Button>
             )}
             {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
               <Link to={`/adddanhgiauser/${record._id}`}>
-                <Button type="primary">
-                  Đánh giá
-                </Button>
+                <Button type="primary">Đánh giá</Button>
               </Link>
             )}
             {record.paymentStatus === 'Hoàn thành' && isReviewed && (
@@ -167,6 +173,7 @@ const ProfileReceipt = () => {
   ];
 
   const updateProductQuantities = async (products, action) => {
+    const API_URL = 'http://localhost:3000';
     for (const product of products) {
       try {
         const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
@@ -204,7 +211,7 @@ const ProfileReceipt = () => {
 
   const handleCancelOrder = async (orderId, products) => {
     let cancellationReason = '';
-    
+
     Modal.confirm({
       title: 'Xác nhận huỷ đơn hàng',
       content: (
@@ -214,10 +221,10 @@ const ProfileReceipt = () => {
             label="Lý Do Huỷ Đơn"
             rules={[{ required: true, message: 'Vui lòng nhập lý do huỷ đơn' }]}
           >
-            <Input.TextArea 
-              placeholder="Nhập lý do huỷ đơn hàng..." 
-              rows={4} 
-              onChange={(e) => cancellationReason = e.target.value}
+            <Input.TextArea
+              placeholder="Nhập lý do huỷ đơn hàng..."
+              rows={4}
+              onChange={(e) => (cancellationReason = e.target.value)}
             />
           </Form.Item>
         </Form>
@@ -230,28 +237,26 @@ const ProfileReceipt = () => {
           const userData = JSON.parse(localStorage.getItem('userData'));
           let role = 'User';
 
-          await updateOrder(orderId, { 
+          await updateOrder(orderId, {
             paymentStatus: 'Huỷ Đơn',
             FeedBack: cancellationReason,
             cancelledBy: {
               userId: userData.id,
               role: role,
-              name:userData.Email,
+              name: userData.Email,
             },
-            cancellationDate: new Date()
+            cancellationDate: new Date(),
           });
-          
+
           const order = orders.find((order) => order._id === orderId);
           if (order && order.paymentStatus === 'Đã Xác Nhận') {
             await updateProductQuantities(products, 'add');
           }
 
-          setOrders(orders.filter(order => order._id !== orderId));
-          
+          setOrders(orders.filter((order) => order._id !== orderId));
           message.success('Huỷ đơn hàng thành công');
         } catch (error) {
           if (error.errorFields) {
-            // Form validation failed
             return Promise.reject();
           }
           message.error('Huỷ đơn hàng thất bại');
@@ -260,26 +265,6 @@ const ProfileReceipt = () => {
       },
     });
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (userData.id) {
-          const response = await fetchOrdersByUserId(userData.id);
-          // Filter out cancelled orders
-          const visibleOrders = response.data.data.filter(
-            order => order.paymentStatus !== 'Huỷ Đơn'
-          );
-          setOrders(visibleOrders);
-        }
-      } catch (error) {
-        message.error('Lỗi tải danh sách đơn hàng');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [userData.id]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -319,7 +304,6 @@ const ProfileReceipt = () => {
 
           <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
-            {/* Bộ lọc */}
             <div className="mb-6 flex items-center gap-6">
               <div>
                 <label htmlFor="statusFilter" className="mr-2">
@@ -331,10 +315,12 @@ const ProfileReceipt = () => {
                   onChange={(value) => setStatusFilter(value)}
                   style={{ width: 200 }}
                   placeholder="Chọn trạng thái"
+                  allowClear
                 >
                   <Option value="">Tất cả</Option>
                   <Option value="Chờ xử lý">Chờ xử lý</Option>
                   <Option value="Đã Xác Nhận">Đã Xác Nhận</Option>
+                  <Option value="Đang giao">Đang giao</Option>
                   <Option value="Huỷ Đơn">Huỷ Đơn</Option>
                   <Option value="Hoàn thành">Hoàn thành</Option>
                 </Select>
@@ -345,10 +331,11 @@ const ProfileReceipt = () => {
                 </label>
                 <DatePicker
                   id="dateFilter"
-                  format="MM/DD/YY"
+                  format="DD/MM/YYYY"
                   onChange={(date, dateString) => setDateFilter(dateString)}
                   style={{ width: 200 }}
                   placeholder="Chọn ngày"
+                  allowClear
                 />
               </div>
               <div>
@@ -361,10 +348,11 @@ const ProfileReceipt = () => {
                   onChange={(value) => setSortTotal(value)}
                   style={{ width: 200 }}
                   placeholder="Chọn sắp xếp"
+                  allowClear
                 >
                   <Option value="">Mặc định</Option>
-                  <Option value="high-to-low">Cao đến thấp</Option>
                   <Option value="low-to-high">Thấp đến cao</Option>
+                  <Option value="high-to-low">Cao đến thấp</Option>
                 </Select>
               </div>
             </div>
