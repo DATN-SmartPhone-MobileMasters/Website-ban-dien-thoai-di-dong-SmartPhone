@@ -3,16 +3,22 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { getUserById } from "../../../service/api";
+import { 
+  getOrderById, 
+  updateOrder, 
+  getProducts, 
+  updateProducts,
+  getUserById 
+} from "../../../service/api"; 
 
-const API_URL = "http://localhost:5000/api";
 
 const Orderdetail = () => {
   const [hoaDon, setHoaDon] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null); 
+  const [currentUserId, setCurrentUser] = useState(null); 
   const { id } = useParams();
   const navigate = useNavigate();
+  
   const refreshParent = () => {
     const event = new CustomEvent('orderStatusChanged');
     window.dispatchEvent(event);
@@ -20,14 +26,21 @@ const Orderdetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/hoadons/${id}`);
-        setHoaDon(data.data);
+        const orderResponse = await getOrderById(id);
+        setHoaDon(orderResponse.data.data);
 
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-          const userResponse = await getUserById(userId);
-          setCurrentUser(userResponse.data.data);
+        const storedUser = localStorage.getItem('userData');
+        if (!storedUser) {
+          console.error("No user data in localStorage");
+          return;
         }
+        const { id: userId } = JSON.parse(storedUser);
+        const userResponse = await getUserById(userId);
+        
+        const userDataId =userResponse.data._id;
+        setCurrentUser(userDataId);
+        console.log(currentUserId);
+       
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       } finally {
@@ -51,19 +64,22 @@ const Orderdetail = () => {
               };
 
               if (newStatus === "Huỷ Đơn") {
-                let role = "Admin";
-                if (currentUser?.MaQuyen === 1) role = "Admin";
-                else if (currentUser?.MaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
+                const res= await getUserById(currentUserId);
+                const currentMaQuyen=res.data.MaQuyen;
+                let role = "User";
+                if (currentMaQuyen === 1) role = "Admin";
+                if (currentMaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
 
-                updateData.FeedBack = "Hủy bởi quản trị"; 
-                updateData.cancelledBy = {
-                  userId: currentUser?._id,
-                  role: role,
-                };
+                updateData.FeedBack = "Hủy bởi quản trị";
+              updateData.cancelledBy = {
+                userId: res.data._id,
+                role: role,
+                name: res.data.HoVaTen,
+              };
                 updateData.cancellationDate = new Date();
               }
 
-              await axios.put(`${API_URL}/hoadons/${id}`, updateData);
+              await updateOrder(id, updateData);
 
               if (newStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "subtract");
@@ -94,7 +110,8 @@ const Orderdetail = () => {
     for (const product of products) {
       try {
         // Lấy thông tin sản phẩm hiện tại
-        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
+        const productResponse = await getProducts(product.productId); // Sử dụng hàm từ api.js
+        const data = productResponse.data;
 
         // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
         let updatedQuantity1 = data.data.SoLuong1;
@@ -119,7 +136,7 @@ const Orderdetail = () => {
         }
 
         // Cập nhật số lượng sản phẩm
-        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
+        await updateProducts(product.productId, { 
           SoLuong1: updatedQuantity1,
           SoLuong2: updatedQuantity2,
           SoLuong3: updatedQuantity3,
