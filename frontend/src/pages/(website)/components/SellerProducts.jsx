@@ -7,6 +7,7 @@ import { Navigation, Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import Socket from "../socket/Socket"; // Import Socket.IO client
 
 const { Text } = Typography;
 const { Meta } = Card;
@@ -18,6 +19,53 @@ const SellerProducts = () => {
 
   useEffect(() => {
     getSellerProducts();
+
+    // Lắng nghe sự kiện productUpdated từ server
+    Socket.on("productUpdated", (updatedProduct) => {
+      setProducts((prevProducts) => {
+        // Kiểm tra nếu sản phẩm cập nhật nằm trong danh sách hiện tại
+        const productIndex = prevProducts.findIndex((p) => p._id === updatedProduct._id);
+        let updatedProducts = [...prevProducts];
+
+        // Nếu sản phẩm tồn tại trong danh sách
+        if (productIndex !== -1) {
+          const currentProduct = updatedProducts[productIndex];
+          const isNotIphone = !updatedProduct.TenSP.toLowerCase().includes("iphone");
+          const isInStock = !(
+            updatedProduct.SoLuong1 === 0 &&
+            updatedProduct.SoLuong2 === 0 &&
+            updatedProduct.SoLuong3 === 0
+          );
+
+          // Nếu vẫn không phải iPhone và còn hàng, cập nhật sản phẩm
+          if (isNotIphone && isInStock) {
+            updatedProducts[productIndex] = updatedProduct;
+          } else {
+            // Nếu là iPhone hoặc hết hàng, xóa khỏi danh sách
+            updatedProducts.splice(productIndex, 1);
+          }
+        } else {
+          // Nếu sản phẩm không có trong danh sách, kiểm tra xem có thêm vào không
+          const isNotIphone = !updatedProduct.TenSP.toLowerCase().includes("iphone");
+          const isInStock = !(
+            updatedProduct.SoLuong1 === 0 &&
+            updatedProduct.SoLuong2 === 0 &&
+            updatedProduct.SoLuong3 === 0
+          );
+          if (isNotIphone && isInStock && updatedProducts.length < 8) {
+            updatedProducts.push(updatedProduct); // Thêm vào cuối danh sách
+            updatedProducts = updatedProducts.slice(-8); // Giữ 8 sản phẩm cuối
+          }
+        }
+
+        return updatedProducts;
+      });
+    });
+
+    // Cleanup listener khi component unmount
+    return () => {
+      Socket.off("productUpdated");
+    };
   }, []);
 
   const getSellerProducts = async () => {
@@ -27,7 +75,6 @@ const SellerProducts = () => {
       const data = Array.isArray(response.data)
         ? response.data
         : response.data.data || [];
-
 
       const filteredProducts = data.filter((product) => {
         const nameCondition = !product.TenSP.toLowerCase().includes("iphone");

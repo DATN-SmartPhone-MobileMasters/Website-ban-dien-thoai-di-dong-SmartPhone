@@ -52,6 +52,7 @@ import OrderReturn from "./pages/(website)/Cart/OrderReturn";
 import AddDanhGiaUser from "./pages/(website)/danhgia/AddDanhGiaUser";
 import ListDanhGiaUser from "./pages/(website)/danhgia/ListDanhGiaUser";
 import SpDaMua from "./pages/(website)/sanphamdamua/SpDaMua";
+import Socket from "./pages/(website)/socket/Socket";
 function App() {
   const configRouter = createBrowserRouter([
     {

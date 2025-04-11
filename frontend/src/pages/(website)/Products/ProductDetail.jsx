@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Socket from "../socket/Socket";
 import {
   createComment,
   fetchComments,
@@ -150,6 +151,42 @@ const ProductDetail = () => {
   }, [relatedProducts]);
 
   useEffect(() => {
+    // Lắng nghe sự kiện productUpdated từ socket
+    Socket.on("productUpdated", (updatedProduct) => {
+      if (updatedProduct._id === id) {
+        // Cập nhật state product
+        setProduct(updatedProduct);
+
+        // Cập nhật selectedMemory dựa trên bộ nhớ đang chọn
+        const memoryKey =
+          selectedMemory.memory === updatedProduct.BoNhoTrong1
+            ? "BoNhoTrong1"
+            : selectedMemory.memory === updatedProduct.BoNhoTrong2
+            ? "BoNhoTrong2"
+            : "BoNhoTrong3";
+        const memoryIndex = memoryKey.slice(-1);
+        setSelectedMemory({
+          memory: updatedProduct[memoryKey] || selectedMemory.memory,
+          price: updatedProduct[`GiaSP${memoryIndex}`] || selectedMemory.price,
+          quantity:
+            updatedProduct[`SoLuong${memoryIndex}`] || selectedMemory.quantity,
+        });
+
+        // Cập nhật selectedImage nếu ảnh chính thay đổi
+        if (updatedProduct.HinhAnh1) {
+          setSelectedImage(updatedProduct.HinhAnh1);
+        }
+        // Không hiển thị thông báo ở đây nữa
+      }
+    });
+
+    // Cleanup socket listener
+    return () => {
+      Socket.off("productUpdated");
+    };
+  }, [id, selectedMemory.memory]);
+
+  useEffect(() => {
     setLoading(true);
     getProducts(id)
       .then((response) => {
@@ -209,39 +246,6 @@ const ProductDetail = () => {
         setError("Không thể tải chi tiết sản phẩm.");
         setLoading(false);
       });
-
-    // Lắng nghe sự kiện cartUpdated để cập nhật số lượng
-    const handleCartUpdate = () => {
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      const userId = userData?.id;
-      const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-      getProducts(id).then((response) => {
-        let updatedProduct = { ...response.data.data };
-        cartItems.forEach((item) => {
-          if (item.id === id) {
-            const memoryKey =
-              item.memory === updatedProduct.BoNhoTrong1
-                ? "SoLuong1"
-                : item.memory === updatedProduct.BoNhoTrong2
-                ? "SoLuong2"
-                : "SoLuong3";
-            updatedProduct[memoryKey] -= item.quantity;
-          }
-        });
-        setProduct(updatedProduct);
-        setSelectedMemory((prev) => ({
-          ...prev,
-          quantity:
-            prev.memory === updatedProduct.BoNhoTrong1
-              ? updatedProduct.SoLuong1
-              : prev.memory === updatedProduct.BoNhoTrong2
-              ? updatedProduct.SoLuong2
-              : updatedProduct.SoLuong3,
-        }));
-      });
-    };
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [id]);
 
   useEffect(() => {
@@ -370,7 +374,7 @@ const ProductDetail = () => {
               {
                 title: "Mô tả",
                 dataIndex: "MoTa",
-                key: "battery",
+                key: "description",
                 render: (text) => text || "--",
               },
             ]}
@@ -410,7 +414,6 @@ const ProductDetail = () => {
         .sort((a, b) => new Date(b.NgayBL) - new Date(a.NgayBL));
       setComments(productComments);
     } catch (error) {
-      console.log(error.response);
       message.error(
         "Thêm bình luận thất bại! Bạn vui lòng đăng nhập để sử dụng tính năng này."
       );
@@ -436,12 +439,12 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-  
+
     if (!product || !selectedMemory.memory) {
       message.warning("Vui lòng chọn bộ nhớ!");
       return;
     }
-  
+
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
     const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
@@ -451,7 +454,7 @@ const ProductDetail = () => {
         item.memory === selectedMemory.memory &&
         item.color === product.Mau1
     );
-  
+
     let newQuantityToAdd = 1;
     if (existingItemIndex !== -1) {
       cartItems[existingItemIndex].quantity += 1;
@@ -471,7 +474,7 @@ const ProductDetail = () => {
         maxQuantity: selectedMemory.quantity,
       });
     }
-  
+
     // Cập nhật số lượng trong product và selectedMemory
     const memoryKey =
       selectedMemory.memory === product.BoNhoTrong1
@@ -487,10 +490,9 @@ const ProductDetail = () => {
       ...prev,
       quantity: prev.quantity - newQuantityToAdd,
     }));
-  
+
     localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
     message.success("Sản phẩm đã được thêm vào giỏ hàng!");
-    window.dispatchEvent(new Event("cartUpdated"));
     navigate("/cart");
   };
 
@@ -637,9 +639,7 @@ const ProductDetail = () => {
                   type="primary"
                   icon={<FaShoppingCart />}
                   onClick={addToCart}
-                  disabled={
-                    selectedMemory.quantity <= 0 || product.Mau1 === "Hết Hàng"
-                  }
+                  disabled={selectedMemory.quantity <= 0 || product.Mau1 === "Hết Hàng"}
                 >
                   Thêm vào giỏ hàng
                 </Button>

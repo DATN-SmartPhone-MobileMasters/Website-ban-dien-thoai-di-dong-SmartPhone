@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
 import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
+import Socket from "../socket/Socket"; // Import Socket.IO client
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -14,6 +15,54 @@ const LatestProducts = () => {
 
   useEffect(() => {
     getLatestProducts();
+
+    // Lắng nghe sự kiện productUpdated từ server
+    Socket.on("productUpdated", (updatedProduct) => {
+      setProducts((prevProducts) => {
+        // Kiểm tra nếu sản phẩm cập nhật nằm trong danh sách hiện tại
+        const productIndex = prevProducts.findIndex((p) => p._id === updatedProduct._id);
+        let updatedProducts = [...prevProducts];
+
+        // Nếu sản phẩm tồn tại trong danh sách
+        if (productIndex !== -1) {
+          const currentProduct = updatedProducts[productIndex];
+          const isIphone = updatedProduct.TenSP.toLowerCase().includes("iphone");
+          const isInStock = !(
+            updatedProduct.SoLuong1 === 0 &&
+            updatedProduct.SoLuong2 === 0 &&
+            updatedProduct.SoLuong3 === 0
+          );
+
+          // Nếu vẫn là iPhone và còn hàng, cập nhật sản phẩm
+          if (isIphone && isInStock) {
+            updatedProducts[productIndex] = updatedProduct;
+          } else {
+            // Nếu không còn là iPhone hoặc hết hàng, xóa khỏi danh sách
+            updatedProducts.splice(productIndex, 1);
+          }
+        } else {
+          // Nếu sản phẩm không có trong danh sách, kiểm tra xem có thêm vào không
+          const isIphone = updatedProduct.TenSP.toLowerCase().includes("iphone");
+          const isInStock = !(
+            updatedProduct.SoLuong1 === 0 &&
+            updatedProduct.SoLuong2 === 0 &&
+            updatedProduct.SoLuong3 === 0
+          );
+          if (isIphone && isInStock && updatedProducts.length < 8) {
+            updatedProducts.unshift(updatedProduct); // Thêm vào đầu danh sách
+            updatedProducts = updatedProducts.slice(0, 8); // Giữ tối đa 8 sản phẩm
+          }
+        }
+
+        // Sắp xếp lại theo _id giảm dần
+        return updatedProducts.sort((a, b) => b._id.localeCompare(a._id));
+      });
+    });
+
+    // Cleanup listener khi component unmount
+    return () => {
+      Socket.off("productUpdated");
+    };
   }, []);
 
   const getLatestProducts = async () => {
@@ -31,7 +80,7 @@ const LatestProducts = () => {
           !(product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0)
       );
 
-      // Sắp xếp theo ID giảm dần (giả định ID mới hơn sẽ lớn hơn)
+      // Sắp xếp theo ID giảm dần
       const sortedProducts = filteredProducts.sort((a, b) => b._id.localeCompare(a._id));
       
       setProducts(sortedProducts.slice(0, 8)); // Lấy 8 sản phẩm mới nhất
@@ -79,29 +128,29 @@ const LatestProducts = () => {
                     className="h-full border border-gray-200 hover:border-blue-300 transition-all"
                   >
                     <Meta
-  title={
-    <div className="text-center">
-      <Text ellipsis={{ tooltip: product.TenSP }} className="font-semibold text-blue-600">
-        {product.TenSP}
-      </Text>
-    </div>
-  }
-  description={
-    <div className="text-center">
-      <div className="mb-2">
-        <Text type="secondary" className="text-gray-600">
-          {product.BoNhoTrong1 || "Chưa có thông tin bộ nhớ"}
-        </Text>
-      </div>
-      <Text strong className="text-blue-600 text-lg">
-        {product.GiaSP1 ? 
-          new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.GiaSP1)
-          : "Liên hệ"
-        }
-      </Text> 
-    </div>
-  }
-/>
+                      title={
+                        <div className="text-center">
+                          <Text ellipsis={{ tooltip: product.TenSP }} className="font-semibold text-blue-600">
+                            {product.TenSP}
+                          </Text>
+                        </div>
+                      }
+                      description={
+                        <div className="text-center">
+                          <div className="mb-2">
+                            <Text type="secondary" className="text-gray-600">
+                              {product.BoNhoTrong1 || "Chưa có thông tin bộ nhớ"}
+                            </Text>
+                          </div>
+                          <Text strong className="text-blue-600 text-lg">
+                            {product.GiaSP1 ? 
+                              new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.GiaSP1)
+                              : "Liên hệ"
+                            }
+                          </Text> 
+                        </div>
+                      }
+                    />
                   </Card>
                 </Link>
               ))
