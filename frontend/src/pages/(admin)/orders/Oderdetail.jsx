@@ -13,7 +13,10 @@ const Orderdetail = () => {
   const [currentUser, setCurrentUser] = useState(null); 
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const refreshParent = () => {
+    const event = new CustomEvent('orderStatusChanged');
+    window.dispatchEvent(event);
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -73,6 +76,7 @@ const Orderdetail = () => {
               }
 
               alert("Cập nhật trạng thái thành công!");
+              refreshParent();
               navigate("/admin/orders");
             } catch (error) {
               console.error("Lỗi khi cập nhật trạng thái:", error);

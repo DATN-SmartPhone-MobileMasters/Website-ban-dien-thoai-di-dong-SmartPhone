@@ -204,23 +204,27 @@ const ProfileReceipt = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (userData.id) {
-          const response = await fetchOrdersByUserId(userData.id);
-          // Filter out cancelled orders
-          const visibleOrders = response.data.data.filter(
-            order => order.paymentStatus !== 'Huỷ Đơn'
-          );
-          setOrders(visibleOrders);
+    const handleStatusChange = () => {
+      const fetchData = async () => {
+        try {
+          if (userData.id) {
+            const response = await fetchOrdersByUserId(userData.id);
+            const visibleOrders = response.data.data.filter(
+              order => order.paymentStatus !== 'Huỷ Đơn'
+            );
+            setOrders(visibleOrders);
+          }
+        } catch (error) {
+          message.error('Lỗi tải danh sách đơn hàng');
         }
-      } catch (error) {
-        message.error('Lỗi tải danh sách đơn hàng');
-      } finally {
-        setLoading(false);
-      }
+      };
+      fetchData();
     };
-    fetchData();
+
+    window.addEventListener('orderStatusChanged', handleStatusChange);
+    return () => {
+      window.removeEventListener('orderStatusChanged', handleStatusChange);
+    };
   }, [userData.id]);
 
   return (
