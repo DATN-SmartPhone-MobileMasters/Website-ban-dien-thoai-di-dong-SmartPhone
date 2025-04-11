@@ -14,9 +14,7 @@ const ProfileReceipt = () => {
     Email: '',
     id: '',
   });
-  const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [sortTotal, setSortTotal] = useState('');
+  const [form] = Form.useForm()
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
@@ -168,33 +166,120 @@ const ProfileReceipt = () => {
     },
   ];
 
-  const handleCancelOrder = async (orderId) => {
+  const updateProductQuantities = async (products, action) => {
+    for (const product of products) {
+      try {
+        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
+        let updatedQuantity1 = data.data.SoLuong1;
+        let updatedQuantity2 = data.data.SoLuong2;
+        let updatedQuantity3 = data.data.SoLuong3;
+
+        if (product.memory === data.data.BoNhoTrong1) {
+          updatedQuantity1 =
+            action === 'subtract'
+              ? data.data.SoLuong1 - product.quantity
+              : data.data.SoLuong1 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong2) {
+          updatedQuantity2 =
+            action === 'subtract'
+              ? data.data.SoLuong2 - product.quantity
+              : data.data.SoLuong2 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong3) {
+          updatedQuantity3 =
+            action === 'subtract'
+              ? data.data.SoLuong3 - product.quantity
+              : data.data.SoLuong3 + product.quantity;
+        }
+
+        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
+          SoLuong1: updatedQuantity1,
+          SoLuong2: updatedQuantity2,
+          SoLuong3: updatedQuantity3,
+        });
+      } catch (error) {
+        console.error('Lỗi khi cập nhật số lượng sản phẩm:', error);
+      }
+    }
+  };
+
+  const handleCancelOrder = async (orderId, products) => {
+    let cancellationReason = '';
+    
     Modal.confirm({
       title: 'Xác nhận huỷ đơn hàng',
-      content: 'Bạn có chắc chắn muốn huỷ đơn hàng này không?',
+      content: (
+        <Form form={form}>
+          <Form.Item
+            name="reason"
+            label="Lý Do Huỷ Đơn"
+            rules={[{ required: true, message: 'Vui lòng nhập lý do huỷ đơn' }]}
+          >
+            <Input.TextArea 
+              placeholder="Nhập lý do huỷ đơn hàng..." 
+              rows={4} 
+              onChange={(e) => cancellationReason = e.target.value}
+            />
+          </Form.Item>
+        </Form>
+      ),
       okText: 'Xác nhận',
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          // Cập nhật trạng thái đơn hàng thành "Huỷ Đơn"
-          await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
+          await form.validateFields();
+          const userData = JSON.parse(localStorage.getItem('userData'));
+          let role = 'User';
 
-          // Lấy lại danh sách đơn hàng mới
-          const response = await fetchOrdersByUserId(userData.id);
-          // Sắp xếp đơn hàng theo createdAt giảm dần
-          const sortedOrders = response.data.data.sort((a, b) =>
-            new Date(b.createdAt) - new Date(a.createdAt)
-          );
-          setOrders(sortedOrders);
-          setFilteredOrders(sortedOrders);
+          await updateOrder(orderId, { 
+            paymentStatus: 'Huỷ Đơn',
+            FeedBack: cancellationReason,
+            cancelledBy: {
+              userId: userData.id,
+              role: role,
+              name:userData.Email,
+            },
+            cancellationDate: new Date()
+          });
+          
+          const order = orders.find((order) => order._id === orderId);
+          if (order && order.paymentStatus === 'Đã Xác Nhận') {
+            await updateProductQuantities(products, 'add');
+          }
 
+          setOrders(orders.filter(order => order._id !== orderId));
+          
           message.success('Huỷ đơn hàng thành công');
         } catch (error) {
+          if (error.errorFields) {
+            // Form validation failed
+            return Promise.reject();
+          }
           message.error('Huỷ đơn hàng thất bại');
+          console.error(error);
         }
       },
     });
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData.id) {
+          const response = await fetchOrdersByUserId(userData.id);
+          // Filter out cancelled orders
+          const visibleOrders = response.data.data.filter(
+            order => order.paymentStatus !== 'Huỷ Đơn'
+          );
+          setOrders(visibleOrders);
+        }
+      } catch (error) {
+        message.error('Lỗi tải danh sách đơn hàng');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [userData.id]);
 
   return (
     <div className="min-h-screen bg-gray-100">

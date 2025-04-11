@@ -3,20 +3,44 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { 
+  getOrderById, 
+  updateOrder, 
+  getProducts, 
+  updateProducts,
+  getUserById 
+} from "../../../service/api"; 
 
-const API_URL = "http://localhost:5000/api";
 
 const Orderdetail = () => {
   const [hoaDon, setHoaDon] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUser] = useState(null); 
   const { id } = useParams();
   const navigate = useNavigate();
-
+  
+  const refreshParent = () => {
+    const event = new CustomEvent('orderStatusChanged');
+    window.dispatchEvent(event);
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/hoadons/${id}`);
-        setHoaDon(data.data);
+        const orderResponse = await getOrderById(id);
+        setHoaDon(orderResponse.data.data);
+
+        const storedUser = localStorage.getItem('userData');
+        if (!storedUser) {
+          console.error("No user data in localStorage");
+          return;
+        }
+        const { id: userId } = JSON.parse(storedUser);
+        const userResponse = await getUserById(userId);
+        
+        const userDataId =userResponse.data._id;
+        setCurrentUser(userDataId);
+        console.log(currentUserId);
+       
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       } finally {
@@ -35,12 +59,38 @@ const Orderdetail = () => {
           label: "Có",
           onClick: async () => {
             try {
-              // Cập nhật trạng thái đơn hàng
-              await axios.put(`${API_URL}/hoadons/${id}`, {
-                paymentStatus: newStatus,
-              });
-  
+              const updateData = {
+                paymentStatus: newStatus
+              };
+
+              if (newStatus === "Huỷ Đơn") {
+                const res= await getUserById(currentUserId);
+                const currentMaQuyen=res.data.MaQuyen;
+                let role = "User";
+                if (currentMaQuyen === 1) role = "Admin";
+                if (currentMaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
+
+                updateData.FeedBack = "Hủy bởi quản trị";
+              updateData.cancelledBy = {
+                userId: res.data._id,
+                role: role,
+                name: res.data.HoVaTen,
+              };
+                updateData.cancellationDate = new Date();
+              }
+
+              await updateOrder(id, updateData);
+
+              if (newStatus === "Đã Xác Nhận") {
+                await updateProductQuantities(hoaDon.products, "subtract");
+              }
+
+              if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
+                await updateProductQuantities(hoaDon.products, "add");
+              }
+
               alert("Cập nhật trạng thái thành công!");
+              refreshParent();
               navigate("/admin/orders");
             } catch (error) {
               console.error("Lỗi khi cập nhật trạng thái:", error);
@@ -54,6 +104,47 @@ const Orderdetail = () => {
         },
       ],
     });
+  };
+
+  const updateProductQuantities = async (products, action) => {
+    for (const product of products) {
+      try {
+        // Lấy thông tin sản phẩm hiện tại
+        const productResponse = await getProducts(product.productId); // Sử dụng hàm từ api.js
+        const data = productResponse.data;
+
+        // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
+        let updatedQuantity1 = data.data.SoLuong1;
+        let updatedQuantity2 = data.data.SoLuong2;
+        let updatedQuantity3 = data.data.SoLuong3;
+
+        if (product.memory === data.data.BoNhoTrong1) {
+          updatedQuantity1 =
+            action === "subtract"
+              ? data.data.SoLuong1 - product.quantity
+              : data.data.SoLuong1 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong2) {
+          updatedQuantity2 =
+            action === "subtract"
+              ? data.data.SoLuong2 - product.quantity
+              : data.data.SoLuong2 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong3) {
+          updatedQuantity3 =
+            action === "subtract"
+              ? data.data.SoLuong3 - product.quantity
+              : data.data.SoLuong3 + product.quantity;
+        }
+
+        // Cập nhật số lượng sản phẩm
+        await updateProducts(product.productId, { 
+          SoLuong1: updatedQuantity1,
+          SoLuong2: updatedQuantity2,
+          SoLuong3: updatedQuantity3,
+        });
+      } catch (error) {
+        console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
+      }
+    }
   };
 
   if (loading) {
@@ -177,7 +268,32 @@ const Orderdetail = () => {
               </div>
             </div>
           </div>
-
+          {hoaDon.paymentStatus === "Huỷ Đơn" && (
+        <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-100">
+          <h2 className="text-xl font-semibold mb-2 text-red-700">Thông tin hủy đơn</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-red-600">Huỷ Bởi:</p>
+              <p className="font-medium text-red-800">
+              {hoaDon.cancelledBy?.name}-{hoaDon.cancelledBy?.role}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-red-600">Thời gian hủy:</p>
+              <p className="font-medium text-red-800">
+                {hoaDon.cancellationDate ? 
+                  new Date(hoaDon.cancellationDate).toLocaleString() : 'N/A'}
+              </p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-red-600">Lý do:</p>
+              <p className="font-medium text-red-800">
+                {hoaDon.FeedBack}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
           {/* Cập nhật trạng thái */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h3 className="text-lg font-semibold mb-3 text-blue-700">Cập nhật trạng thái</h3>

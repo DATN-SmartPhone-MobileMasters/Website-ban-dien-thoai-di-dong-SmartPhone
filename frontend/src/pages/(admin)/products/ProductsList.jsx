@@ -35,7 +35,12 @@ const ProductsList = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { search = "", memory = "", status = "", brand = "" } = queryString.parse(location.search);
+  const {
+    search = "",
+    memory = "",
+    status = "",
+    brand = "",
+  } = queryString.parse(location.search);
 
   useEffect(() => {
     getProducts();
@@ -49,12 +54,15 @@ const ProductsList = () => {
     setLoading(true);
     try {
       const response = await fetchProducts();
-      const data = Array.isArray(response.data) ? response.data : response.data.data || [];
-      setProducts(data);
-      setFilteredProducts(data);
+      const data = Array.isArray(response.data)
+        ? response.data
+        : response.data.data || [];
+      const reversedData = [...data].reverse();
+      setProducts(reversedData);
+      setFilteredProducts(reversedData);
 
       const uniqueBrands = [
-        ...new Set(data.map((p) => p.TenSP.split(" ")[0].trim().toLowerCase()))
+        ...new Set(data.map((p) => p.TenSP.split(" ")[0].trim().toLowerCase())),
       ].map((brand) => brand.charAt(0).toUpperCase() + brand.slice(1));
       setBrands(uniqueBrands);
     } catch (error) {
@@ -103,7 +111,9 @@ const ProductsList = () => {
     let filtered = [...products];
 
     if (search) {
-      filtered = filtered.filter((p) => p.TenSP.toLowerCase().includes(search.toLowerCase()));
+      filtered = filtered.filter((p) =>
+        p.TenSP.toLowerCase().includes(search.toLowerCase())
+      );
     }
 
     if (memory) {
@@ -115,8 +125,9 @@ const ProductsList = () => {
     }
 
     if (brand) {
-      filtered = filtered.filter((p) =>
-        p.TenSP.split(" ")[0].trim().toLowerCase() === brand.toLowerCase()
+      filtered = filtered.filter(
+        (p) =>
+          p.TenSP.split(" ")[0].trim().toLowerCase() === brand.toLowerCase()
       );
     }
 
@@ -237,7 +248,12 @@ const ProductsList = () => {
             okText="Có"
             cancelText="Không"
           >
-            <Button type="primary" danger icon={<DeleteOutlined />} size="small">
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+            >
               Xóa
             </Button>
           </Popconfirm>
@@ -260,21 +276,27 @@ const ProductsList = () => {
       title: "Bộ Nhớ 1 / Giá",
       key: "BoNhoTrong1_GiaSP1",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong1 || "-"} / ${record.GiaSP1 ? record.GiaSP1 + "đ" : "-"}`}</span>
+        <span>{`${record.BoNhoTrong1 || "-"} / ${
+          record.GiaSP1 ? record.GiaSP1 + "đ" : "-"
+        }`}</span>
       ),
     },
     {
       title: "Bộ Nhớ 2 / Giá",
       key: "BoNhoTrong2_GiaSP2",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong2 || "-"} / ${record.GiaSP2 ? record.GiaSP2 + "đ" : "-"}`}</span>
+        <span>{`${record.BoNhoTrong2 || "-"} / ${
+          record.GiaSP2 ? record.GiaSP2 + "đ" : "-"
+        }`}</span>
       ),
     },
     {
       title: "Bộ Nhớ 3 / Giá",
       key: "BoNhoTrong3_GiaSP3",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong3 || "-"} / ${record.GiaSP3 ? record.GiaSP3 + "đ" : "-"}`}</span>
+        <span>{`${record.BoNhoTrong3 || "-"} / ${
+          record.GiaSP3 ? record.GiaSP3 + "đ" : "-"
+        }`}</span>
       ),
     },
   ];
@@ -293,7 +315,11 @@ const ProductsList = () => {
         </Col>
         <Col>
           <Space>
-            <Button type="primary" onClick={showCompareModal} disabled={selectedProducts.length < 2}>
+            <Button
+              type="primary"
+              onClick={showCompareModal}
+              disabled={selectedProducts.length < 2}
+            >
               So Sánh Sản Phẩm
             </Button>
             <Link to="/admin/products/add">

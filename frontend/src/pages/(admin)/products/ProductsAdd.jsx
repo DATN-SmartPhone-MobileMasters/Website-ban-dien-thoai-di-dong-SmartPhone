@@ -109,7 +109,7 @@ const ProductsAdd = () => {
       const productToAdd = {
         ...product,
         TenSP: mainValues.TenSP,
-        ThuongHieu: mainValues.ThuongHieu,
+        TenTH: mainValues.TenTH,
         MoTa: mainValues.MoTa,
         CamTruoc: mainValues.CamTruoc,
         CamSau: mainValues.CamSau,
@@ -152,7 +152,7 @@ const ProductsAdd = () => {
         const productToAdd = {
           ...product,
           TenSP: mainValues.TenSP,
-          ThuongHieu: mainValues.ThuongHieu,
+          TenTH: mainValues.TenTH,
           MoTa: mainValues.MoTa,
           CamTruoc: mainValues.CamTruoc,
           CamSau: mainValues.CamSau,
@@ -224,7 +224,7 @@ const ProductsAdd = () => {
               <Col span={12}>
                 <Form.Item
                   label="Thương Hiệu"
-                  name="ThuongHieu"
+                  name="TenTH"
                   rules={[{ required: true, message: 'Vui lòng chọn thương hiệu!' }]}
                 >
                   <Select placeholder="Chọn thương hiệu" size="large">

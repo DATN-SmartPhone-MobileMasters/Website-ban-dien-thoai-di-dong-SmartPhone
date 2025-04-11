@@ -10,9 +10,6 @@ import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
 import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
 import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
-import CategoryList from "./pages/(admin)/categorys/CategoryList";
-import CategoryAdd from "./pages/(admin)/categorys/CategoryAdd";
-import CategoryUpdate from "./pages/(admin)/categorys/CategoryUpdate";
 import BrandList from "./pages/(admin)/brands/BrandList";
 import BrandAdd from "./pages/(admin)/brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/brands/BrandEdit";
@@ -96,18 +93,6 @@ function App() {
         {
           path: "/admin/dashboard",
           element: <DashBoard />,
-        },
-        {
-          path: "/admin/categorys",
-          element: <CategoryList />,
-        },
-        {
-          path: "/admin/categorys/addcategory",
-          element: <CategoryAdd />,
-        },
-        {
-          path: "/admin/categorys/update/:id",
-          element: <CategoryUpdate />,
         },
         {
           path: "/admin/products/add",

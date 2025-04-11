@@ -47,8 +47,8 @@ export const createOrder = async (data) =>
   axios.post(`${API_URL}/hoadons`, data);
 export const fetchOrders = async () =>
   axios.get(`${API_URL}/hoadons?timestamp=${Date.now()}`);
-export const fetchOrdersByUserId = async (userId) =>
-  axios.get(`${API_URL}/hoadons/user/${userId}`);
+export const fetchOrdersByUserId = async (userId) => 
+  axios.get(`${API_URL}/hoadons/user/${userId}?timestamp=${Date.now()}`);
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
 export const updateOrder = async (id, data) =>
   axios.put(`${API_URL}/hoadons/${id}`, data);
