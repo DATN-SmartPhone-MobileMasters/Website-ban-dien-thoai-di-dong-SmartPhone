@@ -4,6 +4,7 @@ import { Table, Tag, Button, message, Modal, Select, DatePicker, Form, Input } f
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
 import moment from 'moment';
 import axios from 'axios';
+import io from 'socket.io-client';
 
 const { Option } = Select;
 
@@ -20,6 +21,14 @@ const ProfileReceipt = () => {
   const [sortTotal, setSortTotal] = useState('');
   const [form] = Form.useForm();
 
+  // Khởi tạo kết nối Socket.IO
+  const socket = io('http://localhost:5000', {
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    transports: ['websocket', 'polling'],
+  });
+
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
     if (storedUserData) {
@@ -32,12 +41,11 @@ const ProfileReceipt = () => {
       try {
         if (userData.id) {
           const response = await fetchOrdersByUserId(userData.id);
-          // Sort orders by createdAt in descending order (newest first)
           const sortedOrders = response.data.data.sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );
           setOrders(sortedOrders);
-          setFilteredOrders(sortedOrders); // Initialize filtered orders
+          setFilteredOrders(sortedOrders);
         }
       } catch (error) {
         message.error('Lỗi tải danh sách đơn hàng');
@@ -48,16 +56,49 @@ const ProfileReceipt = () => {
     fetchData();
   }, [userData.id]);
 
-  // Handle filtering and sorting
+  // Lắng nghe sự kiện Socket.IO
+  useEffect(() => {
+    socket.on('orderStatusUpdated', (data) => {
+      if (data.userId === userData.id) {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === data.orderId
+              ? {
+                  ...order,
+                  paymentStatus: data.paymentStatus,
+                  cancelledBy: data.cancelledBy,
+                  cancellationDate: data.cancellationDate,
+                  FeedBack: data.FeedBack,
+                }
+              : order
+          )
+        );
+      }
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to socket server');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    return () => {
+      socket.off('orderStatusUpdated');
+      socket.off('connect');
+      socket.off('connect_error');
+      socket.disconnect();
+    };
+  }, [socket, userData.id]);
+
   useEffect(() => {
     let filtered = [...orders];
 
-    // Filter by status
     if (statusFilter) {
       filtered = filtered.filter((order) => order.paymentStatus === statusFilter);
     }
 
-    // Filter by date
     if (dateFilter) {
       filtered = filtered.filter((order) => {
         const createdAt = moment(order.createdAt).format('DD/MM/YYYY');
@@ -65,112 +106,16 @@ const ProfileReceipt = () => {
       });
     }
 
-    // Sort by total amount
     if (sortTotal === 'high-to-low') {
       filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortTotal === 'low-to-high') {
-      filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
+      filtered = filtered.sort((a, b) => (a.total || 0) - (a.total || 0));
     } else {
-      // Ensure newest orders are at the top when no total sorting is applied
       filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     setFilteredOrders(filtered);
   }, [statusFilter, dateFilter, sortTotal, orders]);
-
-  const columns = [
-    {
-      title: 'Mã đơn hàng',
-      dataIndex: '_id',
-      key: '_id',
-      width: 200,
-      render: (text) => <span className="font-medium">{text}</span>,
-    },
-    {
-      title: 'Tên khách hàng',
-      dataIndex: ['shippingInfo', 'name'],
-      key: 'name',
-    },
-    {
-      title: 'Ngày đặt hàng',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date) => moment(date).format('DD/MM/YYYY'),
-    },
-    {
-      title: 'Tổng tiền',
-      dataIndex: 'total',
-      key: 'total',
-      render: (total) => (total ? `${total.toLocaleString()} VND` : 'Không có'),
-    },
-    {
-      title: 'Chi tiết đơn hàng',
-      key: 'details',
-      render: (_, record) => (
-        <Link to={`/profile-receipt-details/${record._id}`}>
-          <Button type="primary" ghost>
-            Xem chi tiết
-          </Button>
-        </Link>
-      ),
-    },
-    {
-      title: 'Tình trạng đơn hàng',
-      dataIndex: 'paymentStatus',
-      key: 'status',
-      render: (status) => {
-        let color = '';
-        switch (status) {
-          case 'Đã Xác Nhận':
-            color = 'green';
-            break;
-          case 'Chờ xử lý':
-            color = 'orange';
-            break;
-          case 'Đang giao':
-            color = 'purple';
-            break;
-          case 'Huỷ Đơn':
-            color = 'red';
-            break;
-          case 'Hoàn thành':
-            color = 'blue';
-            break;
-          default:
-            color = 'gray';
-        }
-        return <Tag color={color}>{status}</Tag>;
-      },
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      render: (_, record) => {
-        const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
-        const isReviewed = reviewedOrders[record._id];
-
-        return (
-          <>
-            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
-                Huỷ đơn
-              </Button>
-            )}
-            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
-              <Link to={`/adddanhgiauser/${record._id}`}>
-                <Button type="primary">Đánh giá</Button>
-              </Link>
-            )}
-            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
-              <Button type="primary" disabled>
-                Đã đánh giá
-              </Button>
-            )}
-          </>
-        );
-      },
-    },
-  ];
 
   const updateProductQuantities = async (products, action) => {
     const API_URL = 'http://localhost:3000';
@@ -265,6 +210,100 @@ const ProfileReceipt = () => {
       },
     });
   };
+
+  const columns = [
+    {
+      title: 'Mã đơn hàng',
+      dataIndex: '_id',
+      key: '_id',
+      width: 200,
+      render: (text) => <span className="font-medium">{text}</span>,
+    },
+    {
+      title: 'Tên khách hàng',
+      dataIndex: ['shippingInfo', 'name'],
+      key: 'name',
+    },
+    {
+      title: 'Ngày đặt hàng',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => moment(date).format('DD/MM/YYYY'),
+    },
+    {
+      title: 'Tổng tiền',
+      dataIndex: 'total',
+      key: 'total',
+      render: (total) => (total ? `${total.toLocaleString()} VND` : 'Không có'),
+    },
+    {
+      title: 'Chi tiết đơn hàng',
+      key: 'details',
+      render: (_, record) => (
+        <Link to={`/profile-receipt-details/${record._id}`}>
+          <Button type="primary" ghost>
+            Xem chi tiết
+          </Button>
+        </Link>
+      ),
+    },
+    {
+      title: 'Tình trạng đơn hàng',
+      dataIndex: 'paymentStatus',
+      key: 'status',
+      render: (status) => {
+        let color = '';
+        switch (status) {
+          case 'Đã Xác Nhận':
+            color = 'green';
+            break;
+          case 'Chờ xử lý':
+            color = 'orange';
+            break;
+          case 'Đang giao':
+            color = 'purple';
+            break;
+          case 'Huỷ Đơn':
+            color = 'red';
+            break;
+          case 'Hoàn thành':
+            color = 'blue';
+            break;
+          default:
+            color = 'gray';
+        }
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      render: (_, record) => {
+        const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
+        const isReviewed = reviewedOrders[record._id];
+
+        return (
+          <>
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+                Huỷ đơn
+              </Button>
+            )}
+            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
+              <Link to={`/adddanhgiauser/${record._id}`}>
+                <Button type="primary">Đánh giá</Button>
+              </Link>
+            )}
+            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
+              <Button type="primary" disabled>
+                Đã đánh giá
+              </Button>
+            )}
+          </>
+        );
+      },
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-100">
