@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
 import { Spin, message, Pagination, Select, Input, Slider, Card, Row, Col } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
+import Socket from "../socket/Socket"; // Import Socket.IO client
 
 const { Option } = Select;
 
@@ -20,10 +21,34 @@ const ProductList = () => {
 
   useEffect(() => {
     getProducts();
+
+    // Lắng nghe sự kiện productUpdated từ server
+    Socket.on("productUpdated", (updatedProduct) => {
+      setProducts((prevProducts) => {
+        // Kiểm tra nếu sản phẩm cập nhật nằm trong danh sách hiện tại
+        const productIndex = prevProducts.findIndex((p) => p._id === updatedProduct._id);
+        let updatedProducts = [...prevProducts];
+
+        if (productIndex !== -1) {
+          // Cập nhật sản phẩm trong danh sách
+          updatedProducts[productIndex] = updatedProduct;
+        } else {
+          // Thêm sản phẩm mới vào danh sách nếu chưa có
+          updatedProducts.push(updatedProduct);
+        }
+
+        return updatedProducts;
+      });
+    });
+
+    // Cleanup listener khi component unmount
+    return () => {
+      Socket.off("productUpdated");
+    };
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
   }, [selectedBrand, selectedStorage, searchQuery, sortOrder, priceRange]);
 
   const normalizeBrandName = (name) => {

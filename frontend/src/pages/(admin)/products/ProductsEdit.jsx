@@ -102,15 +102,15 @@ const ProductsEdit = () => {
     }
   };
 
-  const onFinish = (values) => {
-    updateProducts(id, values)
-      .then(() => {
-        message.success("Cập nhật sản phẩm thành công!");
-        navigate("/admin/products");
-        // Phát sự kiện để thông báo Cart cập nhật
-        window.dispatchEvent(new Event("cartUpdated"));
-      })
-      .catch(() => setError("Có lỗi xảy ra khi cập nhật sản phẩm."));
+  const onFinish = async (values) => {
+    try {
+      await updateProducts(id, values);
+      message.success("Cập nhật sản phẩm thành công!"); // Thông báo chỉ hiển thị ở đây
+      navigate("/admin/products");
+    } catch (error) {
+      setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
+      message.error("Cập nhật sản phẩm thất bại!");
+    }
   };
 
   const handleStatusChange = (value) => {

@@ -1,6 +1,6 @@
 import SanPham from "../models/SanPham.js";
 import { v2 as cloudinary } from 'cloudinary';
-
+import { io } from "../server.js";
 // Khởi tạo class
 class SanPhamController {
   // API lấy danh sách sản phẩm
@@ -78,7 +78,17 @@ class SanPhamController {
   async apiUpdate(req, res) {
     try {
       const id = req.params.id;
-      const updatedSanPham = await SanPham.findByIdAndUpdate(id, req.body, { new: true });
+      const updatedSanPham = await SanPham.findByIdAndUpdate(id, req.body, {
+        new: true,
+      });
+
+      if (!updatedSanPham) {
+        return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+      }
+
+      // Phát sự kiện socket tới tất cả client
+      io.emit("productUpdated", updatedSanPham);
+
       res.status(200).json({
         message: "Cập nhật sản phẩm thành công!",
         data: updatedSanPham,
@@ -90,6 +100,7 @@ class SanPhamController {
       });
     }
   }
+  
   async apiUpload(req, res) {
     try {
       if (!req.files || Object.keys(req.files).length === 0) {
