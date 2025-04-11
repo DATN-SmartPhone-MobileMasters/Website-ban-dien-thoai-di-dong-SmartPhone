@@ -19,25 +19,31 @@ const ProfileReceiptDetails = () => {
   }, []);
 
   useEffect(() => {
-    const handleStatusChange = async () => {
+    const fetchData = async () => {
       try {
         if (userData.id) {
+          // 1. Fetch ALL orders for this user
           const response = await fetchOrdersByUserId(userData.id);
-          const foundOrder = response.data.data.find(order => order._id === orderId);
+          const orders = response.data.data; // Array of orders
+
+          // 2. Find the specific orders by orderId (from URL)
+          const foundOrder = orders.find(orders => orders._id === orderId);
+          
           if (foundOrder) {
             setOrder(foundOrder);
+          } else {
+            console.error("Order not found in user's orders");
           }
         }
       } catch (error) {
-        console.error('Error refreshing order:', error);
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
       }
     };
-  
-    window.addEventListener('orderStatusChanged', handleStatusChange);
-    return () => {
-      window.removeEventListener('orderStatusChanged', handleStatusChange);
-    };
-  }, [userData.id, orderId]);
+
+    fetchData();
+  }, [userData.id, orderId]); // Depend on orderId
 
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;

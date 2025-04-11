@@ -271,7 +271,7 @@ const Orderdetail = () => {
             <div className="md:col-span-2">
               <p className="text-sm text-red-600">Lý do:</p>
               <p className="font-medium text-red-800">
-                {hoaDon.FeedBack || 'Không có lý do'}
+                {hoaDon.FeedBack}
               </p>
             </div>
           </div>
