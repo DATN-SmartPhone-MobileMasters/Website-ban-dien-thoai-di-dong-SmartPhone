@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { message, Select, DatePicker } from "antd";
 import { fetchOrders } from "../../../service/api";
+import io from "socket.io-client"; // Import Socket.IO client
+
+const { Option } = Select;
 
 // Hàm formatDate để định dạng ngày tháng
 const formatDate = (dateString) => {
@@ -13,8 +16,6 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
-const { Option } = Select;
-
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
@@ -24,6 +25,14 @@ const OrderList = () => {
   const [dateFilter, setDateFilter] = useState(""); // Bộ lọc ngày
   const [sortTotal, setSortTotal] = useState(""); // Bộ lọc sắp xếp tổng tiền
   const location = useLocation();
+
+  // Khởi tạo kết nối Socket.IO
+  const socket = io("http://localhost:5000", {
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    transports: ["websocket", "polling"],
+  });
 
   useEffect(() => {
     const getHoaDons = async () => {
@@ -45,6 +54,42 @@ const OrderList = () => {
 
     getHoaDons();
   }, [location.key, showHidden]);
+
+  // Lắng nghe sự kiện Socket.IO để cập nhật trạng thái hóa đơn
+  useEffect(() => {
+    socket.on("orderStatusUpdated", (data) => {
+      console.log("Received orderStatusUpdated event:", data);
+      setAllOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === data.orderId
+            ? {
+                ...order,
+                paymentStatus: data.paymentStatus,
+                cancelledBy: data.cancelledBy,
+                cancellationDate: data.cancellationDate,
+                FeedBack: data.FeedBack,
+              }
+            : order
+        )
+      );
+    });
+
+    socket.on("connect", () => {
+      console.log("Connected to socket server");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    // Cleanup khi component unmount
+    return () => {
+      socket.off("orderStatusUpdated");
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.disconnect();
+    };
+  }, [socket]);
 
   // Hàm áp dụng các bộ lọc
   const applyFilters = (orders, hiddenOrders) => {
