@@ -139,26 +139,6 @@ const BrandAdd = () => {
               />
               <small className="text-danger">{errors.Mota?.message}</small>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="MaDM">Danh mục</label>
-              <select
-                className="form-control"
-                id="MaDM"
-                multiple
-                {...register("MaDM", {
-                  required: "Danh mục không được bỏ trống",
-                })}
-              >
-                {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.TenDM}
-                  </option>
-                ))}
-              </select>
-              <small className="text-danger">{errors.MaDM?.message}</small>
-            </div>
-
             <div className="d-flex justify-content-between">
               <Link to="/admin/brands" className="btn btn-secondary">
                 Quay lại

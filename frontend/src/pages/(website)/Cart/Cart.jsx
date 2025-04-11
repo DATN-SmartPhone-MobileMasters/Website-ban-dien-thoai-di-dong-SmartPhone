@@ -48,7 +48,7 @@ const Cart = () => {
     if (memory === availableMemories.BoNhoTrong1) return "BoNhoTrong1";
     if (memory === availableMemories.BoNhoTrong2) return "BoNhoTrong2";
     if (memory === availableMemories.BoNhoTrong3) return "BoNhoTrong3";
-    return "BoNhoTrong1"; // Mặc định
+    return "BoNhoTrong1";
   };
 
   const updateCart = async () => {
@@ -86,7 +86,6 @@ const Cart = () => {
               newQuantity = productData.SoLuong3;
             }
 
-            // Khởi tạo hoặc giữ nguyên originalQuantities từ dữ liệu đã lưu
             const originalQuantities = item.originalQuantities || {
               BoNhoTrong1: productData.BoNhoTrong1 === item.memory ? item.quantity : 0,
               BoNhoTrong2: productData.BoNhoTrong2 === item.memory ? item.quantity : 0,
@@ -110,7 +109,7 @@ const Cart = () => {
                 SoLuong2: productData.SoLuong2,
                 SoLuong3: productData.SoLuong3,
               },
-              originalQuantities, // Lưu số lượng đã chỉnh sửa cho từng bộ nhớ
+              originalQuantities,
             };
           } catch (error) {
             console.error("Lỗi khi lấy thông tin sản phẩm:", error);
@@ -134,6 +133,37 @@ const Cart = () => {
     }
   };
 
+  const handleCartUpdate = (event) => {
+    const deletedProductId = event.detail?.deletedProductId;
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.id;
+
+    if (deletedProductId && userId) {
+      let storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+      const newStoredCart = storedCart.filter((item) => item.id !== deletedProductId);
+      if (newStoredCart.length !== storedCart.length) {
+        localStorage.setItem(`cart_${userId}`, JSON.stringify(newStoredCart));
+        setCart(newStoredCart);
+
+        if (newStoredCart.length === 0) {
+          localStorage.removeItem(`voucher_${userId}`);
+          setVoucher("");
+          setDiscount(0);
+        }
+
+        const newSelectedItems = {};
+        newStoredCart.forEach((_, index) => {
+          newSelectedItems[index] = true;
+        });
+        setSelectedItems(newSelectedItems);
+
+        message.info(`Sản phẩm với ID ${deletedProductId} đã bị xóa khỏi giỏ hàng!`);
+      }
+    } else {
+      updateCart();
+    }
+  };
+
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
     if (!authToken) {
@@ -143,7 +173,7 @@ const Cart = () => {
 
     updateCart();
 
-    window.addEventListener("cartUpdated", updateCart);
+    window.addEventListener("cartUpdated", handleCartUpdate);
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
@@ -152,7 +182,7 @@ const Cart = () => {
     });
 
     return () => {
-      window.removeEventListener("cartUpdated", updateCart);
+      window.removeEventListener("cartUpdated", handleCartUpdate);
       document.removeEventListener("visibilitychange", () => {});
     };
   }, [navigate]);
@@ -166,12 +196,9 @@ const Cart = () => {
     const newPrice = productData[`GiaSP${memoryIndex}`];
     const newQuantity = productData[`SoLuong${memoryIndex}`];
 
-    // Lấy số lượng đã chỉnh sửa trước đó từ originalQuantities, nếu không có thì dùng quantity hiện tại
     const originalQuantities = newCart[index].originalQuantities || {};
     const previousQuantity = originalQuantities[memoryKey] || newCart[index].quantity;
 
-    // Nếu bộ nhớ mới hết hàng, đặt quantity về 0
-    // Nếu không, khôi phục số lượng đã chỉnh sửa trước đó hoặc giới hạn bởi số lượng tồn kho
     const updatedQuantity = newQuantity === 0 ? 0 : Math.min(previousQuantity, newQuantity);
 
     newCart[index] = {
@@ -191,7 +218,7 @@ const Cart = () => {
 
     setCart(newCart);
     if (newQuantity === 0) {
-      message.warning(`Bộ nhớ ${newMemory} đã hết hàng.`);
+      message.warning(`Bộ nhớ ${newMemory} đã hết hàng`);
     } else {
       message.success(`Đã thay đổi bộ nhớ thành ${newMemory}`);
     }
@@ -207,7 +234,6 @@ const Cart = () => {
     }
 
     newCart[index].quantity = newQuantity;
-    // Cập nhật originalQuantities cho bộ nhớ hiện tại
     newCart[index].originalQuantities = {
       ...newCart[index].originalQuantities,
       [getMemoryKey(newCart[index].memory, newCart[index].availableMemories)]: newQuantity,
@@ -221,16 +247,12 @@ const Cart = () => {
     }
 
     setCart(newCart);
-
-    const newTotal = calculateTotal();
-    checkVoucherValidity(newTotal);
   };
 
   const decreaseQuantity = (index) => {
     const newCart = [...cart];
     if (newCart[index].quantity > 1) {
       newCart[index].quantity -= 1;
-      // Cập nhật originalQuantities cho bộ nhớ hiện tại
       newCart[index].originalQuantities = {
         ...newCart[index].originalQuantities,
         [getMemoryKey(newCart[index].memory, newCart[index].availableMemories)]: newCart[index].quantity,
@@ -244,9 +266,6 @@ const Cart = () => {
       }
 
       setCart(newCart);
-
-      const newTotal = calculateTotal();
-      checkVoucherValidity(newTotal);
     }
   };
 
@@ -271,7 +290,6 @@ const Cart = () => {
     setSelectedItems(newSelectedItems);
 
     message.success("Đã xóa sản phẩm khỏi giỏ hàng!");
-    window.location.reload();
   };
 
   const calculateTotal = () => {
@@ -281,29 +299,6 @@ const Cart = () => {
       }
       return total;
     }, 0);
-  };
-
-  const checkVoucherValidity = (total) => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const userId = userData?.id;
-    const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
-
-    if (storedVoucher && storedVoucher.code) {
-      const promotion = promotions.data.find((promo) => promo.MaKM === storedVoucher.code);
-      if (promotion && promotion.LoaiKM === "fixed") {
-        const requiredTotal = promotion.GiaTriKM * 10;
-        if (total < requiredTotal) {
-          setDiscount(0);
-          localStorage.removeItem(`voucher_${userId}`);
-          setVoucher("");
-          message.error(
-            `Giá trị đơn hàng hiện tại là ${formatCurrency(total)}. Đơn hàng phải từ ${formatCurrency(requiredTotal)} trở lên để áp dụng mã giảm giá này.`
-          );
-          return false;
-        }
-      }
-    }
-    return true;
   };
 
   const applyVoucher = async () => {
@@ -335,23 +330,12 @@ const Cart = () => {
 
     const total = calculateTotal();
 
-    if (promotion.LoaiKM === "fixed") {
-      const requiredTotal = promotion.GiaTriKM * 10;
-      if (total < requiredTotal) {
-        message.error(
-          `Giá trị đơn hàng hiện tại là ${formatCurrency(total)}. Đơn hàng phải từ ${formatCurrency(requiredTotal)} trở lên để áp dụng mã giảm giá này.`
-        );
-        return;
-      }
-    }
-
     let discountAmount = 0;
-if (promotion.LoaiKM === "percentage") {
-  discountAmount = (total * promotion.GiaTriKM) / 100;
-} else {
-  discountAmount = promotion.GiaTriKM;
-}
-
+    if (promotion.LoaiKM === "percentage") {
+      discountAmount = (total * promotion.GiaTriKM) / 100;
+    } else {
+      discountAmount = promotion.GiaTriKM;
+    }
 
     setDiscount(discountAmount);
     message.success("Áp dụng mã giảm giá thành công!");
@@ -375,13 +359,7 @@ if (promotion.LoaiKM === "percentage") {
 
   const calculateFinalTotal = () => {
     const total = calculateTotal();
-    let finalTotal = total - discount;
-
-    if (finalTotal > 50000000) {
-      finalTotal *= 0.95;
-    }
-
-    return finalTotal;
+    return total - discount;
   };
 
   const calculateOriginalTotal = () => {
@@ -391,25 +369,6 @@ if (promotion.LoaiKM === "percentage") {
       }
       return total;
     }, 0);
-  };
-
-  const calculateDiscountAmount = () => {
-    const total = calculateTotal();
-    let discountAmount = discount;
-
-    if (total - discount > 50000000) {
-      discountAmount += (total - discount) * 0.05;
-    }
-
-    return discountAmount;
-  };
-
-  const calculateAdditionalDiscount = () => {
-    const total = calculateTotal();
-    if (total - discount > 50000000) {
-      return (total - discount) * 0.05;
-    }
-    return 0;
   };
 
   const handleVoucherChange = (e) => {
@@ -425,18 +384,12 @@ if (promotion.LoaiKM === "percentage") {
   };
 
   const handleCheckout = () => {
-    const total = calculateTotal();
-    if (!checkVoucherValidity(total)) {
-      return;
-    }
-
     navigate("/checkcart", {
       state: {
         cart: cart.filter((_, index) => selectedItems[index] && cart[index].totalQuantity > 0),
         total: calculateOriginalTotal(),
         finalTotal: calculateFinalTotal(),
         discount: discount,
-        additionalDiscount: calculateAdditionalDiscount(),
       },
     });
   };
@@ -491,18 +444,35 @@ if (promotion.LoaiKM === "percentage") {
                 <div className="d-flex gap-2 mt-2">
                   {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((memoryKey) =>
                     record.availableMemories[memoryKey] ? (
-                      <Button
-                        key={memoryKey}
-                        type={
-                          record.memory === record.availableMemories[memoryKey]
-                            ? "primary"
-                            : "default"
-                        }
-                        size="small"
-                        onClick={() => handleMemoryChange(index, memoryKey)}
-                      >
-                        {record.availableMemories[memoryKey]}
-                      </Button>
+                      <div key={memoryKey} style={{ position: "relative", textAlign: "center" }}>
+                        <Button
+                          type={
+                            record.memory === record.availableMemories[memoryKey]
+                              ? "primary"
+                              : record.availableMemories[`SoLuong${memoryKey.slice(-1)}`] === 0
+                              ? "danger"
+                              : "default"
+                          }
+                          size="small"
+                          onClick={() => handleMemoryChange(index, memoryKey)}
+                        >
+                          {record.availableMemories[memoryKey]}
+                        </Button>
+                        {record.memory === record.availableMemories[memoryKey] &&
+                          record.availableMemories[`SoLuong${memoryKey.slice(-1)}`] === 0 && (
+                            <Text
+                              type="danger"
+                              style={{
+                                display: "block",
+                                fontSize: 12,
+                                marginTop: 4,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Hết hàng
+                            </Text>
+                          )}
+                      </div>
                     ) : null
                   )}
                 </div>
@@ -611,11 +581,6 @@ if (promotion.LoaiKM === "percentage") {
                   Giảm giá từ voucher: -{formatCurrency(discount)}
                 </Text>
               )}
-              {calculateAdditionalDiscount() > 0 && (
-                <Text type="danger">
-                  Giảm thêm 5%: -{formatCurrency(calculateAdditionalDiscount())}
-                </Text>
-              )}
               {calculateFinalTotal() < calculateOriginalTotal() && (
                 <Text type="success" strong>
                   Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())}
@@ -624,7 +589,7 @@ if (promotion.LoaiKM === "percentage") {
 
               {isAnyItemOutOfStock && (
                 <Alert
-                  message="Có sản phẩm trong giỏ hàng đã hết. Vui lòng xóa hoặc cập nhật trước khi thanh toán."
+                  message="Sản phẩm này đã hết hàng"
                   type="error"
                   showIcon
                   style={{ marginTop: 16 }}

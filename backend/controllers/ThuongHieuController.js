@@ -5,11 +5,7 @@ class ThuongHieuController {
   //API functions
   async apiList(req, res) {
     try {
-      const thuongHieus = await thuonghieu
-        .find()
-        .populate("MaDM", "TenDM")
-        .exec();
-
+      const thuongHieus = await thuonghieu.find();
       res.status(200).json({
         message: "Lấy dữ liệu thành công",
         data: thuongHieus,
@@ -42,10 +38,7 @@ class ThuongHieuController {
     try {
       const { id } = req.params;
 
-      const thuongHieu = await thuonghieu
-        .findById(id)
-        .populate("MaDM", "TenDM") // Lấy danh mục của thương hiệu đó
-        .exec();
+      const thuongHieu = await thuonghieu.findById(id);
 
       if (!thuongHieu) {
         return res.status(404).json({ message: "Không tìm thấy thương hiệu" });
@@ -65,13 +58,12 @@ class ThuongHieuController {
 
   async apiCreate(req, res) {
     try {
-      const { TenTH, HinhAnh, Mota, MaDM } = req.body;
+      const { TenTH, HinhAnh, Mota } = req.body;
 
       const newThuongHieu = await thuonghieu.create({
         TenTH,
         HinhAnh,
         Mota,
-        MaDM,
       });
 
       res.status(201).json({
@@ -89,11 +81,13 @@ class ThuongHieuController {
   async apiUpdate(req, res) {
     try {
       const id = req.params.id;
-      const { TenTH, HinhAnh, Mota, MaDM } = req.body;
+      const { TenTH, HinhAnh, Mota } = req.body;
 
-      const thuongHieu = await thuonghieu
-        .findByIdAndUpdate(id, { TenTH, HinhAnh, Mota, MaDM }, { new: true })
-        .populate("MaDM", "TenDM");
+      const thuongHieu = await thuonghieu.findByIdAndUpdate(
+        id,
+        { TenTH, HinhAnh, Mota },
+        { new: true }
+      );
 
       res.status(200).json({
         message: "Cập nhật thương hiệu thành công!",

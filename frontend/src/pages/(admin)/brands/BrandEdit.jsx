@@ -3,11 +3,15 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { message } from "antd";
-import { fetchCategories, getBrandById, updateBrand, uploadImage, fetchBrands } from "../../../service/api"; // Added fetchBrands
+import {
+  getBrandById,
+  updateBrand,
+  uploadImage,
+  fetchBrands,
+} from "../../../service/api"; // Added fetchBrands
 
 const BrandEdit = () => {
-  const [categories, setCategories] = useState([]);
-  const [existingBrands, setExistingBrands] = useState([]); 
+  const [existingBrands, setExistingBrands] = useState([]);
   const {
     reset,
     register,
@@ -24,7 +28,7 @@ const BrandEdit = () => {
     const loadBrands = async () => {
       try {
         const res = await fetchBrands();
-        setExistingBrands(res.data.data); 
+        setExistingBrands(res.data.data);
       } catch (error) {
         console.error("Error loading brands:", error);
       }
@@ -50,25 +54,21 @@ const BrandEdit = () => {
 
   const checkDuplicateBrandName = (name) => {
     const isDuplicate = existingBrands.some(
-      (brand) => brand.TenTH.toLowerCase() === name.toLowerCase() && brand._id !== id
+      (brand) =>
+        brand.TenTH.toLowerCase() === name.toLowerCase() && brand._id !== id
     );
     return isDuplicate ? "Tên thương hiệu đã tồn tại" : true;
   };
   useEffect(() => {
     (async () => {
       try {
-        const [brandRes, categoryRes] = await Promise.all([
-          getBrandById(id), 
-          fetchCategories(),
-        ]);
+        const [brandRes] = await Promise.all([getBrandById(id)]);
         setImageUrl(brandRes.data.data.HinhAnh);
-        setCategories(categoryRes.data.data); 
 
         reset({
           TenTH: brandRes.data.data.TenTH,
           HinhAnh: brandRes.data.data.HinhAnh,
           Mota: brandRes.data.data.Mota,
-          MaDM: brandRes.data.data.MaDM.map((dm) => dm._id),
         });
       } catch (error) {
         console.error("Error loading data:", error);
@@ -111,7 +111,9 @@ const BrandEdit = () => {
                 id="TenTH"
                 {...register("TenTH", {
                   required: "Tên thương hiệu không được bỏ trống",
-                  validate: (value) => checkDuplicateBrandName(value) === true || checkDuplicateBrandName(value),
+                  validate: (value) =>
+                    checkDuplicateBrandName(value) === true ||
+                    checkDuplicateBrandName(value),
                 })}
               />
               <small className="text-danger">{errors.TenTH?.message}</small>
@@ -127,19 +129,15 @@ const BrandEdit = () => {
               />
               {imageUrl && (
                 <div className="mt-2">
-                  <img 
-                    src={imageUrl} 
-                    alt="Current" 
-                    style={{ maxWidth: '150px' }}
+                  <img
+                    src={imageUrl}
+                    alt="Current"
+                    style={{ maxWidth: "150px" }}
                   />
                   <div className="text-muted small mt-1">Ảnh hiện tại</div>
                 </div>
               )}
-              <input
-                type="hidden"
-                {...register("HinhAnh")}
-                value={imageUrl}
-              />
+              <input type="hidden" {...register("HinhAnh")} value={imageUrl} />
             </div>
 
             <div className="form-group">
@@ -153,25 +151,6 @@ const BrandEdit = () => {
                 })}
               />
               <small className="text-danger">{errors.Mota?.message}</small>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="MaDM">Danh mục</label>
-              <select
-                className="form-control"
-                id="MaDM"
-                multiple
-                {...register("MaDM", {
-                  required: "Danh mục không được bỏ trống",
-                })}
-              >
-                {categories.map((danhmuc) => (
-                  <option key={danhmuc._id} value={danhmuc._id}>
-                    {danhmuc.TenDM}
-                  </option>
-                ))}
-              </select>
-              <small className="text-danger">{errors.MaDM?.message}</small>
             </div>
 
             <div className="d-flex justify-content-between">
