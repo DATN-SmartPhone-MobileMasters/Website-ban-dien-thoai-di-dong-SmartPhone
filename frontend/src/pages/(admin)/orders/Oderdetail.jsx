@@ -100,7 +100,7 @@ const Orderdetail = () => {
         },
         {
           label: "Không",
-          onClick: () => {}, 
+          onClick: () => {},
         },
       ],
     });
@@ -343,7 +343,7 @@ const Orderdetail = () => {
             </div>
           </div>
 
-          {/* Quay lại danh sách */}
+          {/* Quay lại danh sách hihi */}
           <div className="mt-6">
             <Link
               to="/admin/orders"

@@ -66,13 +66,24 @@ const Checkcart = () => {
       } else {
         console.error("Không có dữ liệu người dùng");
         message.warning("Vui lòng đăng nhập để tiếp tục");
+        navigate("/login");
       }
     };
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
+
+    if (!cart || cart.length === 0) {
+      message.error("Giỏ hàng trống!");
+      return;
+    }
+
+    if (!userInfo._id || !userInfo.HoVaTen || !userInfo.SDT || !userInfo.DiaChi) {
+      message.error("Thông tin người dùng không đầy đủ!");
+      return;
+    }
 
     Modal.confirm({
       title: "Xác nhận đặt hàng",
@@ -103,6 +114,7 @@ const Checkcart = () => {
             address: userInfo.DiaChi,
           },
           orderNote,
+          paymentMethod: "COD",
         };
 
         try {
@@ -119,7 +131,7 @@ const Checkcart = () => {
                   (promo) => promo.MaKM === storedVoucher.code
                 );
                 if (promotion) {
-                  await updateVoucherStatus(promotion._id, 1); // Cập nhật trạng thái thành "Đã sử dụng"
+                  await updateVoucherStatus(promotion._id, 1);
                 }
               }
               localStorage.removeItem(`cart_${userId}`);
@@ -128,7 +140,7 @@ const Checkcart = () => {
 
             window.dispatchEvent(new Event("cartUpdated"));
             message.success("Đặt hàng thành công!");
-            navigate(`/profile-receipt/${response.data._id}`);
+            navigate(`/profile-receipt/${response.data.data?._id || response.data._id}`);
           }
         } catch (error) {
           console.error("Lỗi khi tạo đơn hàng:", error);
@@ -141,6 +153,21 @@ const Checkcart = () => {
   };
 
   const handleVNPayPayment = async () => {
+    if (!cart || cart.length === 0) {
+      message.error("Giỏ hàng trống!");
+      return;
+    }
+
+    if (!userInfo._id || !userInfo.HoVaTen || !userInfo.SDT || !userInfo.DiaChi) {
+      message.error("Thông tin người dùng không đầy đủ!");
+      return;
+    }
+
+    if (!finalTotal || finalTotal <= 0) {
+      message.error("Tổng tiền thanh toán không hợp lệ!");
+      return;
+    }
+
     Modal.confirm({
       title: "Xác nhận thanh toán VNPay",
       content: "Bạn có chắc chắn muốn thanh toán qua VNPay không?",
@@ -173,8 +200,34 @@ const Checkcart = () => {
             paymentMethod: "VNPay",
           };
 
+          console.log("Order data:", orderData);
+
           const response = await createOrder(orderData);
-          const orderId = response.data._id;
+          console.log("Create order response:", response);
+
+          const orderId = response.data.data?._id || response.data._id;
+          if (!orderId) {
+            throw new Error("Không lấy được ID đơn hàng");
+          }
+
+          const vnpayData = {
+            amount: finalTotal,
+            orderId: orderId,
+            orderInfo: `Thanh toan don hang ${orderId}`,
+            returnUrl: `${window.location.origin}/order-return`,
+          };
+          console.log("VNPay data:", vnpayData);
+
+          if (!vnpayData.amount || !vnpayData.orderId || !vnpayData.orderInfo || !vnpayData.returnUrl) {
+            throw new Error("Dữ liệu thanh toán VNPay không hợp lệ");
+          }
+
+          const vnpayResponse = await createVNPayPayment(vnpayData);
+          console.log("VNPay response:", vnpayResponse);
+
+          if (!vnpayResponse.data.paymentUrl) {
+            throw new Error("Không nhận được URL thanh toán từ VNPay");
+          }
 
           const userData = JSON.parse(localStorage.getItem("userData"));
           const userId = userData?.id;
@@ -186,7 +239,7 @@ const Checkcart = () => {
                 (promo) => promo.MaKM === storedVoucher.code
               );
               if (promotion) {
-                await updateVoucherStatus(promotion._id, 1); // Cập nhật trạng thái thành "Đã sử dụng"
+                await updateVoucherStatus(promotion._id, 1);
               }
             }
             localStorage.removeItem(`cart_${userId}`);
@@ -194,14 +247,6 @@ const Checkcart = () => {
           }
 
           window.dispatchEvent(new Event("cartUpdated"));
-
-          const vnpayResponse = await createVNPayPayment({
-            amount: finalTotal,
-            orderId: orderId,
-            orderInfo: `Thanh toan don hang ${orderId}`,
-            returnUrl: `${window.location.origin}/order-return`,
-          });
-
           window.location.href = vnpayResponse.data.paymentUrl;
         } catch (error) {
           console.error("Lỗi xử lý thanh toán VNPay:", error);

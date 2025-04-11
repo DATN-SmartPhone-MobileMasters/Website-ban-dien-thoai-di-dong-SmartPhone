@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Tag, Button, message, Modal, Input, Form } from 'antd';
+import { Table, Tag, Button, message, Modal, Select, DatePicker } from 'antd';
 import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
-import axios from 'axios';
+import moment from 'moment'; // Thêm moment để xử lý định dạng ngày
 
-const API_URL = `http://localhost:5000/api`;
+const { Option } = Select;
 
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({
     Email: '',
@@ -21,6 +22,56 @@ const ProfileReceipt = () => {
       setUserData(JSON.parse(storedUserData));
     }
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (userData.id) {
+          const response = await fetchOrdersByUserId(userData.id);
+          // Sắp xếp đơn hàng theo createdAt giảm dần
+          const sortedOrders = response.data.data.sort((a, b) =>
+            new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setOrders(sortedOrders);
+          setFilteredOrders(sortedOrders); // Ban đầu hiển thị tất cả
+        }
+      } catch (error) {
+        message.error('Lỗi tải danh sách đơn hàng');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [userData.id]);
+
+  // Xử lý lọc và sắp xếp khi các bộ lọc thay đổi
+  useEffect(() => {
+    let filtered = [...orders];
+
+    // Lọc theo trạng thái
+    if (statusFilter) {
+      filtered = filtered.filter(
+        (order) => order.paymentStatus === statusFilter
+      );
+    }
+
+    // Lọc theo ngày
+    if (dateFilter) {
+      filtered = filtered.filter((order) => {
+        const createdAt = moment(order.createdAt).format('MM/DD/YY');
+        return createdAt === dateFilter;
+      });
+    }
+
+    // Sắp xếp theo tổng tiền
+    if (sortTotal === 'high-to-low') {
+      filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
+    } else if (sortTotal === 'low-to-high') {
+      filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
+    }
+
+    setFilteredOrders(filtered);
+  }, [statusFilter, dateFilter, sortTotal, orders]);
 
   const columns = [
     {
@@ -39,7 +90,13 @@ const ProfileReceipt = () => {
       title: 'Ngày đặt hàng',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date) => new Date(date).toLocaleDateString(),
+      render: (date) => moment(date).format('MM/DD/YY'), 
+    },
+    {
+      title: 'Tổng tiền',
+      dataIndex: 'total',
+      key: 'total',
+      render: (total) => (total ? `${total.toLocaleString()} VND` : 'Không có'),
     },
     {
       title: 'Chi tiết đơn hàng',
@@ -87,7 +144,7 @@ const ProfileReceipt = () => {
         return (
           <>
             {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+              <Button danger onClick={() => handleCancelOrder(record._id)}>
                 Huỷ đơn
               </Button>
             )}
@@ -262,9 +319,58 @@ const ProfileReceipt = () => {
 
           <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
+            {/* Bộ lọc */}
+            <div className="mb-6 flex items-center gap-6">
+              <div>
+                <label htmlFor="statusFilter" className="mr-2">
+                  Lọc theo trạng thái:
+                </label>
+                <Select
+                  id="statusFilter"
+                  value={statusFilter}
+                  onChange={(value) => setStatusFilter(value)}
+                  style={{ width: 200 }}
+                  placeholder="Chọn trạng thái"
+                >
+                  <Option value="">Tất cả</Option>
+                  <Option value="Chờ xử lý">Chờ xử lý</Option>
+                  <Option value="Đã Xác Nhận">Đã Xác Nhận</Option>
+                  <Option value="Huỷ Đơn">Huỷ Đơn</Option>
+                  <Option value="Hoàn thành">Hoàn thành</Option>
+                </Select>
+              </div>
+              <div>
+                <label htmlFor="dateFilter" className="mr-2">
+                  Tìm theo ngày:
+                </label>
+                <DatePicker
+                  id="dateFilter"
+                  format="MM/DD/YY"
+                  onChange={(date, dateString) => setDateFilter(dateString)}
+                  style={{ width: 200 }}
+                  placeholder="Chọn ngày"
+                />
+              </div>
+              <div>
+                <label htmlFor="sortTotal" className="mr-2">
+                  Sắp xếp tổng tiền:
+                </label>
+                <Select
+                  id="sortTotal"
+                  value={sortTotal}
+                  onChange={(value) => setSortTotal(value)}
+                  style={{ width: 200 }}
+                  placeholder="Chọn sắp xếp"
+                >
+                  <Option value="">Mặc định</Option>
+                  <Option value="high-to-low">Cao đến thấp</Option>
+                  <Option value="low-to-high">Thấp đến cao</Option>
+                </Select>
+              </div>
+            </div>
             <Table
               columns={columns}
-              dataSource={orders}
+              dataSource={filteredOrders}
               rowKey="_id"
               loading={loading}
               scroll={{ x: 1000 }}

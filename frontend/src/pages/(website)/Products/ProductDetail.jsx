@@ -154,15 +154,33 @@ const ProductDetail = () => {
     getProducts(id)
       .then((response) => {
         const productData = response.data.data;
-        setProduct(productData);
-        if (productData.BoNhoTrong1) {
+        const userData = JSON.parse(localStorage.getItem("userData"));
+        const userId = userData?.id;
+        const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+
+        // Cập nhật số lượng dựa trên giỏ hàng trong localStorage
+        let updatedProduct = { ...productData };
+        cartItems.forEach((item) => {
+          if (item.id === productData._id) {
+            const memoryKey =
+              item.memory === productData.BoNhoTrong1
+                ? "SoLuong1"
+                : item.memory === productData.BoNhoTrong2
+                ? "SoLuong2"
+                : "SoLuong3";
+            updatedProduct[memoryKey] -= item.quantity;
+          }
+        });
+
+        setProduct(updatedProduct);
+        if (updatedProduct.BoNhoTrong1) {
           setSelectedMemory({
-            memory: productData.BoNhoTrong1,
-            price: productData.GiaSP1,
-            quantity: productData.SoLuong1,
+            memory: updatedProduct.BoNhoTrong1,
+            price: updatedProduct.GiaSP1,
+            quantity: updatedProduct.SoLuong1,
           });
         }
-        if (productData.HinhAnh1) setSelectedImage(productData.HinhAnh1);
+        if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
         setLoading(false);
 
         fetchProducts().then((response) => {
@@ -191,6 +209,39 @@ const ProductDetail = () => {
         setError("Không thể tải chi tiết sản phẩm.");
         setLoading(false);
       });
+
+    // Lắng nghe sự kiện cartUpdated để cập nhật số lượng
+    const handleCartUpdate = () => {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.id;
+      const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+      getProducts(id).then((response) => {
+        let updatedProduct = { ...response.data.data };
+        cartItems.forEach((item) => {
+          if (item.id === id) {
+            const memoryKey =
+              item.memory === updatedProduct.BoNhoTrong1
+                ? "SoLuong1"
+                : item.memory === updatedProduct.BoNhoTrong2
+                ? "SoLuong2"
+                : "SoLuong3";
+            updatedProduct[memoryKey] -= item.quantity;
+          }
+        });
+        setProduct(updatedProduct);
+        setSelectedMemory((prev) => ({
+          ...prev,
+          quantity:
+            prev.memory === updatedProduct.BoNhoTrong1
+              ? updatedProduct.SoLuong1
+              : prev.memory === updatedProduct.BoNhoTrong2
+              ? updatedProduct.SoLuong2
+              : updatedProduct.SoLuong3,
+        }));
+      });
+    };
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
   }, [id]);
 
   useEffect(() => {
@@ -385,12 +436,12 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-
+  
     if (!product || !selectedMemory.memory) {
       message.warning("Vui lòng chọn bộ nhớ!");
       return;
     }
-
+  
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
     const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
@@ -400,16 +451,12 @@ const ProductDetail = () => {
         item.memory === selectedMemory.memory &&
         item.color === product.Mau1
     );
-
+  
+    let newQuantityToAdd = 1;
     if (existingItemIndex !== -1) {
-      const newQuantity = cartItems[existingItemIndex].quantity + 1;
-      if (newQuantity > cartItems[existingItemIndex].totalQuantity) {
-        message.warning("Đã đạt đến giới hạn sản phẩm.");
-        return;
-      }
-      cartItems[existingItemIndex].quantity = newQuantity;
+      cartItems[existingItemIndex].quantity += 1;
     } else {
-      if (1 > selectedMemory.quantity) {
+      if (selectedMemory.quantity < 1) {
         message.warning("Sản phẩm đã hết.");
         return;
       }
@@ -422,10 +469,25 @@ const ProductDetail = () => {
         quantity: 1,
         price: selectedMemory.price,
         maxQuantity: selectedMemory.quantity,
-        totalQuantity: selectedMemory.quantity,
       });
     }
-
+  
+    // Cập nhật số lượng trong product và selectedMemory
+    const memoryKey =
+      selectedMemory.memory === product.BoNhoTrong1
+        ? "SoLuong1"
+        : selectedMemory.memory === product.BoNhoTrong2
+        ? "SoLuong2"
+        : "SoLuong3";
+    setProduct((prev) => ({
+      ...prev,
+      [memoryKey]: prev[memoryKey] - newQuantityToAdd,
+    }));
+    setSelectedMemory((prev) => ({
+      ...prev,
+      quantity: prev.quantity - newQuantityToAdd,
+    }));
+  
     localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
     message.success("Sản phẩm đã được thêm vào giỏ hàng!");
     window.dispatchEvent(new Event("cartUpdated"));
@@ -779,7 +841,6 @@ const ProductDetail = () => {
         cancelText="Hủy"
         width={800}
       >
-        {/* Hiển thị danh sách sản phẩm đã chọn */}
         {selectedCompareProducts.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <Text strong>Sản phẩm đã chọn: </Text>
