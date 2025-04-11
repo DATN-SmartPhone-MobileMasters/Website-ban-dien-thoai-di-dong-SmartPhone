@@ -1,13 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { message } from "antd";
+import { message, Select, DatePicker } from "antd";
 import { fetchOrders } from "../../../service/api";
+
+// Hàm formatDate để định dạng ngày tháng
+const formatDate = (dateString) => {
+  if (!dateString) return "Không có";
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const { Option } = Select;
 
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [hiddenOrders, setHiddenOrders] = useState([]);
   const [showHidden, setShowHidden] = useState(false);
+  const [statusFilter, setStatusFilter] = useState(""); // Bộ lọc trạng thái
+  const [dateFilter, setDateFilter] = useState(""); // Bộ lọc ngày
+  const [sortTotal, setSortTotal] = useState(""); // Bộ lọc sắp xếp tổng tiền
   const location = useLocation();
 
   useEffect(() => {
@@ -16,14 +31,12 @@ const OrderList = () => {
         const response = await fetchOrders();
         const storedHiddenOrders = JSON.parse(localStorage.getItem("hiddenOrders")) || [];
         setHiddenOrders(storedHiddenOrders);
-        const all = response.data.data || [];
+        // Sort orders by createdAt in descending order (newest first)
+        const all = (response.data.data || []).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
         setAllOrders(all);
-
-        // Lọc theo trạng thái hiển thị
-        const filtered = showHidden
-          ? all.filter((order) => storedHiddenOrders.includes(order._id))
-          : all.filter((order) => !storedHiddenOrders.includes(order._id));
-        setHoaDons(filtered);
+        applyFilters(all, storedHiddenOrders);
       } catch (error) {
         console.error("Lỗi khi tải danh sách hóa đơn:", error);
         message.error("Lỗi khi tải danh sách hóa đơn!");
@@ -33,13 +46,51 @@ const OrderList = () => {
     getHoaDons();
   }, [location.key, showHidden]);
 
+  // Hàm áp dụng các bộ lọc
+  const applyFilters = (orders, hiddenOrders) => {
+    let filtered = [...orders];
+
+    // Lọc theo trạng thái hiển thị (ẩn hoặc không ẩn)
+    filtered = showHidden
+      ? filtered.filter((order) => hiddenOrders.includes(order._id))
+      : filtered.filter((order) => !hiddenOrders.includes(order._id));
+
+    // Lọc theo trạng thái đơn hàng
+    if (statusFilter) {
+      filtered = filtered.filter((order) => order.paymentStatus === statusFilter);
+    }
+
+    // Lọc theo ngày
+    if (dateFilter) {
+      filtered = filtered.filter((order) => {
+        const createdAt = formatDate(order.createdAt);
+        return createdAt === dateFilter;
+      });
+    }
+
+    // Sắp xếp theo tổng tiền
+    if (sortTotal === "low-to-high") {
+      filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
+    } else if (sortTotal === "high-to-low") {
+      filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
+    } else {
+      // Default sorting: newest orders first
+      filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    setHoaDons(filtered);
+  };
+
+  // Cập nhật bộ lọc khi thay đổi
+  useEffect(() => {
+    applyFilters(allOrders, hiddenOrders);
+  }, [statusFilter, dateFilter, sortTotal, allOrders, hiddenOrders]);
+
   const handleHideOrder = (id) => {
     const updatedHiddenOrders = [...hiddenOrders, id];
     setHiddenOrders(updatedHiddenOrders);
     localStorage.setItem("hiddenOrders", JSON.stringify(updatedHiddenOrders));
-
-    // Cập nhật danh sách đơn hiển thị
-    setHoaDons(hoaDons.filter((order) => order._id !== id));
+    applyFilters(allOrders, updatedHiddenOrders);
     message.success("Đã ẩn đơn hàng thành công");
   };
 
@@ -47,13 +98,7 @@ const OrderList = () => {
     const updatedHiddenOrders = hiddenOrders.filter((item) => item !== id);
     setHiddenOrders(updatedHiddenOrders);
     localStorage.setItem("hiddenOrders", JSON.stringify(updatedHiddenOrders));
-
-    // Cập nhật lại danh sách đơn hiển thị
-    setHoaDons(allOrders.filter((order) =>
-      showHidden
-        ? updatedHiddenOrders.includes(order._id)
-        : !updatedHiddenOrders.includes(order._id)
-    ));
+    applyFilters(allOrders, updatedHiddenOrders);
     message.success("Đã khôi phục đơn hàng");
   };
 
@@ -71,11 +116,55 @@ const OrderList = () => {
           </button>
         </div>
         <div className="card-body">
+          {/* Bộ lọc */}
+          <div className="mb-4 d-flex gap-4">
+            <div>
+              <label className="mr-2">Lọc theo trạng thái:</label>
+              <Select
+                value={statusFilter}
+                onChange={(value) => setStatusFilter(value)}
+                style={{ width: 200 }}
+                placeholder="Chọn trạng thái"
+                allowClear
+              >
+                <Option value="">Tất cả</Option>
+                <Option value="Chờ xử lý">Chờ xử lý</Option>
+                <Option value="Đang giao">Đang giao</Option>
+                <Option value="Hoàn thành">Hoàn thành</Option>
+                <Option value="Huỷ Đơn">Huỷ Đơn</Option>
+              </Select>
+            </div>
+            <div>
+              <label className="mr-2">Lọc theo ngày:</label>
+              <DatePicker
+                format="DD/MM/YYYY"
+                onChange={(date, dateString) => setDateFilter(dateString)}
+                style={{ width: 200 }}
+                placeholder="Chọn ngày"
+                allowClear
+              />
+            </div>
+            <div>
+              <label className="mr-2">Sắp xếp tổng tiền:</label>
+              <Select
+                value={sortTotal}
+                onChange={(value) => setSortTotal(value)}
+                style={{ width: 200 }}
+                placeholder="Chọn sắp xếp"
+                allowClear
+              >
+                <Option value="">Mặc định</Option>
+                <Option value="low-to-high">Thấp đến cao</Option>
+                <Option value="high-to-low">Cao đến thấp</Option>
+              </Select>
+            </div>
+          </div>
           <div className="table-responsive">
             <table className="table table-hover table-bordered dataTable no-footer">
               <thead>
                 <tr>
                   <th>STT</th>
+                  <th>Ngày tạo</th>
                   <th>Người nhận</th>
                   <th>Số điện thoại</th>
                   <th>Địa chỉ</th>
@@ -89,14 +178,14 @@ const OrderList = () => {
                   hoaDons.map((hoaDon, i) => (
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
-                      <td>
-                        {hoaDon.createdAt ? formatDate(hoaDon.createdAt) : "Không có"}
-                      </td>
+                      <td>{formatDate(hoaDon.createdAt)}</td>
                       <td>{hoaDon.shippingInfo.name || "Không có"}</td>
                       <td>{hoaDon.shippingInfo.phone || "Không có"}</td>
                       <td>{hoaDon.shippingInfo.address || "Không có"}</td>
                       <td>
-                        {hoaDon.total ? `${hoaDon.total.toLocaleString()} VND` : "Không có"}
+                        {hoaDon.total
+                          ? `${hoaDon.total.toLocaleString()} VND`
+                          : "Không có"}
                       </td>
                       <td>{hoaDon.paymentStatus || "Không có"}</td>
                       <td>
@@ -106,7 +195,7 @@ const OrderList = () => {
                         >
                           👁️ Xem chi tiết
                         </Link>
-                        {!showHidden && (
+                        {!showHidden &&
                           (hoaDon.paymentStatus === "Huỷ Đơn" ||
                             hoaDon.paymentStatus === "Hoàn thành") && (
                             <button
@@ -115,8 +204,7 @@ const OrderList = () => {
                             >
                               🚫 Ẩn đơn hàng
                             </button>
-                          )
-                        )}
+                          )}
                         {showHidden && (
                           <button
                             onClick={() => handleRestoreOrder(hoaDon._id)}
