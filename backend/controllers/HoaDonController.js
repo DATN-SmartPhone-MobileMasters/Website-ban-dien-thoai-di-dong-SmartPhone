@@ -1,7 +1,8 @@
 import hoadon from "../models/HoaDon.js";
-import SanPham from "../models/SanPham.js"; // Thêm import SanPham
+import SanPham from "../models/SanPham.js";
 import crypto from "crypto";
 import moment from "moment";
+import { io } from "../server.js"; // Import io từ server.js
 
 class HoaDonController {
   // Lấy danh sách hóa đơn
@@ -13,6 +14,7 @@ class HoaDonController {
         data: hoaDons,
       });
     } catch (error) {
+      console.error("Error in apiList:", error.message);
       res.status(500).json({
         message: "Lỗi khi lấy dữ liệu",
         error: error.message,
@@ -36,6 +38,7 @@ class HoaDonController {
         data: hoaDon,
       });
     } catch (error) {
+      console.error("Error in apiDetail:", error.message);
       res.status(500).json({
         message: "Lỗi khi lấy chi tiết",
         error: error.message,
@@ -53,6 +56,7 @@ class HoaDonController {
         data: hoaDons,
       });
     } catch (error) {
+      console.error("Error in apiListByUserId:", error.message);
       res.status(500).json({
         message: "Lỗi khi lấy dữ liệu",
         error: error.message,
@@ -63,12 +67,10 @@ class HoaDonController {
   // Tạo hóa đơn mới
   async apiCreate(req, res) {
     try {
-      // Đặt trạng thái mặc định là "Chờ xử lý" nếu không được cung cấp
       if (!req.body.paymentStatus) {
         req.body.paymentStatus = "Chờ xử lý";
       }
 
-      // Lấy danh sách sản phẩm từ request body
       const { products } = req.body;
       if (!products || !Array.isArray(products) || products.length === 0) {
         return res.status(400).json({
@@ -76,21 +78,17 @@ class HoaDonController {
         });
       }
 
-      // Tạo mảng để lưu các cập nhật sản phẩm
       const productUpdates = [];
 
-      // Duyệt qua từng sản phẩm trong đơn hàng
       for (const product of products) {
         const { productId, memory, quantity } = product;
 
-        // Kiểm tra dữ liệu đầu vào
         if (!productId || !memory || !quantity || quantity <= 0) {
           return res.status(400).json({
             message: "Thông tin sản phẩm không hợp lệ",
           });
         }
 
-        // Tìm sản phẩm trong cơ sở dữ liệu
         const sanPham = await SanPham.findById(productId);
         if (!sanPham) {
           return res.status(404).json({
@@ -98,7 +96,6 @@ class HoaDonController {
           });
         }
 
-        // Xác định trường số lượng cần cập nhật dựa trên memory
         let quantityField = null;
         if (memory === sanPham.BoNhoTrong1) {
           quantityField = "SoLuong1";
@@ -112,7 +109,6 @@ class HoaDonController {
           });
         }
 
-        // Kiểm tra số lượng tồn kho
         const currentQuantity = sanPham[quantityField];
         if (currentQuantity < quantity) {
           return res.status(400).json({
@@ -120,7 +116,6 @@ class HoaDonController {
           });
         }
 
-        // Tạo bản cập nhật cho sản phẩm
         productUpdates.push({
           productId,
           quantityField,
@@ -128,7 +123,6 @@ class HoaDonController {
         });
       }
 
-      // Cập nhật số lượng sản phẩm trong cơ sở dữ liệu
       for (const update of productUpdates) {
         await SanPham.findByIdAndUpdate(
           update.productId,
@@ -137,7 +131,6 @@ class HoaDonController {
         );
       }
 
-      // Tạo và lưu đơn hàng mới
       const newOrder = new hoadon(req.body);
       const savedOrder = await newOrder.save();
 
@@ -146,6 +139,7 @@ class HoaDonController {
         data: savedOrder,
       });
     } catch (error) {
+      console.error("Error in apiCreate:", error.message);
       res.status(400).json({
         message: "Lỗi khi tạo hóa đơn",
         error: error.message,
@@ -156,36 +150,36 @@ class HoaDonController {
   // Chỉnh sửa hóa đơn
   async apiEdit(req, res) {
     try {
+      console.log("apiEdit called with params:", req.params, "body:", req.body);
       const id = req.params.id;
       const updates = req.body;
+
       const hoaDon = await hoadon.findById(id);
-  
       if (!hoaDon) {
+        console.log("Order not found:", id);
         return res.status(404).json({
           message: "Không tìm thấy hóa đơn để cập nhật",
         });
       }
-  
-      // Nếu trạng thái mới là "Huỷ Đơn" và trạng thái hiện tại là "Chờ xử lý" hoặc "Đã Xác Nhận"
+
       if (
         updates.paymentStatus === "Huỷ Đơn" &&
         ["Chờ xử lý", "Đã Xác Nhận"].includes(hoaDon.paymentStatus)
       ) {
-        // Lấy danh sách sản phẩm từ đơn hàng
         const { products } = hoaDon;
         if (products && Array.isArray(products)) {
           for (const product of products) {
+            console.log("Processing product:", product.productId, "memory:", product.memory);
             const { productId, memory, quantity } = product;
-  
-            // Tìm sản phẩm trong cơ sở dữ liệu
+
             const sanPham = await SanPham.findById(productId);
             if (!sanPham) {
+              console.log("Product not found:", productId);
               return res.status(404).json({
                 message: `Không tìm thấy sản phẩm với ID ${productId}`,
               });
             }
-  
-            // Xác định trường số lượng cần cập nhật dựa trên memory
+
             let quantityField = null;
             if (memory === sanPham.BoNhoTrong1) {
               quantityField = "SoLuong1";
@@ -194,13 +188,22 @@ class HoaDonController {
             } else if (memory === sanPham.BoNhoTrong3) {
               quantityField = "SoLuong3";
             } else {
+              console.log("Invalid memory variant:", memory, "for product:", sanPham.TenSP);
               return res.status(400).json({
                 message: `Biến thể bộ nhớ ${memory} không hợp lệ cho sản phẩm ${sanPham.TenSP}`,
               });
             }
-  
-            // Cộng lại số lượng đã trừ trước đó
+
             const currentQuantity = sanPham[quantityField];
+            console.log(
+              "Updating product quantity:",
+              productId,
+              quantityField,
+              "from",
+              currentQuantity,
+              "to",
+              currentQuantity + quantity
+            );
             await SanPham.findByIdAndUpdate(
               productId,
               { [quantityField]: currentQuantity + quantity },
@@ -209,18 +212,30 @@ class HoaDonController {
           }
         }
       }
-  
-      // Cập nhật hóa đơn
+
+      console.log("Updating order with updates:", updates);
       const updatedHoaDon = await hoadon.findByIdAndUpdate(id, updates, {
         new: true,
         runValidators: true,
       });
-  
+
+      // Phát sự kiện Socket.IO
+      console.log("Emitting orderStatusUpdated event for order:", updatedHoaDon._id);
+      io.emit("orderStatusUpdated", {
+        orderId: updatedHoaDon._id,
+        paymentStatus: updatedHoaDon.paymentStatus,
+        userId: updatedHoaDon.userId,
+        cancelledBy: updatedHoaDon.cancelledBy,
+        cancellationDate: updatedHoaDon.cancellationDate,
+        FeedBack: updatedHoaDon.FeedBack,
+      });
+
       res.status(200).json({
         message: "Cập nhật hóa đơn thành công",
         data: updatedHoaDon,
       });
     } catch (error) {
+      console.error("Error in apiEdit:", error.message, error.stack);
       res.status(500).json({
         message: "Lỗi khi cập nhật hóa đơn",
         error: error.message,
@@ -245,6 +260,7 @@ class HoaDonController {
         data: deletedHoaDon,
       });
     } catch (error) {
+      console.error("Error in apiDelete:", error.message);
       res.status(500).json({
         message: "Lỗi khi xóa hóa đơn",
         error: error.message,
@@ -260,10 +276,8 @@ class HoaDonController {
       const doanhThuTheoNgay = await hoadon.aggregate([
         matchCompletedOrders,
         {
-          $group: {
-            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-            tongDoanhThu: { $sum: "$total" },
-          },
+         既に: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          tongDoanhThu: { $sum: "$total" },
         },
         { $sort: { _id: 1 } },
       ]);
@@ -319,6 +333,7 @@ class HoaDonController {
         tongDoanhThuTheoTuan,
       });
     } catch (error) {
+      console.error("Error in thongKeDoanhThu:", error.message);
       res.status(500).json({ message: error.message });
     }
   }
@@ -328,12 +343,10 @@ class HoaDonController {
     try {
       const { amount, orderId, orderInfo, returnUrl } = req.body;
 
-      // Validate input
       if (!amount || !orderId || !orderInfo || !returnUrl) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Validate environment variables
       if (
         !process.env.VNP_TMNCODE ||
         !process.env.VNP_HASH_SECRET ||
@@ -347,7 +360,6 @@ class HoaDonController {
         req.ip ||
         req.connection.remoteAddress;
 
-      // Create parameters object
       const vnpParams = {
         vnp_Version: "2.1.0",
         vnp_Command: "pay",
@@ -363,7 +375,6 @@ class HoaDonController {
         vnp_CreateDate: moment().format("YYYYMMDDHHmmss"),
       };
 
-      // Sort parameters alphabetically
       const sortedParams = {};
       Object.keys(vnpParams)
         .sort()
@@ -371,20 +382,16 @@ class HoaDonController {
           sortedParams[key] = vnpParams[key];
         });
 
-      // Create query string for signing
       const signData = new URLSearchParams(sortedParams).toString();
 
-      // Create secure hash
       const hmac = crypto.createHmac("sha512", process.env.VNP_HASH_SECRET);
       const signed = hmac.update(signData).digest("hex");
 
-      // Add secure hash to parameters
       const finalParams = {
         ...sortedParams,
         vnp_SecureHash: signed,
       };
 
-      // Build payment URL
       const paymentUrl =
         process.env.VNP_URL +
         "?" +
@@ -408,13 +415,8 @@ class HoaDonController {
   // Xử lý kết quả trả về từ VNPay
   async apiHandleVNPayReturn(req, res) {
     try {
-      const {
-        vnp_TxnRef,
-        vnp_ResponseCode,
-        vnp_TransactionNo,
-      } = req.query;
+      const { vnp_TxnRef, vnp_ResponseCode, vnp_TransactionNo } = req.query;
 
-      // Validate required fields
       if (!vnp_TxnRef || !vnp_ResponseCode) {
         return res.status(400).json({
           success: false,
@@ -422,7 +424,6 @@ class HoaDonController {
         });
       }
 
-      // Find and update the order
       const order = await hoadon.findByIdAndUpdate(
         vnp_TxnRef,
         {
@@ -441,6 +442,17 @@ class HoaDonController {
         });
       }
 
+      // Phát sự kiện Socket.IO
+      console.log("Emitting orderStatusUpdated event for VNPay return:", order._id);
+      io.emit("orderStatusUpdated", {
+        orderId: order._id,
+        paymentStatus: order.paymentStatus,
+        userId: order.userId,
+        cancelledBy: order.cancelledBy,
+        cancellationDate: order.cancellationDate,
+        FeedBack: order.FeedBack,
+      });
+
       res.json({
         success: true,
         orderId: order._id,
@@ -451,6 +463,7 @@ class HoaDonController {
       res.status(500).json({
         success: false,
         message: "Lỗi hệ thống khi xử lý kết quả thanh toán",
+        error: error.message,
       });
     }
   }
