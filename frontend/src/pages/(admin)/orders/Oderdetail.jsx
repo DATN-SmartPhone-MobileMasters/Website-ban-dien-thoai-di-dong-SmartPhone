@@ -20,11 +20,9 @@ const Orderdetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Get order data
         const { data } = await axios.get(`${API_URL}/hoadons/${id}`);
         setHoaDon(data.data);
 
-        // Get current user data
         const userId = localStorage.getItem('userId');
         if (userId) {
           const userResponse = await getUserById(userId);
@@ -260,7 +258,7 @@ const Orderdetail = () => {
             <div>
               <p className="text-sm text-red-600">Huỷ Bởi:</p>
               <p className="font-medium text-red-800">
-                {hoaDon.cancelledBy?.role}
+              {hoaDon.cancelledBy?.name}-{hoaDon.cancelledBy?.role}
               </p>
             </div>
             <div>

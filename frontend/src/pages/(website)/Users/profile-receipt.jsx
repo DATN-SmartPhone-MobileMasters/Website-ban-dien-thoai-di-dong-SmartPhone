@@ -179,6 +179,7 @@ const ProfileReceipt = () => {
             cancelledBy: {
               userId: userData.id,
               role: role,
+              name:userData.Email,
             },
             cancellationDate: new Date()
           });
@@ -204,27 +205,23 @@ const ProfileReceipt = () => {
   };
 
   useEffect(() => {
-    const handleStatusChange = () => {
-      const fetchData = async () => {
-        try {
-          if (userData.id) {
-            const response = await fetchOrdersByUserId(userData.id);
-            const visibleOrders = response.data.data.filter(
-              order => order.paymentStatus !== 'Huỷ Đơn'
-            );
-            setOrders(visibleOrders);
-          }
-        } catch (error) {
-          message.error('Lỗi tải danh sách đơn hàng');
+    const fetchData = async () => {
+      try {
+        if (userData.id) {
+          const response = await fetchOrdersByUserId(userData.id);
+          // Filter out cancelled orders
+          const visibleOrders = response.data.data.filter(
+            order => order.paymentStatus !== 'Huỷ Đơn'
+          );
+          setOrders(visibleOrders);
         }
-      };
-      fetchData();
+      } catch (error) {
+        message.error('Lỗi tải danh sách đơn hàng');
+      } finally {
+        setLoading(false);
+      }
     };
-
-    window.addEventListener('orderStatusChanged', handleStatusChange);
-    return () => {
-      window.removeEventListener('orderStatusChanged', handleStatusChange);
-    };
+    fetchData();
   }, [userData.id]);
 
   return (
