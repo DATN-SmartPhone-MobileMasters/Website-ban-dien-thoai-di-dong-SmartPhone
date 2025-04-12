@@ -268,75 +268,95 @@ class HoaDonController {
     }
   }
 
-  // Thống kê doanh thu
-  async thongKeDoanhThu(req, res) {
-    try {
-      const matchCompletedOrders = { $match: { paymentStatus: "Hoàn thành" } };
 
-      const doanhThuTheoNgay = await hoadon.aggregate([
-        matchCompletedOrders,
-        {
-         既に: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+// Thống kê doanh thu
+async thongKeDoanhThu(req, res) {
+  try {
+    const matchCompletedOrders = { $match: { paymentStatus: "Hoàn thành" } };
+
+    // Doanh thu theo ngày, giờ và sản phẩm
+    const doanhThuTheoNgay = await hoadon.aggregate([
+      matchCompletedOrders,
+      { $unwind: "$products" }, // tách từng sản phẩm
+      {
+        $group: {
+          _id: {
+            ngay: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            gio: { $hour: "$createdAt" },
+          },
+          tongDoanhThu: { $sum: "$total" },
+          sanPhamDaBan: {
+            $push: {
+              TenSP: "$products.name",
+              memory: "$products.memory",
+              quantity: "$products.quantity",
+              image: "$products.image",
+              thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } }, // 👈 thêm dòng này
+            },
+          },
+        },
+      },
+      { $sort: { "_id.ngay": 1, "_id.gio": 1 } },
+    ]);
+    
+
+    const doanhThuTheoTuan = await hoadon.aggregate([
+      matchCompletedOrders,
+      {
+        $group: {
+          _id: { $week: "$createdAt" },
           tongDoanhThu: { $sum: "$total" },
         },
-        { $sort: { _id: 1 } },
-      ]);
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-      const doanhThuTheoTuan = await hoadon.aggregate([
-        matchCompletedOrders,
-        {
-          $group: {
-            _id: { $week: "$createdAt" },
-            tongDoanhThu: { $sum: "$total" },
-          },
+    const doanhThuTheoThang = await hoadon.aggregate([
+      matchCompletedOrders,
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          tongDoanhThu: { $sum: "$total" },
         },
-        { $sort: { _id: 1 } },
-      ]);
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-      const doanhThuTheoThang = await hoadon.aggregate([
-        matchCompletedOrders,
-        {
-          $group: {
-            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-            tongDoanhThu: { $sum: "$total" },
-          },
+    const doanhThuTheoNam = await hoadon.aggregate([
+      matchCompletedOrders,
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y", date: "$createdAt" } },
+          tongDoanhThu: { $sum: "$total" },
         },
-        { $sort: { _id: 1 } },
-      ]);
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-      const doanhThuTheoNam = await hoadon.aggregate([
-        matchCompletedOrders,
-        {
-          $group: {
-            _id: { $dateToString: { format: "%Y", date: "$createdAt" } },
-            tongDoanhThu: { $sum: "$total" },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]);
+    const tongDoanhThuTheoNgay = doanhThuTheoNgay.reduce(
+      (acc, item) => acc + item.tongDoanhThu,
+      0
+    );
+    const tongDoanhThuTheoTuan = doanhThuTheoTuan.reduce(
+      (acc, item) => acc + item.tongDoanhThu,
+      0
+    );
 
-      const tongDoanhThuTheoNgay = doanhThuTheoNgay.reduce(
-        (acc, item) => acc + item.tongDoanhThu,
-        0
-      );
-      const tongDoanhThuTheoTuan = doanhThuTheoTuan.reduce(
-        (acc, item) => acc + item.tongDoanhThu,
-        0
-      );
-
-      res.status(200).json({
-        doanhThuTheoNgay,
-        doanhThuTheoTuan,
-        doanhThuTheoThang,
-        doanhThuTheoNam,
-        tongDoanhThuTheoNgay,
-        tongDoanhThuTheoTuan,
-      });
-    } catch (error) {
-      console.error("Error in thongKeDoanhThu:", error.message);
-      res.status(500).json({ message: error.message });
-    }
+    res.status(200).json({
+      doanhThuTheoNgay,
+      doanhThuTheoTuan,
+      doanhThuTheoThang,
+      doanhThuTheoNam,
+      tongDoanhThuTheoNgay,
+      tongDoanhThuTheoTuan,
+    });
+  } catch (error) {
+    console.error("Error in thongKeDoanhThu:", error.message);
+    res.status(500).json({ message: error.message });
   }
+}
+
+
 
   // Tạo thanh toán VNPay
   async apiCreateVNPayPayment(req, res) {
@@ -427,8 +447,7 @@ class HoaDonController {
       const order = await hoadon.findByIdAndUpdate(
         vnp_TxnRef,
         {
-          paymentStatus: "Chờ xử lý",
-          checkPayment: vnp_ResponseCode === "00" ? "Đã Thanh Toán" : "Chưa Thanh Toán",
+          paymentStatus: vnp_ResponseCode === "00" ? "Chờ xử lý" : "Huỷ Đơn",
           vnp_TransactionNo,
           vnp_ResponseCode,
           updatedAt: new Date(),

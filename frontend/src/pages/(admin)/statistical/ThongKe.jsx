@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { fetchThongKeDoanhThu } from "../../../service/api";
 import { Chart, registerables } from "chart.js";
+
 Chart.register(...registerables);
 
 const ThongKe = () => {
@@ -38,7 +39,7 @@ const ThongKe = () => {
       chartRef.current = new Chart(canvasRef.current, {
         type: "bar",
         data: {
-          labels: thongKeDoanhThu.doanhThuTheoNgay.map((item) => item._id),
+          labels: thongKeDoanhThu.doanhThuTheoNgay.map((item) => `${item._id.ngay} ${item._id.gio}h`),
           datasets: [
             {
               label: "Doanh Thu Theo Ngày",
@@ -51,13 +52,33 @@ const ThongKe = () => {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false, // Cho phép mở rộng full 2 bên
+          maintainAspectRatio: false,
           scales: {
             x: {
               ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 },
             },
             y: {
               beginAtZero: true,
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                title: (tooltipItems) => {
+                  const index = tooltipItems[0].dataIndex;
+                  const item = thongKeDoanhThu.doanhThuTheoNgay[index];
+                  return `Ngày: ${item.date || item._id}`;
+                },
+                label: (tooltipItem) => {
+                  const index = tooltipItem.dataIndex;
+                  const products = thongKeDoanhThu.doanhThuTheoNgay[index].sanPhamDaBan;
+                
+                  return products.map((p) => 
+                    `${p.TenSP} (${p.memory}) - ${p.quantity} sản phẩm - Bán lúc: ${p.thoiGianBan}`
+                  );
+                }
+                
+              },
             },
           },
         },
@@ -73,44 +94,30 @@ const ThongKe = () => {
 
   return (
     <div style={{ width: "100%", padding: "20px", fontFamily: "Arial" }}>
-      {/* Doanh thu theo ngày */}
+      {/* Tiêu đề */}
       <div style={{ marginBottom: "20px" }}>
-        <h2 style={{ color: "#333", marginBottom: "8px" }}>Theo Ngày</h2>
-        <select
-          style={{
-            width: "100%",
-            padding: "8px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-            cursor: "pointer",
-          }}
-        >
-          {thongKeDoanhThu.doanhThuTheoNgay.map((item) => (
-            <option key={item._id} value={item._id}>
-              {item._id}: {item.tongDoanhThu.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
-            </option>
-          ))}
-        </select>
+        <h2 style={{ color: "#333", marginBottom: "8px" }}>Thống Kê Doanh Thu</h2>
       </div>
 
-      {/* Thống kê theo tuần, tháng, năm */}
+      {/* Cards thống kê */}
       <div className="row">
+        {/* Tổng doanh thu theo tuần */}
         <div className="col-xl-4 col-md-6 mb-4">
           <div className="card border-left-primary shadow h-100 py-2">
             <div className="card-body">
-              <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng:</div>
+              <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng Tuần</div>
               <div className="h5 mb-0 font-weight-bold text-gray-800">
-                <p>{thongKeDoanhThu.tongDoanhThuTheoTuan.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</p>
+                {thongKeDoanhThu.tongDoanhThuTheoTuan?.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
               </div>
             </div>
           </div>
         </div>
 
+        {/* Chọn tháng */}
         <div className="col-xl-4 col-md-6 mb-4">
           <div className="card border-left-info shadow h-100 py-2">
             <div className="card-body">
-              <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Chọn Tháng:</div>
+              <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Chọn Tháng</div>
               <select className="form-control font-weight-bold text-gray-800 custom-select">
                 {thongKeDoanhThu.doanhThuTheoThang.map((item) => (
                   <option key={item._id} value={item._id}>
@@ -122,10 +129,11 @@ const ThongKe = () => {
           </div>
         </div>
 
+        {/* Chọn năm */}
         <div className="col-xl-4 col-md-6 mb-4">
           <div className="card border-left-warning shadow h-100 py-2">
             <div className="card-body">
-              <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">Chọn Năm:</div>
+              <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">Chọn Năm</div>
               <select className="form-control font-weight-bold text-gray-800">
                 {thongKeDoanhThu.doanhThuTheoNam.map((item) => (
                   <option key={item._id} value={item._id}>
@@ -138,7 +146,7 @@ const ThongKe = () => {
         </div>
       </div>
 
-      {/* Biểu đồ doanh thu theo ngày - FULL WIDTH */}
+      {/* Biểu đồ doanh thu theo ngày */}
       <div style={{ width: "100%", height: "500px" }}>
         <canvas ref={canvasRef}></canvas>
       </div>
