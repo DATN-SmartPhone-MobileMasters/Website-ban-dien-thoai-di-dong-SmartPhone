@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Table, Tag, Button, message, Modal, Select, DatePicker, Form, Input } from 'antd';
-import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
+import { fetchOrdersByUserId, updateOrder,createVNPayPayment  } from '../../../service/api';
 import moment from 'moment';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -181,21 +181,33 @@ const ProfileReceipt = () => {
           await form.validateFields();
           const userData = JSON.parse(localStorage.getItem('userData'));
           let role = 'User';
-
-          await updateOrder(orderId, {
-            paymentStatus: 'Huỷ Đơn',
-            FeedBack: cancellationReason,
-            cancelledBy: {
-              userId: userData.id,
-              role: role,
-              name: userData.Email,
-            },
-            cancellationDate: new Date(),
-          });
-
           const order = orders.find((order) => order._id === orderId);
           if (order && order.paymentStatus === 'Đã Xác Nhận') {
             await updateProductQuantities(products, 'add');
+          }
+          if (order.paymentMethod === 'COD' || (order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán')) {
+            await updateOrder(orderId, {
+              paymentStatus: 'Huỷ Đơn',
+              FeedBack: cancellationReason,
+              cancelledBy: {
+                userId: userData.id,
+                role: role,
+                name: userData.Email,
+              },
+              cancellationDate: new Date(),
+              ...(order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán' ? { checkPayment: 'Yêu Cầu Hoàn Tiền' } : {}),
+            });
+          } else if (order.paymentMethod === 'VNPay' && order.checkPayment !== 'Đã Thanh Toán') {
+            await updateOrder(orderId, {
+              paymentStatus: 'Huỷ Đơn',
+              FeedBack: cancellationReason,
+              cancelledBy: {
+                userId: userData.id,
+                role: role,
+                name: userData.Email,
+              },
+              cancellationDate: new Date(),
+            });
           }
 
           setOrders(orders.filter((order) => order._id !== orderId));
@@ -210,7 +222,24 @@ const ProfileReceipt = () => {
       },
     });
   };
-
+  const handleRepayment = async (orderId, totalAmount) => {
+    try {
+      const vnpayData = {
+        amount: totalAmount,
+        orderId: orderId,
+        orderInfo: `Thanh toán lại đơn hàng ${orderId}`,
+        returnUrl: `${window.location.origin}/order-return`,
+      };
+  
+      const response = await createVNPayPayment(vnpayData);
+      if (response.data.paymentUrl) {
+        window.location.href = response.data.paymentUrl;
+      }
+    } catch (error) {
+      console.error("Lỗi khi tạo thanh toán VNPay:", error);
+      message.error("Có lỗi xảy ra khi tạo thanh toán VNPay!");
+    }
+  };
   const columns = [
     {
       title: 'Mã đơn hàng',
@@ -281,25 +310,38 @@ const ProfileReceipt = () => {
       render: (_, record) => {
         const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
         const isReviewed = reviewedOrders[record._id];
+        const showRepayment = record.paymentMethod === "VNPay" && record.checkPayment === "Chưa Thanh Toán";
 
         return (
           <>
-            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
-                Huỷ đơn
-              </Button>
-            )}
-            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
-              <Link to={`/adddanhgiauser/${record._id}`}>
-                <Button type="primary">Đánh giá</Button>
-              </Link>
-            )}
-            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
-              <Button type="primary" disabled>
-                Đã đánh giá
-              </Button>
-            )}
-          </>
+          {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+            <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+              Huỷ đơn
+            </Button>
+          )}
+          
+          {showRepayment && (
+            <Button 
+              type="primary" 
+              onClick={() => handleRepayment(record._id, record.total)}
+              style={{ marginLeft: 8 }}
+            >
+              Thanh toán lại
+            </Button>
+          )}
+  
+          {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
+            <Link to={`/adddanhgiauser/${record._id}`}>
+              <Button type="primary" style={{ marginLeft: 8 }}>Đánh giá</Button>
+            </Link>
+          )}
+          
+          {record.paymentStatus === 'Hoàn thành' && isReviewed && (
+            <Button type="primary" disabled style={{ marginLeft: 8 }}>
+              Đã đánh giá
+            </Button>
+          )}
+        </>
         );
       },
     },
