@@ -88,11 +88,21 @@ const Cart = () => {
               newMaxQuantity = productData.SoLuong3;
             }
 
+            let newQuantity = item.quantity;
+            if (newMaxQuantity <= 0) {
+              newQuantity = 0;
+            } else if (newQuantity > newMaxQuantity) {
+              newQuantity = newMaxQuantity;
+            } else if (newQuantity < 0) {
+              newQuantity = 0;
+            }
+
             return {
               ...item,
               price: newPrice,
               name: productData.TenSP,
               maxQuantity: newMaxQuantity,
+              quantity: newQuantity,
               availableMemories: {
                 BoNhoTrong1: productData.BoNhoTrong1,
                 BoNhoTrong2: productData.BoNhoTrong2,
@@ -112,9 +122,13 @@ const Cart = () => {
         })
       );
 
-      setCart(updatedCart);
-      localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
-      const initialSelection = updatedCart.reduce((acc, _, index) => {
+      const validCart = updatedCart.filter(
+        (item) => item.quantity > 0 || item.maxQuantity > 0
+      );
+      setCart(validCart);
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(validCart));
+
+      const initialSelection = validCart.reduce((acc, _, index) => {
         acc[index] = true;
         return acc;
       }, {});
@@ -194,8 +208,6 @@ const Cart = () => {
     const newPrice = productData[`GiaSP${memoryIndex}`];
     const newMaxQuantity = productData[`SoLuong${memoryIndex}`];
 
-    // Nếu bộ nhớ hết hàng, đặt quantity về 0
-    // Nếu bộ nhớ còn hàng, đặt quantity về 1 nếu trước đó là 0, hoặc giữ nguyên nếu lớn hơn 0
     const currentQuantity = newCart[index].quantity;
     const newQuantity =
       newMaxQuantity === 0
@@ -285,8 +297,10 @@ const Cart = () => {
 
     setCart(newCart);
 
-    const newSelectedItems = { ...selectedItems };
-    delete newSelectedItems[index];
+    const newSelectedItems = {};
+    newCart.forEach((_, i) => {
+      newSelectedItems[i] = selectedItems[i] || true;
+    });
     setSelectedItems(newSelectedItems);
 
     message.success("Đã xóa sản phẩm khỏi giỏ hàng!");
@@ -557,6 +571,9 @@ const Cart = () => {
             />
           </Space>
           <Text type="secondary">Còn lại: {record.maxQuantity}</Text>
+          {record.maxQuantity <= 0 && (
+            <Text type="danger">Sản phẩm đã hết hàng</Text>
+          )}
         </Space>
       ),
       align: "center",
@@ -623,7 +640,7 @@ const Cart = () => {
 
               {isAnyItemOutOfStock && (
                 <Alert
-                  message="Sản phẩm đã hết hàng"
+                  message="Một số sản phẩm đã hết hàng. Vui lòng xóa chúng khỏi giỏ hàng để tiếp tục thanh toán."
                   type="error"
                   showIcon
                   style={{ marginTop: 16 }}

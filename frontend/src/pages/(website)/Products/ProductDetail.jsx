@@ -62,6 +62,7 @@ const ProductDetail = () => {
   const email = userData?.Email;
   const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
   const [displayedComments, setDisplayedComments] = useState(5);
+  const timeoutRef = useRef(null);
 
   const handleShowMore = () => {
     setDisplayedComments(comments.length);
@@ -151,36 +152,37 @@ const ProductDetail = () => {
   }, [relatedProducts]);
 
   useEffect(() => {
-    // Lắng nghe sự kiện productUpdated từ socket
     Socket.on("productUpdated", (updatedProduct) => {
       if (updatedProduct._id === id) {
-        // Cập nhật state product
         setProduct(updatedProduct);
 
-        // Cập nhật selectedMemory dựa trên bộ nhớ đang chọn
-        const memoryKey =
-          selectedMemory.memory === updatedProduct.BoNhoTrong1
-            ? "BoNhoTrong1"
-            : selectedMemory.memory === updatedProduct.BoNhoTrong2
-            ? "BoNhoTrong2"
-            : "BoNhoTrong3";
-        const memoryIndex = memoryKey.slice(-1);
-        setSelectedMemory({
-          memory: updatedProduct[memoryKey] || selectedMemory.memory,
-          price: updatedProduct[`GiaSP${memoryIndex}`] || selectedMemory.price,
-          quantity:
-            updatedProduct[`SoLuong${memoryIndex}`] || selectedMemory.quantity,
-        });
+        if (selectedMemory.memory) {
+          const memoryKey =
+            selectedMemory.memory === updatedProduct.BoNhoTrong1
+              ? "BoNhoTrong1"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong2
+              ? "BoNhoTrong2"
+              : "BoNhoTrong3";
+          const memoryIndex = memoryKey.slice(-1);
+          const newQuantity = updatedProduct[`SoLuong${memoryIndex}`] || 0;
 
-        // Cập nhật selectedImage nếu ảnh chính thay đổi
+          setSelectedMemory({
+            memory: updatedProduct[memoryKey] || selectedMemory.memory,
+            price: updatedProduct[`GiaSP${memoryIndex}`] || selectedMemory.price,
+            quantity: newQuantity,
+          });
+
+          if (newQuantity <= 0) {
+            message.warning(`Bộ nhớ ${selectedMemory.memory} đã hết hàng!`);
+          }
+        }
+
         if (updatedProduct.HinhAnh1) {
           setSelectedImage(updatedProduct.HinhAnh1);
         }
-        // Không hiển thị thông báo ở đây nữa
       }
     });
 
-    // Cleanup socket listener
     return () => {
       Socket.off("productUpdated");
     };
@@ -191,33 +193,21 @@ const ProductDetail = () => {
     getProducts(id)
       .then((response) => {
         const productData = response.data.data;
-        const userData = JSON.parse(localStorage.getItem("userData"));
-        const userId = userData?.id;
-        const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-
-        // Cập nhật số lượng dựa trên giỏ hàng trong localStorage
         let updatedProduct = { ...productData };
-        cartItems.forEach((item) => {
-          if (item.id === productData._id) {
-            const memoryKey =
-              item.memory === productData.BoNhoTrong1
-                ? "SoLuong1"
-                : item.memory === productData.BoNhoTrong2
-                ? "SoLuong2"
-                : "SoLuong3";
-            updatedProduct[memoryKey] -= item.quantity;
-          }
-        });
-
         setProduct(updatedProduct);
-        if (updatedProduct.BoNhoTrong1) {
-          setSelectedMemory({
-            memory: updatedProduct.BoNhoTrong1,
-            price: updatedProduct.GiaSP1,
-            quantity: updatedProduct.SoLuong1,
-          });
-        }
         if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
+
+        // Thiết lập timeout để tự động chọn BoNhoTrong1 sau 2 giây
+        if (updatedProduct.BoNhoTrong1) {
+          timeoutRef.current = setTimeout(() => {
+            setSelectedMemory({
+              memory: updatedProduct.BoNhoTrong1,
+              price: updatedProduct.GiaSP1,
+              quantity: updatedProduct.SoLuong1,
+            });
+          }, 200);
+        }
+
         setLoading(false);
 
         fetchProducts().then((response) => {
@@ -246,6 +236,13 @@ const ProductDetail = () => {
         setError("Không thể tải chi tiết sản phẩm.");
         setLoading(false);
       });
+
+    // Cleanup timeout khi component unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [id]);
 
   useEffect(() => {
@@ -425,11 +422,20 @@ const ProductDetail = () => {
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];
     const memoryIndex = memoryKey.slice(-1);
+    const newQuantity = product[`SoLuong${memoryIndex}`] || 0;
     setSelectedMemory({
       memory,
       price: product[`GiaSP${memoryIndex}`],
-      quantity: product[`SoLuong${memoryIndex}`],
+      quantity: newQuantity,
     });
+    if (newQuantity <= 0) {
+      message.warning(`Bộ nhớ ${memory} đã hết hàng!`);
+    }
+    // Hủy timeout nếu người dùng chọn bộ nhớ trước 2 giây
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
 
   const addToCart = () => {
@@ -445,6 +451,11 @@ const ProductDetail = () => {
       return;
     }
 
+    if (selectedMemory.quantity <= 0) {
+      message.warning("Sản phẩm đã hết hàng!");
+      return;
+    }
+
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
     const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
@@ -455,14 +466,14 @@ const ProductDetail = () => {
         item.color === product.Mau1
     );
 
-    let newQuantityToAdd = 1;
     if (existingItemIndex !== -1) {
-      cartItems[existingItemIndex].quantity += 1;
-    } else {
-      if (selectedMemory.quantity < 1) {
-        message.warning("Sản phẩm đã hết.");
+      const newQuantity = cartItems[existingItemIndex].quantity + 1;
+      if (newQuantity > selectedMemory.quantity) {
+        message.warning("Sản phẩm không đủ số lượng!");
         return;
       }
+      cartItems[existingItemIndex].quantity = newQuantity;
+    } else {
       cartItems.push({
         id: product._id,
         name: product.TenSP,
@@ -475,24 +486,9 @@ const ProductDetail = () => {
       });
     }
 
-    // Cập nhật số lượng trong product và selectedMemory
-    const memoryKey =
-      selectedMemory.memory === product.BoNhoTrong1
-        ? "SoLuong1"
-        : selectedMemory.memory === product.BoNhoTrong2
-        ? "SoLuong2"
-        : "SoLuong3";
-    setProduct((prev) => ({
-      ...prev,
-      [memoryKey]: prev[memoryKey] - newQuantityToAdd,
-    }));
-    setSelectedMemory((prev) => ({
-      ...prev,
-      quantity: prev.quantity - newQuantityToAdd,
-    }));
-
     localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
     message.success("Sản phẩm đã được thêm vào giỏ hàng!");
+    window.dispatchEvent(new Event("cartUpdated"));
     navigate("/cart");
   };
 
@@ -582,13 +578,19 @@ const ProductDetail = () => {
               <Title level={2}>{product.TenSP}</Title>
               <Text type="secondary">Mã sản phẩm: {product.MaSP}</Text>
               <Text type="secondary">Thương hiệu: {product.TenTH}</Text>
-              <Title level={3} type="danger">
-                {formatCurrency(selectedMemory.price)}
-              </Title>
-              <Badge
-                status={selectedMemory.quantity > 0 ? "success" : "error"}
-                text={selectedMemory.quantity > 0 ? "Còn hàng" : "Hết hàng"}
-              />
+              {selectedMemory.memory ? (
+                <>
+                  <Title level={3} type="danger">
+                    {formatCurrency(selectedMemory.price)}
+                  </Title>
+                  <Badge
+                    status={selectedMemory.quantity > 0 ? "success" : "error"}
+                    text={selectedMemory.quantity > 0 ? "Còn hàng" : "Hết hàng"}
+                  />
+                </>
+              ) : (
+                <Title level={4}>Vui lòng chọn bộ nhớ để xem giá</Title>
+              )}
 
               <Space align="center">
                 <Divider orientation="left" plain style={{ margin: 0 }}>
@@ -613,23 +615,39 @@ const ProductDetail = () => {
                 {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
                   (memoryKey, index) =>
                     product[memoryKey] ? (
-                      <Button
+                      <div
                         key={index}
-                        type={
-                          selectedMemory.memory === product[memoryKey]
-                            ? "primary"
-                            : "default"
-                        }
-                        onClick={() => handleMemorySelection(memoryKey)}
+                        style={{ position: "relative", textAlign: "center" }}
                       >
-                        {product[memoryKey]}
-                        {selectedMemory.memory === product[memoryKey] && (
-                          <span>
-                            {" "}
-                            ({product[`SoLuong${memoryKey.slice(-1)}`]})
-                          </span>
+                        <Button
+                          type={
+                            selectedMemory.memory === product[memoryKey]
+                              ? "primary"
+                              : "default"
+                          }
+                          onClick={() => handleMemorySelection(memoryKey)}
+                        >
+                          {product[memoryKey]}
+                          {selectedMemory.memory === product[memoryKey] && (
+                            <span>
+                              {" "}
+                              ({product[`SoLuong${memoryKey.slice(-1)}`]})
+                            </span>
+                          )}
+                        </Button>
+                        {product[`SoLuong${memoryKey.slice(-1)}`] <= 0 && (
+                          <Text
+                            type="danger"
+                            style={{
+                              display: "block",
+                              fontSize: 12,
+                              marginTop: 4,
+                            }}
+                          >
+                            Hết hàng
+                          </Text>
                         )}
-                      </Button>
+                      </div>
                     ) : null
                 )}
               </Space>
@@ -639,7 +657,11 @@ const ProductDetail = () => {
                   type="primary"
                   icon={<FaShoppingCart />}
                   onClick={addToCart}
-                  disabled={selectedMemory.quantity <= 0 || product.Mau1 === "Hết Hàng"}
+                  disabled={
+                    !selectedMemory.memory ||
+                    selectedMemory.quantity <= 0 ||
+                    product.Mau1 === "Hết Hàng"
+                  }
                 >
                   Thêm vào giỏ hàng
                 </Button>
