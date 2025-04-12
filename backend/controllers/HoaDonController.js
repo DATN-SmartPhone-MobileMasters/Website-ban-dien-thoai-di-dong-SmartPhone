@@ -277,7 +277,7 @@ async thongKeDoanhThu(req, res) {
     // Doanh thu theo ngày, giờ và sản phẩm
     const doanhThuTheoNgay = await hoadon.aggregate([
       matchCompletedOrders,
-      { $unwind: "$products" }, // tách từng sản phẩm
+      { $unwind: "$products" }, 
       {
         $group: {
           _id: {
@@ -291,7 +291,7 @@ async thongKeDoanhThu(req, res) {
               memory: "$products.memory",
               quantity: "$products.quantity",
               image: "$products.image",
-              thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } }, // 👈 thêm dòng này
+              thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } }, 
             },
           },
         },
