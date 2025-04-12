@@ -47,16 +47,16 @@ export const createOrder = async (data) =>
   axios.post(`${API_URL}/hoadons`, data);
 export const fetchOrders = async () =>
   axios.get(`${API_URL}/hoadons?timestamp=${Date.now()}`);
-export const fetchOrdersByUserId = async (userId) => 
+export const fetchOrdersByUserId = async (userId) =>
   axios.get(`${API_URL}/hoadons/user/${userId}?timestamp=${Date.now()}`);
 export const getOrderById = async (id) => axios.get(`${API_URL}/hoadons/${id}`);
 export const updateOrder = async (id, data) =>
   axios.put(`${API_URL}/hoadons/${id}`, data);
 export const deleteOrder = async (id) =>
   axios.delete(`${API_URL}/hoadons/${id}`);
-export const createVNPayPayment = async (data) => 
+export const createVNPayPayment = async (data) =>
   axios.post(`${API_URL}/hoadons/create-vnpay-payment`, data);
-export const handleVNPayReturn = async (queryParams) => 
+export const handleVNPayReturn = async (queryParams) =>
   axios.get(`${API_URL}/hoadons/vnpay-return`, { params: queryParams });
 // Thêm API lấy thống kê doanh thu
 export const fetchThongKeDoanhThu = async () =>
@@ -64,11 +64,16 @@ export const fetchThongKeDoanhThu = async () =>
 
 // Comments
 export const fetchComments = async () => axios.get(`${API_URL}/comments`);
-export const deleteComment = async (id) => axios.delete(`${API_URL}/comments/${id}`);
-export const fetchCommentById = async (id) => axios.get(`${API_URL}/comments/${id}`);
-export const createComment = async (data) => axios.post(`${API_URL}/comments`, data);
-export const replyComment = async (id, replyData) => axios.put(`${API_URL}/comments/${id}/reply`, replyData);
-export const approveComment = async (id) => axios.put(`${API_URL}/comments/${id}/approve`);
+export const deleteComment = async (id) =>
+  axios.delete(`${API_URL}/comments/${id}`);
+export const fetchCommentById = async (id) =>
+  axios.get(`${API_URL}/comments/${id}`);
+export const createComment = async (data) =>
+  axios.post(`${API_URL}/comments`, data);
+export const replyComment = async (id, replyData) =>
+  axios.put(`${API_URL}/comments/${id}/reply`, replyData);
+export const approveComment = async (id) =>
+  axios.put(`${API_URL}/comments/${id}/approve`);
 
 // chitiethoadon
 export const fetchChitiethoadons = async () =>
@@ -98,10 +103,10 @@ export const updatePromotion = async (id, data) =>
   axios.put(`${API_URL}/promotions/${id}`, data);
 export const getDetailPromotion = async (id) =>
   axios.get(`${API_URL}/promotions/${id}`);
-export const updateVoucherStatus = async (voucherId) => {
+export const updateVoucherStatus = async (voucherId, status) => {
   try {
     const response = await axios.put(`${API_URL}/promotions/${voucherId}`, {
-      TrangThai: 1,
+      TrangThai: status,
     });
     return response.data;
   } catch (error) {
