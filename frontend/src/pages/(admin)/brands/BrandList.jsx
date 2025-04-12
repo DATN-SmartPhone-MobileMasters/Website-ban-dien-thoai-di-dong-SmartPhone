@@ -16,17 +16,26 @@ const BrandList = () => {
       .catch(console.error);
   }, []);
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {
-      try {
-        await deleteBrand(id);
-        setBrands(brands.filter((brand) => brand._id !== id));
-        message.success("Xóa thành công!");
-      } catch (error) {
-        message.error("Xóa thất bại!");
-      }
-    }
-  };
+  const handleDelete = async (id) => {  
+    if (window.confirm("Bạn có chắc chắn muốn xóa?")) {  
+      try {  
+        const response = await deleteBrand(id);  
+    
+        if (response && response.status === 200) {  
+          setBrands(brands.filter((brand) => brand._id !== id));  
+          message.success("Xóa thành công!");  
+        }  
+      } catch (error) {  
+        if (error.response && error.response.data && error.response.data.message) {  
+          // Hiển thị thông báo lỗi từ backend  
+          message.error(error.response.data.message);  
+        } else {  
+          message.error("Xóa thất bại!");  
+        }  
+      }  
+    }  
+  }; 
+  
 
   // Lọc thương hiệu theo tìm kiếm
   const filteredBrands = brands.filter((brand) =>
