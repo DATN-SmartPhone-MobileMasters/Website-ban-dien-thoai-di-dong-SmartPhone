@@ -11,8 +11,15 @@ import {
   Alert,
   Popconfirm,
   message,
+  Radio,
+  Modal,
 } from "antd";
-import { DeleteOutlined, PlusOutlined, MinusOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  PlusOutlined,
+  MinusOutlined,
+  TagOutlined,
+} from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -22,6 +29,9 @@ const Cart = () => {
   const [voucher, setVoucher] = useState("");
   const [discount, setDiscount] = useState(0);
   const [promotions, setPromotions] = useState([]);
+  const [tempVoucher, setTempVoucher] = useState(""); // State tạm để lưu voucher khi chọn trong Modal
+  const [tempDiscount, setTempDiscount] = useState(0); // State tạm để lưu discount khi chọn trong Modal
+  const [isVoucherModalVisible, setIsVoucherModalVisible] = useState(false);
   const navigate = useNavigate();
 
   const formatCurrency = (value) => {
@@ -260,7 +270,8 @@ const Cart = () => {
     // Cập nhật selectedItems
     const newSelectedItems = {};
     newCart.forEach((_, i) => {
-      newSelectedItems[i] = selectedItems[i] !== undefined ? selectedItems[i] : true;
+      newSelectedItems[i] =
+        selectedItems[i] !== undefined ? selectedItems[i] : true;
     });
     setSelectedItems(newSelectedItems);
 
@@ -355,7 +366,9 @@ const Cart = () => {
       return;
     }
 
-    const promotion = promotions.data.find((promo) => promo.MaKM === voucher);
+    const promotion = promotions.data.find(
+      (promo) => promo.MaKM === tempVoucher
+    );
 
     if (!promotion) {
       message.error("Mã giảm giá không hợp lệ.");
@@ -403,6 +416,7 @@ const Cart = () => {
 
     // Áp dụng giảm giá
     setDiscount(discountAmount);
+    setVoucher(tempVoucher);
     message.success("Áp dụng mã giảm giá thành công!");
 
     const userData = JSON.parse(localStorage.getItem("userData"));
@@ -410,7 +424,7 @@ const Cart = () => {
     if (userId) {
       localStorage.setItem(
         `voucher_${userId}`,
-        JSON.stringify({ code: voucher, discount: discountAmount })
+        JSON.stringify({ code: tempVoucher, discount: discountAmount })
       );
     }
   };
@@ -437,14 +451,9 @@ const Cart = () => {
   };
 
   const handleVoucherChange = (e) => {
-    setVoucher(e.target.value);
+    setTempVoucher(e.target.value);
     if (e.target.value === "") {
-      setDiscount(0);
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      const userId = userData?.id;
-      if (userId) {
-        localStorage.removeItem(`voucher_${userId}`);
-      }
+      setTempDiscount(0);
     }
   };
 
@@ -457,6 +466,39 @@ const Cart = () => {
         discount: discount,
       },
     });
+  };
+  const showVoucherModal = () => {
+    setTempVoucher(voucher);
+    setTempDiscount(discount);
+    setIsVoucherModalVisible(true);
+  };
+
+  const handleVoucherModalOk = () => {
+    applyVoucher();
+    setIsVoucherModalVisible(false);
+  };
+
+  const handleVoucherModalCancel = () => {
+    setTempVoucher(voucher);
+    setTempDiscount(discount);
+    setIsVoucherModalVisible(false);
+  };
+
+  const handleSelectVoucher = (voucherCode) => {
+    setTempVoucher(voucherCode);
+    const promotion = promotions.data.find(
+      (promo) => promo.MaKM === voucherCode
+    );
+    if (promotion) {
+      const total = calculateTotal();
+      let discountAmount = 0;
+      if (promotion.LoaiKM === "percentage") {
+        discountAmount = (total * promotion.GiaTriKM) / 100;
+      } else {
+        discountAmount = promotion.GiaTriKM;
+      }
+      setTempDiscount(discountAmount);
+    }
   };
 
   const isAnyItemOutOfStock = cart.some(
@@ -659,13 +701,62 @@ const Cart = () => {
               <Title level={4}>
                 Tổng tiền: {formatCurrency(calculateOriginalTotal())}
               </Title>
+
+              {/* Phần voucher với icon và nút chọn */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 16,
+                }}
+              >
+                <Space>
+                  <TagOutlined style={{ color: "#ff6200", fontSize: 20 }} />
+                  <Text strong>SmartPhone Voucher</Text>
+                </Space>
+                <Space>
+                  <Button
+                    type="link"
+                    onClick={showVoucherModal}
+                    disabled={isAnyItemOutOfStock}
+                    style={{ color: "#1890ff" }}
+                  >
+                    {voucher ? `Mã: ${voucher}` : "Chọn mã giảm giá"}
+                  </Button>
+                  {voucher && (
+                    <Button
+                      type="link"
+                      danger
+                      onClick={() => {
+                        setVoucher("");
+                        setDiscount(0);
+                        const userData = JSON.parse(
+                          localStorage.getItem("userData")
+                        );
+                        const userId = userData?.id;
+                        if (userId) {
+                          localStorage.removeItem(`voucher_${userId}`);
+                        }
+                        message.error("Bạn đã hủy sử dụng mã giảm giá.");
+                      }}
+                      style={{ marginLeft: 8 }}
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </Space>
+              </div>
+
+              {/* Hiển thị số tiền được giảm nếu có áp dụng voucher */}
               {discount > 0 && (
-                <Text type="danger">
-                  Giảm giá từ voucher: -{formatCurrency(discount)}
+                <Text style={{ color: "#ff4d4f", marginLeft: 30 }}>
+                  Bạn được giảm {formatCurrency(discount)}
                 </Text>
               )}
+
               {calculateFinalTotal() < calculateOriginalTotal() && (
-                <Text type="success" strong>
+                <Text style={{ fontSize: "19px" }} type="success" strong>
                   Tổng tiền sau giảm giá:{" "}
                   {formatCurrency(calculateFinalTotal())}
                 </Text>
@@ -673,33 +764,118 @@ const Cart = () => {
 
               {isAnyItemOutOfStock && (
                 <Alert
-                  message="Một số sản phẩm đã hết hàng. Vui lòng xóa chúng khỏi giỏ hàng để tiếp tục thanh toán."
+                  message="Sản phẩm đã hết hàng"
                   type="error"
                   showIcon
                   style={{ marginTop: 16 }}
                 />
               )}
 
-              <Input.Search
-                placeholder="Nhập mã giảm giá"
-                value={voucher}
-                onChange={handleVoucherChange}
-                disabled={isAnyItemOutOfStock}
-                enterButton={
-                  <Popconfirm
-                    title="Mỗi một voucher chỉ có thể áp dụng 1 lần. Bạn có chắc chắn muốn áp dụng không?"
-                    onConfirm={applyVoucher}
-                    okText="OK"
-                    cancelText="Hủy"
-                    disabled={isAnyItemOutOfStock}
-                  >
-                    <Button type="primary" disabled={isAnyItemOutOfStock}>
-                      Áp dụng
-                    </Button>
-                  </Popconfirm>
-                }
-                style={{ marginTop: 16 }}
-              />
+              {/* Modal để chọn hoặc nhập mã voucher */}
+              <Modal
+                title="Chọn SmartPhone Voucher"
+                visible={isVoucherModalVisible}
+                onOk={handleVoucherModalOk}
+                onCancel={handleVoucherModalCancel}
+                okText="OK"
+                cancelText="Trở lại"
+                bodyStyle={{ maxHeight: "400px", overflowY: "auto" }}
+              >
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Input
+                    placeholder="Nhập mã giảm giá"
+                    value={tempVoucher}
+                    onChange={handleVoucherChange}
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Title level={2}>Giảm Giá</Title>
+                  <b style={{ fontSize: "10px", color: "gray" }}>
+                    Có thể chọn 1 Voucher
+                  </b>
+                  {promotions?.data?.length > 0 ? (
+                    <Radio.Group
+                      onChange={(e) => handleSelectVoucher(e.target.value)}
+                      value={tempVoucher}
+                      style={{ width: "100%" }}
+                    >
+                      <Space direction="vertical" style={{ width: "100%" }}>
+                        {promotions.data
+                          .map((promo) => {
+                            const currentDate = new Date();
+                            const startDate = new Date(promo.NgayBD);
+                            const endDate = new Date(promo.NgayKT);
+                            const isValid =
+                              currentDate >= startDate &&
+                              currentDate <= endDate &&
+                              promo.TrangThai !== 1;
+
+                            return { ...promo, isValid };
+                          })
+                          .sort((a, b) => {
+                            if (a.isValid && !b.isValid) return -1;
+                            if (!a.isValid && b.isValid) return 1;
+                            return a.isValid
+                              ? b.MaKM.localeCompare(a.MaKM)
+                              : a.MaKM.localeCompare(b.MaKM);
+                          })
+                          .map((promo) => (
+                            <div
+                              key={promo.MaKM}
+                              style={{
+                                border: "1px solid #d9d9d9",
+                                borderRadius: 4,
+                                padding: 12,
+                                marginBottom: 8,
+                                backgroundColor: promo.isValid
+                                  ? "#fff"
+                                  : "#f5f5f5",
+                              }}
+                            >
+                              <Radio
+                                value={promo.MaKM}
+                                disabled={!promo.isValid}
+                              >
+                                <Space direction="vertical">
+                                  <Text strong>{promo.MaKM}</Text>
+                                  <Text>
+                                    Giảm{" "}
+                                    <span style={{ color: "red" }}>
+                                      {promo.LoaiKM === "percentage"
+                                        ? `${promo.GiaTriKM}%`
+                                        : formatCurrency(promo.GiaTriKM)}
+                                    </span>{" "}
+                                    {promo.MoTa}
+                                  </Text>
+                                  <Text type="secondary">
+                                    HSD: {promo.NgayKT} <br />
+                                    {promo.isValid ? (
+                                      <Text type="success">Có thể sử dụng</Text>
+                                    ) : (
+                                      <Text type="danger">
+                                        Bạn chưa đủ điều kiện sử dụng or Voucher
+                                        đã hết!
+                                      </Text>
+                                    )}
+                                  </Text>
+                                </Space>
+                              </Radio>
+                              {tempVoucher === promo.MaKM &&
+                                tempDiscount > 0 && (
+                                  <Text
+                                    style={{ color: "#ff4d4f", marginLeft: 5 }}
+                                  >
+                                    Bạn được giảm {formatCurrency(tempDiscount)}
+                                  </Text>
+                                )}
+                            </div>
+                          ))}
+                      </Space>
+                    </Radio.Group>
+                  ) : (
+                    <Text>Không có mã giảm giá nào khả dụng.</Text>
+                  )}
+                </Space>
+              </Modal>
 
               <Button
                 type="primary"
