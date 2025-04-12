@@ -17,6 +17,8 @@ import {
   Descriptions,
   List,
   message,
+  Radio,
+  Form,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -56,8 +58,14 @@ const Checkcart = () => {
   const [orderNote, setOrderNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [addressOption, setAddressOption] = useState("existing");
+  const [newAddress, setNewAddress] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
 
-  // gioi han so luong san pham
+  // Giới hạn số lượng sản phẩm
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
   const isOverFiveProducts = totalQuantity > 4;
 
@@ -91,12 +99,52 @@ const Checkcart = () => {
     fetchUserData();
   }, [navigate]);
 
-  // trên 5 sp tt vnpay
+  // Trên 5 sản phẩm thì thanh toán VNPay
   useEffect(() => {
     if (isOverFiveProducts) {
       setPaymentMethod("VNPay");
     }
   }, [isOverFiveProducts]);
+
+  const handleAddressOptionChange = (e) => {
+    setAddressOption(e.target.value);
+  };
+
+  const handleNewAddressChange = (e) => {
+    const { name, value } = e.target;
+    setNewAddress((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const validateNewAddress = () => {
+    if (addressOption === "new") {
+      if (!newAddress.name || !newAddress.phone || !newAddress.address) {
+        message.error("Vui lòng điền đầy đủ thông tin địa chỉ mới!");
+        return false;
+      }
+      // Basic phone number validation
+      const phoneRegex = /^0\d{9}$/;
+      if (!phoneRegex.test(newAddress.phone)) {
+        message.error("Số điện thoại bắt đầu bằng 0 và đủ 10 chữ số.");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const getShippingInfo = () => {
+    if (addressOption === "existing") {
+      return {
+        name: userInfo.HoVaTen || "",
+        phone: userInfo.SDT || "",
+        address: userInfo.DiaChi || "",
+      };
+    }
+    return {
+      name: newAddress.name,
+      phone: newAddress.phone,
+      address: newAddress.address,
+    };
+  };
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -106,13 +154,19 @@ const Checkcart = () => {
       return;
     }
 
-    if (
-      !userInfo._id ||
-      !userInfo.HoVaTen ||
-      !userInfo.SDT ||
-      !userInfo.DiaChi
-    ) {
-      message.error("Thông tin người dùng không đầy đủ!");
+    if (addressOption === "existing") {
+      if (
+        !userInfo._id ||
+        !userInfo.HoVaTen ||
+        !userInfo.SDT ||
+        !userInfo.DiaChi
+      ) {
+        message.error("Thông tin địa chỉ tài khoản không đầy đủ!");
+        return;
+      }
+    }
+
+    if (!validateNewAddress()) {
       return;
     }
 
@@ -124,6 +178,8 @@ const Checkcart = () => {
       icon: <CheckOutlined />,
       onOk: async () => {
         setIsSubmitting(true);
+
+        const shippingInfo = getShippingInfo();
 
         const orderData = {
           userId: userInfo._id,
@@ -139,11 +195,7 @@ const Checkcart = () => {
           total: finalTotal,
           discount,
           additionalDiscount,
-          shippingInfo: {
-            name: userInfo.HoVaTen,
-            phone: userInfo.SDT,
-            address: userInfo.DiaChi,
-          },
+          shippingInfo,
           orderNote,
           paymentMethod: "COD",
         };
@@ -193,13 +245,19 @@ const Checkcart = () => {
       return;
     }
 
-    if (
-      !userInfo._id ||
-      !userInfo.HoVaTen ||
-      !userInfo.SDT ||
-      !userInfo.DiaChi
-    ) {
-      message.error("Thông tin người dùng không đầy đủ!");
+    if (addressOption === "existing") {
+      if (
+        !userInfo._id ||
+        !userInfo.HoVaTen ||
+        !userInfo.SDT ||
+        !userInfo.DiaChi
+      ) {
+        message.error("Thông tin địa chỉ tài khoản không đầy đủ!");
+        return;
+      }
+    }
+
+    if (!validateNewAddress()) {
       return;
     }
 
@@ -217,6 +275,8 @@ const Checkcart = () => {
       onOk: async () => {
         setIsSubmitting(true);
         try {
+          const shippingInfo = getShippingInfo();
+
           const orderData = {
             userId: userInfo._id,
             products: cart.map((item) => ({
@@ -231,20 +291,12 @@ const Checkcart = () => {
             total: finalTotal,
             discount,
             additionalDiscount,
-            shippingInfo: {
-              name: userInfo.HoVaTen,
-              phone: userInfo.SDT,
-              address: userInfo.DiaChi,
-            },
+            shippingInfo,
             orderNote,
             paymentMethod: "VNPay",
           };
 
-          console.log("Order data:", orderData);
-
           const response = await createOrder(orderData);
-          console.log("Create order response:", response);
-
           const orderId = response.data.data?._id || response.data._id;
           if (!orderId) {
             throw new Error("Không lấy được ID đơn hàng");
@@ -256,7 +308,6 @@ const Checkcart = () => {
             orderInfo: `Thanh toan don hang ${orderId}`,
             returnUrl: `${window.location.origin}/order-return`,
           };
-          console.log("VNPay data:", vnpayData);
 
           if (
             !vnpayData.amount ||
@@ -268,7 +319,6 @@ const Checkcart = () => {
           }
 
           const vnpayResponse = await createVNPayPayment(vnpayData);
-          console.log("VNPay response:", vnpayResponse);
 
           if (!vnpayResponse.data.paymentUrl) {
             throw new Error("Không nhận được URL thanh toán từ VNPay");
@@ -335,7 +385,16 @@ const Checkcart = () => {
 
         <Col xs={24} lg={16}>
           <Card title={<Title level={3}>Thông tin giao hàng</Title>}>
-            {userInfo.HoVaTen && (
+            <Radio.Group
+              onChange={handleAddressOptionChange}
+              value={addressOption}
+              style={{ marginBottom: 16 }}
+            >
+              <Radio value="existing">Sử dụng địa chỉ tài khoản</Radio>
+              <Radio value="new">Nhập địa chỉ mới</Radio>
+            </Radio.Group>
+
+            {addressOption === "existing" && userInfo.HoVaTen ? (
               <Descriptions bordered column={1}>
                 <Descriptions.Item label="Họ và tên">
                   {userInfo.HoVaTen}
@@ -347,6 +406,72 @@ const Checkcart = () => {
                   {userInfo.DiaChi}
                 </Descriptions.Item>
               </Descriptions>
+            ) : (
+              <Form layout="vertical">
+                <Form.Item
+                  label="Họ và tên"
+                  required
+                  validateStatus={
+                    newAddress.name || addressOption === "existing"
+                      ? ""
+                      : "error"
+                  }
+                  help={
+                    newAddress.name || addressOption === "existing"
+                      ? ""
+                      : "Vui lòng nhập họ và tên"
+                  }
+                >
+                  <Input
+                    name="name"
+                    value={newAddress.name}
+                    onChange={handleNewAddressChange}
+                    placeholder="Nhập họ và tên"
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Số điện thoại"
+                  required
+                  validateStatus={
+                    newAddress.phone || addressOption === "existing"
+                      ? ""
+                      : "error"
+                  }
+                  help={
+                    newAddress.phone || addressOption === "existing"
+                      ? ""
+                      : "Vui lòng nhập số điện thoại"
+                  }
+                >
+                  <Input
+                    name="phone"
+                    value={newAddress.phone}
+                    onChange={handleNewAddressChange}
+                    placeholder="Nhập số điện thoại"
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Địa chỉ"
+                  required
+                  validateStatus={
+                    newAddress.address || addressOption === "existing"
+                      ? ""
+                      : "error"
+                  }
+                  help={
+                    newAddress.address || addressOption === "existing"
+                      ? ""
+                      : "Vui lòng nhập địa chỉ"
+                  }
+                >
+                  <Input
+                    name="address"
+                    value={newAddress.address}
+                    onChange={handleNewAddressChange}
+                    placeholder="Nhập địa chỉ"
+                  />
+                </Form.Item>
+              </Form>
             )}
           </Card>
 
