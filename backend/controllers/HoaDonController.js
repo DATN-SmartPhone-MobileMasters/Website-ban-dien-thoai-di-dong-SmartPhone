@@ -427,7 +427,8 @@ class HoaDonController {
       const order = await hoadon.findByIdAndUpdate(
         vnp_TxnRef,
         {
-          paymentStatus: vnp_ResponseCode === "00" ? "Chờ xử lý" : "Huỷ Đơn",
+          paymentStatus: "Chờ xử lý",
+          checkPayment: vnp_ResponseCode === "00" ? "Đã Thanh Toán" : "Chưa Thanh Toán",
           vnp_TransactionNo,
           vnp_ResponseCode,
           updatedAt: new Date(),
