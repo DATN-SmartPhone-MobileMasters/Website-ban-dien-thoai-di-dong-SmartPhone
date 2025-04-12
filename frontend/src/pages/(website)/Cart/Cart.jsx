@@ -62,8 +62,11 @@ const Cart = () => {
     const userId = userData?.id;
 
     if (userId) {
-      let storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-      const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+      const storedCart =
+        JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+      const storedVoucher = JSON.parse(
+        localStorage.getItem(`voucher_${userId}`)
+      );
 
       const updatedCart = await Promise.all(
         storedCart.map(async (item) => {
@@ -205,16 +208,47 @@ const Cart = () => {
     const newPrice = productData[`GiaSP${memoryIndex}`];
     const newMaxQuantity = productData[`SoLuong${memoryIndex}`];
 
-    const currentQuantity = newCart[index].quantity;
-    const newQuantity = newMaxQuantity === 0 ? 0 : Math.min(currentQuantity || 1, newMaxQuantity);
+    // Kiểm tra xem sản phẩm với cùng id và bộ nhớ mới đã tồn tại trong giỏ hàng chưa
+    const existingItemIndex = newCart.findIndex(
+      (item) =>
+        item.id === newCart[index].id &&
+        item.memory === newMemory &&
+        item !== newCart[index]
+    );
 
-    newCart[index] = {
-      ...newCart[index],
-      memory: newMemory,
-      price: newPrice,
-      maxQuantity: newMaxQuantity,
-      quantity: newQuantity,
-    };
+    if (existingItemIndex !== -1) {
+      // Nếu đã tồn tại, gộp số lượng
+      const currentQuantity = newCart[index].quantity;
+      const existingQuantity = newCart[existingItemIndex].quantity;
+      const combinedQuantity = currentQuantity + existingQuantity;
+
+      // Cập nhật số lượng cho sản phẩm hiện có
+      newCart[existingItemIndex].quantity = Math.min(
+        combinedQuantity,
+        newMaxQuantity
+      );
+      newCart[existingItemIndex].maxQuantity = newMaxQuantity;
+
+      // Xóa sản phẩm cũ
+      newCart.splice(index, 1);
+    } else {
+      // Nếu không tồn tại, cập nhật bộ nhớ như cũ
+      const currentQuantity = newCart[index].quantity;
+      const newQuantity =
+        newMaxQuantity === 0
+          ? 0
+          : currentQuantity === 0
+          ? 1
+          : Math.min(currentQuantity, newMaxQuantity);
+
+      newCart[index] = {
+        ...newCart[index],
+        memory: newMemory,
+        price: newPrice,
+        maxQuantity: newMaxQuantity,
+        quantity: newQuantity,
+      };
+    }
 
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
@@ -222,6 +256,13 @@ const Cart = () => {
     if (userId) {
       localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
     }
+
+    // Cập nhật selectedItems
+    const newSelectedItems = {};
+    newCart.forEach((_, i) => {
+      newSelectedItems[i] = selectedItems[i] !== undefined ? selectedItems[i] : true;
+    });
+    setSelectedItems(newSelectedItems);
 
     setCart(newCart);
     if (newMaxQuantity === 0) {
@@ -337,6 +378,15 @@ const Cart = () => {
 
     const total = calculateTotal();
 
+    // **Điều kiện: Tổng tiền tối thiểu để áp dụng mã giảm giá
+    if (total < 10000000) {
+      message.error(
+        "Đơn hàng giá trị tối thiểu 10 triệu để áp dụng mã giảm giá."
+      );
+      return;
+    }
+
+    // **Tính giảm giá**
     let discountAmount = 0;
     if (promotion.LoaiKM === "percentage") {
       discountAmount = (total * promotion.GiaTriKM) / 100;
@@ -344,6 +394,14 @@ const Cart = () => {
       discountAmount = promotion.GiaTriKM;
     }
 
+    // **Giới hạn số tiền giảm giá tối đa**
+    const maxDiscount = 2000000; // Giảm giá tối đa là 2000k
+    if (discountAmount > maxDiscount) {
+      discountAmount = maxDiscount;
+      message.warning("Mã giảm giá chỉ áp dụng tối đa 2000,000 VND.");
+    }
+
+    // Áp dụng giảm giá
     setDiscount(discountAmount);
     message.success("Áp dụng mã giảm giá thành công!");
 
@@ -402,7 +460,7 @@ const Cart = () => {
   };
 
   const isAnyItemOutOfStock = cart.some(
-    (item, index) => item.maxQuantity === 0 && selectedItems[index]
+    (item) => item.maxQuantity === 0 && selectedItems[cart.indexOf(item)]
   );
 
   const columns = [
@@ -472,11 +530,6 @@ const Cart = () => {
                             }
                             size="small"
                             onClick={() => handleMemoryChange(index, memoryKey)}
-                            disabled={
-                              record.availableMemories[
-                                `SoLuong${memoryKey.slice(-1)}`
-                              ] <= 0
-                            }
                           >
                             {record.availableMemories[memoryKey]}
                           </Button>
@@ -613,7 +666,8 @@ const Cart = () => {
               )}
               {calculateFinalTotal() < calculateOriginalTotal() && (
                 <Text type="success" strong>
-                  Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())}
+                  Tổng tiền sau giảm giá:{" "}
+                  {formatCurrency(calculateFinalTotal())}
                 </Text>
               )}
 
