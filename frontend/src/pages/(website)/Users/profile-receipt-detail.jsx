@@ -170,6 +170,10 @@ const ProfileReceiptDetails = () => {
                 <p className="font-medium">{orders.paymentMethod}</p>
                 </div>
                 <div>
+                <p className="text-sm text-gray-600">Trạng thái thanh toán:</p>
+                <p className="font-medium">{orders.checkPayment}</p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-600">Phí vận chuyển:</p>
                   <p className="font-medium">20,000đ</p>
                 </div>
@@ -179,7 +183,32 @@ const ProfileReceiptDetails = () => {
                 </div>
               </div>
             </div>
-
+            {orders.paymentStatus === "Huỷ Đơn" && (
+              <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-100">
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Thông tin hủy đơn</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-red-600">Huỷ Bởi:</p>
+                    <p className="font-medium text-red-800">
+                    {orders.cancelledBy?.name}-{orders.cancelledBy?.role}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-red-600">Thời gian hủy:</p>
+                    <p className="font-medium text-red-800">
+                      {orders.cancellationDate ? 
+                        new Date(orders.cancellationDate).toLocaleString() : 'N/A'}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-red-600">Lý do:</p>
+                    <p className="font-medium text-red-800">
+                      {orders.FeedBack}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              )}
             <Link to={`/profile-receipt/${userData.id}`} className="text-blue-500 hover:underline">
               <i className="fas fa-long-arrow-alt-left mr-2"></i> Quay lại danh sách đơn hàng
             </Link>
