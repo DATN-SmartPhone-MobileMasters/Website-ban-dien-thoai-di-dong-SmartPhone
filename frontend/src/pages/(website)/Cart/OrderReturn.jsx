@@ -10,33 +10,32 @@ const OrderReturn = () => {
   useEffect(() => {
     const processReturn = async () => {
       try {
-        // Convert URLSearchParams to plain object
         const params = {};
         for (const [key, value] of searchParams.entries()) {
           params[key] = value;
         }
-
-        // Send all VNPay params to backend for processing
+  
         const response = await handleVNPayReturn(params);
         
         if (response.data.success) {
-          if (response.data.paymentStatus === 'Chờ xử lý') {
+          // Kiểm tra mã phản hồi VNPay
+          if (params.vnp_ResponseCode === '00') {
             message.success('Thanh toán thành công!');
           } else {
-            message.error('Thanh toán thất bại hoặc đã hủy');
+            message.error(`Thanh toán không thành công hoặc đã huỷ `);
           }
           navigate(`/profile-receipt/${response.data.orderId}`);
         } else {
-          message.error(response.data.message || 'Có lỗi xảy ra');
+          message.error(response.data.message || 'Giao dịch thất bại');
           navigate('/');
         }
       } catch (error) {
-        console.error('Payment processing error:', error);
-        message.error('Lỗi hệ thống khi xử lý thanh toán');
+        console.error('Lỗi xử lý thanh toán:', error);
+        message.error('Lỗi hệ thống');
         navigate('/');
       }
     };
-
+  
     processReturn();
   }, [navigate, searchParams]);
 
