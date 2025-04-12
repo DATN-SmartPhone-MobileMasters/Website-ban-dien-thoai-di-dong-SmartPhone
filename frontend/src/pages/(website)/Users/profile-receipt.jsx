@@ -209,8 +209,6 @@ const ProfileReceipt = () => {
               cancellationDate: new Date(),
             });
           }
-
-          setOrders(orders.filter((order) => order._id !== orderId));
           message.success('Huỷ đơn hàng thành công');
         } catch (error) {
           if (error.errorFields) {
