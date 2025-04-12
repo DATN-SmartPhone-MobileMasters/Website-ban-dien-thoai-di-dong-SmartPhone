@@ -62,7 +62,11 @@ const Orderdetail = () => {
               const updateData = {
                 paymentStatus: newStatus
               };
-
+              if (newStatus === "Hoàn thành") {
+                if (hoaDon.paymentMethod === "COD") {
+                  updateData.checkPayment = "Đã Thanh Toán";
+                }
+              }
               if (newStatus === "Huỷ Đơn") {
                 const res= await getUserById(currentUserId);
                 const currentMaQuyen=res.data.MaQuyen;
@@ -88,7 +92,7 @@ const Orderdetail = () => {
               if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
                 await updateProductQuantities(hoaDon.products, "add");
               }
-
+              
               alert("Cập nhật trạng thái thành công!");
               refreshParent();
               navigate("/admin/orders");
@@ -105,7 +109,32 @@ const Orderdetail = () => {
       ],
     });
   };
-
+  const handleRefundStatusChange = async (newStatus) => {
+    confirmAlert({
+      title: `Xác nhận chuyển sang ${newStatus}`,
+      message: `Bạn có chắc chắn muốn chuyển trạng thái hoàn tiền thành ${newStatus}?`,
+      buttons: [
+        {
+          label: "Có",
+          onClick: async () => {
+            try {
+              await updateOrder(id, { checkPayment: newStatus });
+              alert("Cập nhật trạng thái thành công!");
+              refreshParent();
+              navigate("/admin/orders");
+            } catch (error) {
+              console.error("Lỗi khi cập nhật trạng thái:", error);
+              alert("Cập nhật thất bại!");
+            }
+          }
+        },
+        {
+          label: "Không",
+          onClick: () => {}
+        }
+      ]
+    });
+  };
   const updateProductQuantities = async (products, action) => {
     for (const product of products) {
       try {
@@ -247,6 +276,10 @@ const Orderdetail = () => {
                 <p className="text-sm text-blue-600">Trạng thái:</p>
                 <p className="font-medium text-blue-800">{hoaDon.paymentStatus}</p>
               </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-600">Trạng thái thanh toán:</p>
+                <p className="font-medium text-blue-800">{hoaDon.checkPayment}</p>
+              </div>
             </div>
           </div>
 
@@ -293,19 +326,24 @@ const Orderdetail = () => {
             </div>
           </div>
         </div>
-      )}
+          )}
+         
           {/* Cập nhật trạng thái */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h3 className="text-lg font-semibold mb-3 text-blue-700">Cập nhật trạng thái</h3>
             <div className="flex gap-2 flex-wrap">
               {hoaDon.paymentStatus === "Chờ xử lý" && (
                 <>
+                {!(hoaDon.paymentMethod === "VNPay" && hoaDon.checkPayment === "Chưa Thanh Toán") && (
+                  <>
                   <button
                     className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
                     onClick={() => handleStatusChange("Đã Xác Nhận")}
                   >
                     ✅ Xác Nhận
                   </button>
+                  </>
+                )}
                   <button
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
                     onClick={() => handleStatusChange("Huỷ Đơn")}
@@ -338,6 +376,22 @@ const Orderdetail = () => {
                   onClick={() => handleStatusChange("Hoàn thành")}
                 >
                   ✅ Hoàn thành
+                </button>
+              )}
+               {hoaDon.checkPayment === 'Yêu Cầu Hoàn Tiền' && (
+                <button
+                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition duration-200"
+                  onClick={() => handleRefundStatusChange('Đang Hoàn Tiền')}
+                >
+                  → Đang Hoàn Tiền
+                </button>
+              )}
+              {hoaDon.checkPayment === 'Đang Hoàn Tiền' && (
+                <button
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
+                  onClick={() => handleRefundStatusChange('Đã Hoàn Tiền')}
+                >
+                  → Đã Hoàn Tiền
                 </button>
               )}
             </div>
