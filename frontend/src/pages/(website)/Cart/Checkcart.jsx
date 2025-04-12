@@ -57,6 +57,10 @@ const Checkcart = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("COD");
 
+  // gioi han so luong san pham
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const isOverFiveProducts = totalQuantity > 4;
+
   const formatCurrency = (value) => {
     if (typeof value !== "number" || isNaN(value)) {
       return "0 VND";
@@ -86,6 +90,13 @@ const Checkcart = () => {
     };
     fetchUserData();
   }, [navigate]);
+
+  // trên 5 sp tt vnpay
+  useEffect(() => {
+    if (isOverFiveProducts) {
+      setPaymentMethod("VNPay");
+    }
+  }, [isOverFiveProducts]);
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -427,12 +438,20 @@ const Checkcart = () => {
                 </Descriptions.Item>
               </Descriptions>
 
+              {isOverFiveProducts && (
+                <Text type="warning">
+                  Đối với những đơn hàng có hơn 5 sản phẩm, vui lòng thanh toán
+                  trước qua VNPay. Xin cảm ơn!
+                </Text>
+              )}
+
               <Button
                 type={paymentMethod === "COD" ? "primary" : "default"}
                 size="large"
                 block
                 onClick={() => setPaymentMethod("COD")}
                 style={{ marginBottom: 8 }}
+                disabled={isOverFiveProducts}
               >
                 Thanh toán khi nhận hàng (COD)
               </Button>
