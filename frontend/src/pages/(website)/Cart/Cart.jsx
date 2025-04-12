@@ -62,8 +62,11 @@ const Cart = () => {
     const userId = userData?.id;
 
     if (userId) {
-      const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-      const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+      const storedCart =
+        JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+      const storedVoucher = JSON.parse(
+        localStorage.getItem(`voucher_${userId}`)
+      );
 
       const updatedCart = await Promise.all(
         storedCart.map(async (item) => {
@@ -131,7 +134,9 @@ const Cart = () => {
 
     if (deletedProductId && userId) {
       let storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-      const newStoredCart = storedCart.filter((item) => item.id !== deletedProductId);
+      const newStoredCart = storedCart.filter(
+        (item) => item.id !== deletedProductId
+      );
       if (newStoredCart.length !== storedCart.length) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newStoredCart));
         setCart(newStoredCart);
@@ -148,7 +153,9 @@ const Cart = () => {
         });
         setSelectedItems(newSelectedItems);
 
-        message.info(`Sản phẩm với ID ${deletedProductId} đã bị xóa khỏi giỏ hàng!`);
+        message.info(
+          `Sản phẩm với ID ${deletedProductId} đã bị xóa khỏi giỏ hàng!`
+        );
       }
     } else {
       updateCart();
@@ -190,7 +197,12 @@ const Cart = () => {
     // Nếu bộ nhớ hết hàng, đặt quantity về 0
     // Nếu bộ nhớ còn hàng, đặt quantity về 1 nếu trước đó là 0, hoặc giữ nguyên nếu lớn hơn 0
     const currentQuantity = newCart[index].quantity;
-    const newQuantity = newMaxQuantity === 0 ? 0 : currentQuantity === 0 ? 1 : Math.min(currentQuantity, newMaxQuantity);
+    const newQuantity =
+      newMaxQuantity === 0
+        ? 0
+        : currentQuantity === 0
+        ? 1
+        : Math.min(currentQuantity, newMaxQuantity);
 
     newCart[index] = {
       ...newCart[index],
@@ -319,6 +331,15 @@ const Cart = () => {
 
     const total = calculateTotal();
 
+    // **Điều kiện: Tổng tiền tối thiểu để áp dụng mã giảm giá
+    if (total < 10000000) {
+      message.error(
+        "Đơn hàng giá trị tối thiểu 10 triệu để áp dụng mã giảm giá."
+      );
+      return;
+    }
+
+    // **Tính giảm giá**
     let discountAmount = 0;
     if (promotion.LoaiKM === "percentage") {
       discountAmount = (total * promotion.GiaTriKM) / 100;
@@ -326,6 +347,14 @@ const Cart = () => {
       discountAmount = promotion.GiaTriKM;
     }
 
+    // **Giới hạn số tiền giảm giá tối đa**
+    const maxDiscount = 2000000; // Giảm giá tối đa là 2000k
+    if (discountAmount > maxDiscount) {
+      discountAmount = maxDiscount;
+      message.warning("Mã giảm giá chỉ áp dụng tối đa 2000,000 VND.");
+    }
+
+    // Áp dụng giảm giá
     setDiscount(discountAmount);
     message.success("Áp dụng mã giảm giá thành công!");
 
@@ -383,7 +412,9 @@ const Cart = () => {
     });
   };
 
-  const isAnyItemOutOfStock = cart.some((item) => item.maxQuantity === 0 && selectedItems[cart.indexOf(item)]);
+  const isAnyItemOutOfStock = cart.some(
+    (item) => item.maxQuantity === 0 && selectedItems[cart.indexOf(item)]
+  );
 
   const columns = [
     {
@@ -421,7 +452,12 @@ const Cart = () => {
           <img
             src={record.image || "/placeholder.svg"}
             alt={record.name}
-            style={{ width: 100, height: 100, objectFit: "contain", borderRadius: 8 }}
+            style={{
+              width: 100,
+              height: 100,
+              objectFit: "contain",
+              borderRadius: 8,
+            }}
           />
           <div>
             <Text strong style={{ fontSize: 16 }}>
@@ -431,36 +467,44 @@ const Cart = () => {
               <Text type="secondary">
                 Bộ nhớ: {record.memory}
                 <div className="d-flex gap-2 mt-2">
-                  {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((memoryKey) =>
-                    record.availableMemories[memoryKey] ? (
-                      <div key={memoryKey} style={{ position: "relative", textAlign: "center" }}>
-                        <Button
-                          type={
-                            record.memory === record.availableMemories[memoryKey]
-                              ? "primary"
-                              : "default"
-                          }
-                          size="small"
-                          onClick={() => handleMemoryChange(index, memoryKey)}
+                  {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
+                    (memoryKey) =>
+                      record.availableMemories[memoryKey] ? (
+                        <div
+                          key={memoryKey}
+                          style={{ position: "relative", textAlign: "center" }}
                         >
-                          {record.availableMemories[memoryKey]}
-                        </Button>
-                        {record.memory === record.availableMemories[memoryKey] &&
-                          record.availableMemories[`SoLuong${memoryKey.slice(-1)}`] === 0 && (
-                            <Text
-                              type="danger"
-                              style={{
-                                display: "block",
-                                fontSize: 12,
-                                marginTop: 4,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Hết hàng
-                            </Text>
-                          )}
-                      </div>
-                    ) : null
+                          <Button
+                            type={
+                              record.memory ===
+                              record.availableMemories[memoryKey]
+                                ? "primary"
+                                : "default"
+                            }
+                            size="small"
+                            onClick={() => handleMemoryChange(index, memoryKey)}
+                          >
+                            {record.availableMemories[memoryKey]}
+                          </Button>
+                          {record.memory ===
+                            record.availableMemories[memoryKey] &&
+                            record.availableMemories[
+                              `SoLuong${memoryKey.slice(-1)}`
+                            ] === 0 && (
+                              <Text
+                                type="danger"
+                                style={{
+                                  display: "block",
+                                  fontSize: 12,
+                                  marginTop: 4,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Hết hàng
+                              </Text>
+                            )}
+                        </div>
+                      ) : null
                   )}
                 </div>
               </Text>
@@ -562,7 +606,9 @@ const Cart = () => {
 
           <div style={{ maxWidth: 400, marginLeft: "auto" }}>
             <Space direction="vertical" style={{ width: "100%" }}>
-              <Title level={4}>Tổng tiền: {formatCurrency(calculateOriginalTotal())}</Title>
+              <Title level={4}>
+                Tổng tiền: {formatCurrency(calculateOriginalTotal())}
+              </Title>
               {discount > 0 && (
                 <Text type="danger">
                   Giảm giá từ voucher: -{formatCurrency(discount)}
@@ -570,7 +616,8 @@ const Cart = () => {
               )}
               {calculateFinalTotal() < calculateOriginalTotal() && (
                 <Text type="success" strong>
-                  Tổng tiền sau giảm giá: {formatCurrency(calculateFinalTotal())}
+                  Tổng tiền sau giảm giá:{" "}
+                  {formatCurrency(calculateFinalTotal())}
                 </Text>
               )}
 
@@ -609,7 +656,10 @@ const Cart = () => {
                 block
                 size="large"
                 onClick={handleCheckout}
-                disabled={isAnyItemOutOfStock || !Object.values(selectedItems).some((val) => val)}
+                disabled={
+                  isAnyItemOutOfStock ||
+                  !Object.values(selectedItems).some((val) => val)
+                }
               >
                 Thanh toán
               </Button>

@@ -76,4 +76,5 @@ apiRouter.post("/promotions", PromotionControl.createPromotion);
 apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
 apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
 
+
 export default apiRouter;
