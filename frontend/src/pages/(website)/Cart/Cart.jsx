@@ -62,7 +62,7 @@ const Cart = () => {
     const userId = userData?.id;
 
     if (userId) {
-      const storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+      let storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
       const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
 
       const updatedCart = await Promise.all(
@@ -85,11 +85,21 @@ const Cart = () => {
               newMaxQuantity = productData.SoLuong3;
             }
 
+            let newQuantity = item.quantity;
+            if (newMaxQuantity <= 0) {
+              newQuantity = 0;
+            } else if (newQuantity > newMaxQuantity) {
+              newQuantity = newMaxQuantity;
+            } else if (newQuantity < 0) {
+              newQuantity = 0;
+            }
+
             return {
               ...item,
               price: newPrice,
               name: productData.TenSP,
               maxQuantity: newMaxQuantity,
+              quantity: newQuantity,
               availableMemories: {
                 BoNhoTrong1: productData.BoNhoTrong1,
                 BoNhoTrong2: productData.BoNhoTrong2,
@@ -109,9 +119,13 @@ const Cart = () => {
         })
       );
 
-      setCart(updatedCart);
-      localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
-      const initialSelection = updatedCart.reduce((acc, _, index) => {
+      const validCart = updatedCart.filter(
+        (item) => item.quantity > 0 || item.maxQuantity > 0
+      );
+      setCart(validCart);
+      localStorage.setItem(`cart_${userId}`, JSON.stringify(validCart));
+
+      const initialSelection = validCart.reduce((acc, _, index) => {
         acc[index] = true;
         return acc;
       }, {});
@@ -131,7 +145,9 @@ const Cart = () => {
 
     if (deletedProductId && userId) {
       let storedCart = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-      const newStoredCart = storedCart.filter((item) => item.id !== deletedProductId);
+      const newStoredCart = storedCart.filter(
+        (item) => item.id !== deletedProductId
+      );
       if (newStoredCart.length !== storedCart.length) {
         localStorage.setItem(`cart_${userId}`, JSON.stringify(newStoredCart));
         setCart(newStoredCart);
@@ -148,7 +164,9 @@ const Cart = () => {
         });
         setSelectedItems(newSelectedItems);
 
-        message.info(`Sản phẩm với ID ${deletedProductId} đã bị xóa khỏi giỏ hàng!`);
+        message.info(
+          `Sản phẩm với ID ${deletedProductId} đã bị xóa khỏi giỏ hàng!`
+        );
       }
     } else {
       updateCart();
@@ -187,10 +205,8 @@ const Cart = () => {
     const newPrice = productData[`GiaSP${memoryIndex}`];
     const newMaxQuantity = productData[`SoLuong${memoryIndex}`];
 
-    // Nếu bộ nhớ hết hàng, đặt quantity về 0
-    // Nếu bộ nhớ còn hàng, đặt quantity về 1 nếu trước đó là 0, hoặc giữ nguyên nếu lớn hơn 0
     const currentQuantity = newCart[index].quantity;
-    const newQuantity = newMaxQuantity === 0 ? 0 : currentQuantity === 0 ? 1 : Math.min(currentQuantity, newMaxQuantity);
+    const newQuantity = newMaxQuantity === 0 ? 0 : Math.min(currentQuantity || 1, newMaxQuantity);
 
     newCart[index] = {
       ...newCart[index],
@@ -273,8 +289,10 @@ const Cart = () => {
 
     setCart(newCart);
 
-    const newSelectedItems = { ...selectedItems };
-    delete newSelectedItems[index];
+    const newSelectedItems = {};
+    newCart.forEach((_, i) => {
+      newSelectedItems[i] = selectedItems[i] || true;
+    });
     setSelectedItems(newSelectedItems);
 
     message.success("Đã xóa sản phẩm khỏi giỏ hàng!");
@@ -383,7 +401,9 @@ const Cart = () => {
     });
   };
 
-  const isAnyItemOutOfStock = cart.some((item) => item.maxQuantity === 0 && selectedItems[cart.indexOf(item)]);
+  const isAnyItemOutOfStock = cart.some(
+    (item, index) => item.maxQuantity === 0 && selectedItems[index]
+  );
 
   const columns = [
     {
@@ -421,7 +441,12 @@ const Cart = () => {
           <img
             src={record.image || "/placeholder.svg"}
             alt={record.name}
-            style={{ width: 100, height: 100, objectFit: "contain", borderRadius: 8 }}
+            style={{
+              width: 100,
+              height: 100,
+              objectFit: "contain",
+              borderRadius: 8,
+            }}
           />
           <div>
             <Text strong style={{ fontSize: 16 }}>
@@ -431,36 +456,49 @@ const Cart = () => {
               <Text type="secondary">
                 Bộ nhớ: {record.memory}
                 <div className="d-flex gap-2 mt-2">
-                  {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((memoryKey) =>
-                    record.availableMemories[memoryKey] ? (
-                      <div key={memoryKey} style={{ position: "relative", textAlign: "center" }}>
-                        <Button
-                          type={
-                            record.memory === record.availableMemories[memoryKey]
-                              ? "primary"
-                              : "default"
-                          }
-                          size="small"
-                          onClick={() => handleMemoryChange(index, memoryKey)}
+                  {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
+                    (memoryKey) =>
+                      record.availableMemories[memoryKey] ? (
+                        <div
+                          key={memoryKey}
+                          style={{ position: "relative", textAlign: "center" }}
                         >
-                          {record.availableMemories[memoryKey]}
-                        </Button>
-                        {record.memory === record.availableMemories[memoryKey] &&
-                          record.availableMemories[`SoLuong${memoryKey.slice(-1)}`] === 0 && (
-                            <Text
-                              type="danger"
-                              style={{
-                                display: "block",
-                                fontSize: 12,
-                                marginTop: 4,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Hết hàng
-                            </Text>
-                          )}
-                      </div>
-                    ) : null
+                          <Button
+                            type={
+                              record.memory ===
+                              record.availableMemories[memoryKey]
+                                ? "primary"
+                                : "default"
+                            }
+                            size="small"
+                            onClick={() => handleMemoryChange(index, memoryKey)}
+                            disabled={
+                              record.availableMemories[
+                                `SoLuong${memoryKey.slice(-1)}`
+                              ] <= 0
+                            }
+                          >
+                            {record.availableMemories[memoryKey]}
+                          </Button>
+                          {record.memory ===
+                            record.availableMemories[memoryKey] &&
+                            record.availableMemories[
+                              `SoLuong${memoryKey.slice(-1)}`
+                            ] === 0 && (
+                              <Text
+                                type="danger"
+                                style={{
+                                  display: "block",
+                                  fontSize: 12,
+                                  marginTop: 4,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Hết hàng
+                              </Text>
+                            )}
+                        </div>
+                      ) : null
                   )}
                 </div>
               </Text>
@@ -513,6 +551,9 @@ const Cart = () => {
             />
           </Space>
           <Text type="secondary">Còn lại: {record.maxQuantity}</Text>
+          {record.maxQuantity <= 0 && (
+            <Text type="danger">Sản phẩm đã hết hàng</Text>
+          )}
         </Space>
       ),
       align: "center",
@@ -562,7 +603,9 @@ const Cart = () => {
 
           <div style={{ maxWidth: 400, marginLeft: "auto" }}>
             <Space direction="vertical" style={{ width: "100%" }}>
-              <Title level={4}>Tổng tiền: {formatCurrency(calculateOriginalTotal())}</Title>
+              <Title level={4}>
+                Tổng tiền: {formatCurrency(calculateOriginalTotal())}
+              </Title>
               {discount > 0 && (
                 <Text type="danger">
                   Giảm giá từ voucher: -{formatCurrency(discount)}
@@ -576,7 +619,7 @@ const Cart = () => {
 
               {isAnyItemOutOfStock && (
                 <Alert
-                  message="Sản phẩm đã hết hàng"
+                  message="Một số sản phẩm đã hết hàng. Vui lòng xóa chúng khỏi giỏ hàng để tiếp tục thanh toán."
                   type="error"
                   showIcon
                   style={{ marginTop: 16 }}
@@ -609,7 +652,10 @@ const Cart = () => {
                 block
                 size="large"
                 onClick={handleCheckout}
-                disabled={isAnyItemOutOfStock || !Object.values(selectedItems).some((val) => val)}
+                disabled={
+                  isAnyItemOutOfStock ||
+                  !Object.values(selectedItems).some((val) => val)
+                }
               >
                 Thanh toán
               </Button>

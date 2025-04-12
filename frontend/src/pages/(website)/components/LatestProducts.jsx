@@ -3,7 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
 import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
-import Socket from "../socket/Socket"; // Import Socket.IO client
+import Socket from "../socket/Socket";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules"; // Import từ swiper/modules
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -13,58 +18,6 @@ const LatestProducts = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    getLatestProducts();
-
-    // Lắng nghe sự kiện productUpdated từ server
-    Socket.on("productUpdated", (updatedProduct) => {
-      setProducts((prevProducts) => {
-        // Kiểm tra nếu sản phẩm cập nhật nằm trong danh sách hiện tại
-        const productIndex = prevProducts.findIndex((p) => p._id === updatedProduct._id);
-        let updatedProducts = [...prevProducts];
-
-        // Nếu sản phẩm tồn tại trong danh sách
-        if (productIndex !== -1) {
-          const currentProduct = updatedProducts[productIndex];
-          const isIphone = updatedProduct.TenSP.toLowerCase().includes("iphone");
-          const isInStock = !(
-            updatedProduct.SoLuong1 === 0 &&
-            updatedProduct.SoLuong2 === 0 &&
-            updatedProduct.SoLuong3 === 0
-          );
-
-          // Nếu vẫn là iPhone và còn hàng, cập nhật sản phẩm
-          if (isIphone && isInStock) {
-            updatedProducts[productIndex] = updatedProduct;
-          } else {
-            // Nếu không còn là iPhone hoặc hết hàng, xóa khỏi danh sách
-            updatedProducts.splice(productIndex, 1);
-          }
-        } else {
-          // Nếu sản phẩm không có trong danh sách, kiểm tra xem có thêm vào không
-          const isIphone = updatedProduct.TenSP.toLowerCase().includes("iphone");
-          const isInStock = !(
-            updatedProduct.SoLuong1 === 0 &&
-            updatedProduct.SoLuong2 === 0 &&
-            updatedProduct.SoLuong3 === 0
-          );
-          if (isIphone && isInStock && updatedProducts.length < 8) {
-            updatedProducts.unshift(updatedProduct); // Thêm vào đầu danh sách
-            updatedProducts = updatedProducts.slice(0, 8); // Giữ tối đa 8 sản phẩm
-          }
-        }
-
-        // Sắp xếp lại theo _id giảm dần
-        return updatedProducts.sort((a, b) => b._id.localeCompare(a._id));
-      });
-    });
-
-    // Cleanup listener khi component unmount
-    return () => {
-      Socket.off("productUpdated");
-    };
-  }, []);
-
   const getLatestProducts = async () => {
     setLoading(true);
     try {
@@ -73,23 +26,68 @@ const LatestProducts = () => {
         ? response.data
         : response.data.data || [];
 
-      // Lọc sản phẩm iPhone và còn hàng
       const filteredProducts = data.filter(
         (product) =>
           product.TenSP.toLowerCase().includes("iphone") &&
           !(product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0)
       );
 
-      // Sắp xếp theo ID giảm dần
-      const sortedProducts = filteredProducts.sort((a, b) => b._id.localeCompare(a._id));
-      
-      setProducts(sortedProducts.slice(0, 8)); // Lấy 8 sản phẩm mới nhất
+      const sortedProducts = filteredProducts
+        .sort((a, b) => b._id.localeCompare(a._id))
+        .slice(0, 8);
+
+      setProducts(sortedProducts);
     } catch (error) {
       message.error("Lỗi khi lấy sản phẩm mới nhất!");
       console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    getLatestProducts();
+
+    Socket.on("productUpdated", (updatedProduct) => {
+      setProducts((prevProducts) => {
+        let updatedProducts = [...prevProducts];
+        const isIphone = updatedProduct.TenSP.toLowerCase().includes("iphone");
+        const isInStock = !(
+          updatedProduct.SoLuong1 === 0 &&
+          updatedProduct.SoLuong2 === 0 &&
+          updatedProduct.SoLuong3 === 0
+        );
+        const productIndex = updatedProducts.findIndex((p) => p._id === updatedProduct._id);
+
+        if (productIndex !== -1) {
+          if (isIphone && isInStock) {
+            updatedProducts[productIndex] = updatedProduct;
+          } else {
+            updatedProducts.splice(productIndex, 1);
+          }
+        } else if (isIphone && isInStock && updatedProducts.length < 8) {
+          updatedProducts.unshift(updatedProduct);
+        }
+
+        return updatedProducts
+          .sort((a, b) => b._id.localeCompare(a._id))
+          .slice(0, 8);
+      });
+    });
+
+    return () => {
+      Socket.off("productUpdated");
+    };
+  }, []);
+
+  const swiperConfig = {
+    slidesPerView: Math.min(products.length || 1, 4),
+    slidesPerGroup: 1,
+    spaceBetween: 20,
+    navigation: true,
+    pagination: { clickable: true },
+    loop: products.length >= 5,
+    modules: [Navigation, Pagination], // Đăng ký modules
   };
 
   return (
@@ -105,15 +103,11 @@ const LatestProducts = () => {
           <div className="flex justify-center items-center h-40">
             <Spin size="large" tip="Đang tải sản phẩm..." />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map((product) => (
-                <Link 
-                  to={`/products/product_detail/${product._id}`} 
-                  key={product._id}
-                  className="block h-full"
-                >
+        ) : products.length > 0 ? (
+          <Swiper {...swiperConfig}>
+            {products.map((product) => (
+              <SwiperSlide key={product._id}>
+                <Link to={`/products/product_detail/${product._id}`} className="block h-full">
                   <Card
                     hoverable
                     cover={
@@ -130,7 +124,10 @@ const LatestProducts = () => {
                     <Meta
                       title={
                         <div className="text-center">
-                          <Text ellipsis={{ tooltip: product.TenSP }} className="font-semibold text-blue-600">
+                          <Text
+                            ellipsis={{ tooltip: product.TenSP }}
+                            className="font-semibold text-blue-600"
+                          >
                             {product.TenSP}
                           </Text>
                         </div>
@@ -143,26 +140,28 @@ const LatestProducts = () => {
                             </Text>
                           </div>
                           <Text strong className="text-blue-600 text-lg">
-                            {product.GiaSP1 ? 
-                              new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.GiaSP1)
-                              : "Liên hệ"
-                            }
-                          </Text> 
+                            {product.GiaSP1
+                              ? new Intl.NumberFormat("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                }).format(product.GiaSP1)
+                              : "Liên hệ"}
+                          </Text>
                         </div>
                       }
                     />
                   </Card>
                 </Link>
-              ))
-            ) : (
-              <div className="col-span-full py-8">
-                <Empty
-                  description={
-                    <Text type="secondary">Không có sản phẩm iPhone nào hiện có</Text>
-                  }
-                />
-              </div>
-            )}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="col-span-full py-8">
+            <Empty
+              description={
+                <Text type="secondary">Không có sản phẩm iPhone nào hiện có</Text>
+              }
+            />
           </div>
         )}
       </div>
