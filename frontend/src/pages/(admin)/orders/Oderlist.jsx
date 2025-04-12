@@ -241,8 +241,10 @@ const OrderList = () => {
                           👁️ Xem chi tiết
                         </Link>
                         {!showHidden &&
-                          (hoaDon.paymentStatus === "Huỷ Đơn" ||
-                            hoaDon.paymentStatus === "Hoàn thành") && (
+                          (hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Thanh Toán' ||
+                            hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Hoàn Tiền' ||
+                            hoaDon.paymentStatus === "Hoàn thành" && hoaDon.checkPayment === 'Đã Thanh Toán'
+                           ) && (
                             <button
                               onClick={() => handleHideOrder(hoaDon._id)}
                               className="btn btn-warning ml-2"
