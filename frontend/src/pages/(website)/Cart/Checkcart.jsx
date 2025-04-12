@@ -18,8 +18,18 @@ import {
   List,
   message,
 } from "antd";
-import { ArrowLeftOutlined, CheckOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { getUserById, createOrder, createVNPayPayment, fetchPromotion, updateVoucherStatus } from "../../../service/api";
+import {
+  ArrowLeftOutlined,
+  CheckOutlined,
+  ShoppingCartOutlined,
+} from "@ant-design/icons";
+import {
+  getUserById,
+  createOrder,
+  createVNPayPayment,
+  fetchPromotion,
+  updateVoucherStatus,
+} from "../../../service/api";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -40,7 +50,9 @@ const Checkcart = () => {
   const [total, setTotal] = useState(initialTotal);
   const [finalTotal, setFinalTotal] = useState(initialFinalTotal);
   const [discount, setDiscount] = useState(initialDiscount);
-  const [additionalDiscount, setAdditionalDiscount] = useState(initialAdditionalDiscount);
+  const [additionalDiscount, setAdditionalDiscount] = useState(
+    initialAdditionalDiscount
+  );
   const [orderNote, setOrderNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("COD");
@@ -49,7 +61,10 @@ const Checkcart = () => {
     if (typeof value !== "number" || isNaN(value)) {
       return "0 VND";
     }
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(value);
   };
 
   useEffect(() => {
@@ -80,7 +95,12 @@ const Checkcart = () => {
       return;
     }
 
-    if (!userInfo._id || !userInfo.HoVaTen || !userInfo.SDT || !userInfo.DiaChi) {
+    if (
+      !userInfo._id ||
+      !userInfo.HoVaTen ||
+      !userInfo.SDT ||
+      !userInfo.DiaChi
+    ) {
       message.error("Thông tin người dùng không đầy đủ!");
       return;
     }
@@ -124,7 +144,9 @@ const Checkcart = () => {
             const userId = userData?.id;
 
             if (userId) {
-              const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+              const storedVoucher = JSON.parse(
+                localStorage.getItem(`voucher_${userId}`)
+              );
               if (storedVoucher && storedVoucher.code) {
                 const promotionResponse = await fetchPromotion();
                 const promotion = promotionResponse.data.data.find(
@@ -140,7 +162,9 @@ const Checkcart = () => {
 
             window.dispatchEvent(new Event("cartUpdated"));
             message.success("Đặt hàng thành công!");
-            navigate(`/profile-receipt/${response.data.data?._id || response.data._id}`);
+            navigate(
+              `/profile-receipt/${response.data.data?._id || response.data._id}`
+            );
           }
         } catch (error) {
           console.error("Lỗi khi tạo đơn hàng:", error);
@@ -158,7 +182,12 @@ const Checkcart = () => {
       return;
     }
 
-    if (!userInfo._id || !userInfo.HoVaTen || !userInfo.SDT || !userInfo.DiaChi) {
+    if (
+      !userInfo._id ||
+      !userInfo.HoVaTen ||
+      !userInfo.SDT ||
+      !userInfo.DiaChi
+    ) {
       message.error("Thông tin người dùng không đầy đủ!");
       return;
     }
@@ -218,7 +247,12 @@ const Checkcart = () => {
           };
           console.log("VNPay data:", vnpayData);
 
-          if (!vnpayData.amount || !vnpayData.orderId || !vnpayData.orderInfo || !vnpayData.returnUrl) {
+          if (
+            !vnpayData.amount ||
+            !vnpayData.orderId ||
+            !vnpayData.orderInfo ||
+            !vnpayData.returnUrl
+          ) {
             throw new Error("Dữ liệu thanh toán VNPay không hợp lệ");
           }
 
@@ -232,7 +266,9 @@ const Checkcart = () => {
           const userData = JSON.parse(localStorage.getItem("userData"));
           const userId = userData?.id;
           if (userId) {
-            const storedVoucher = JSON.parse(localStorage.getItem(`voucher_${userId}`));
+            const storedVoucher = JSON.parse(
+              localStorage.getItem(`voucher_${userId}`)
+            );
             if (storedVoucher && storedVoucher.code) {
               const promotionResponse = await fetchPromotion();
               const promotion = promotionResponse.data.data.find(
@@ -250,7 +286,9 @@ const Checkcart = () => {
           window.location.href = vnpayResponse.data.paymentUrl;
         } catch (error) {
           console.error("Lỗi xử lý thanh toán VNPay:", error);
-          message.error("Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại!");
+          message.error(
+            "Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại!"
+          );
           setIsSubmitting(false);
         }
       },
@@ -275,7 +313,11 @@ const Checkcart = () => {
     <div className="container mt-4">
       <Row gutter={[24, 24]}>
         <Col span={24}>
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate("/cart")}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate("/cart")}
+          >
             Quay lại giỏ hàng
           </Button>
         </Col>
@@ -284,14 +326,23 @@ const Checkcart = () => {
           <Card title={<Title level={3}>Thông tin giao hàng</Title>}>
             {userInfo.HoVaTen && (
               <Descriptions bordered column={1}>
-                <Descriptions.Item label="Họ và tên">{userInfo.HoVaTen}</Descriptions.Item>
-                <Descriptions.Item label="Số điện thoại">{userInfo.SDT}</Descriptions.Item>
-                <Descriptions.Item label="Địa chỉ">{userInfo.DiaChi}</Descriptions.Item>
+                <Descriptions.Item label="Họ và tên">
+                  {userInfo.HoVaTen}
+                </Descriptions.Item>
+                <Descriptions.Item label="Số điện thoại">
+                  {userInfo.SDT}
+                </Descriptions.Item>
+                <Descriptions.Item label="Địa chỉ">
+                  {userInfo.DiaChi}
+                </Descriptions.Item>
               </Descriptions>
             )}
           </Card>
 
-          <Card title={<Title level={3}>Danh sách sản phẩm</Title>} className="mt-3">
+          <Card
+            title={<Title level={3}>Danh sách sản phẩm</Title>}
+            className="mt-3"
+          >
             <List
               itemLayout="horizontal"
               dataSource={cart}
@@ -343,7 +394,10 @@ const Checkcart = () => {
             />
           </Card>
 
-          <Card title={<Title level={3}>Ghi chú đơn hàng</Title>} className="mt-3">
+          <Card
+            title={<Title level={3}>Ghi chú đơn hàng</Title>}
+            className="mt-3"
+          >
             <TextArea
               rows={4}
               value={orderNote}
@@ -361,7 +415,9 @@ const Checkcart = () => {
                   <Text>{formatCurrency(total)}</Text>
                 </Descriptions.Item>
                 <Descriptions.Item label="Giảm giá">
-                  <Text type="success">-{formatCurrency(discount + additionalDiscount)}</Text>
+                  <Text type="success">
+                    -{formatCurrency(discount + additionalDiscount)}
+                  </Text>
                 </Descriptions.Item>
                 <Divider />
                 <Descriptions.Item label="Tổng thanh toán">
@@ -395,15 +451,19 @@ const Checkcart = () => {
                 type="primary"
                 size="large"
                 block
-                onClick={paymentMethod === "COD" ? handleSubmitOrder : handleVNPayPayment}
+                onClick={
+                  paymentMethod === "COD"
+                    ? handleSubmitOrder
+                    : handleVNPayPayment
+                }
                 loading={isSubmitting}
                 icon={<CheckOutlined />}
               >
                 {isSubmitting
                   ? "Đang xử lý..."
                   : paymentMethod === "COD"
-                    ? "Xác nhận đặt hàng"
-                    : "Thanh toán với VNPay"}
+                  ? "Xác nhận đặt hàng"
+                  : "Thanh toán với VNPay"}
               </Button>
             </Space>
           </Card>
