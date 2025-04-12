@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema({
   },
   HoVaTen: {
     type: String,
-    unique: true,
   },
   Avata:{
     type: String,
@@ -24,7 +23,6 @@ const userSchema = new mongoose.Schema({
   },
   DiaChi: {
     type: String,
-    unique: true,
   },
   TaiKhoan: {
     type: String,

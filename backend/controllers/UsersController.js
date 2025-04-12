@@ -74,14 +74,10 @@ class UsersController {
   
       if (existingFields) {
         let message = '';
-        if (existingFields.HoVaTen === req.body.HoVaTen) {
-          message = 'Họ và tên đã tồn tại';
-        } else if (existingFields.SDT === req.body.SDT) {
+         if (existingFields.SDT === req.body.SDT) {
           message = 'Số điện thoại đã tồn tại';
         } else if (existingFields.Email === req.body.Email) {
           message = 'Email đã tồn tại';
-        } else if (existingFields.DiaChi === req.body.DiaChi) {
-          message = 'Địa chỉ đã tồn tại';
         }
         return res.status(400).json({ message });
       }
