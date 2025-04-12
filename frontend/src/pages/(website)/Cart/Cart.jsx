@@ -208,21 +208,47 @@ const Cart = () => {
     const newPrice = productData[`GiaSP${memoryIndex}`];
     const newMaxQuantity = productData[`SoLuong${memoryIndex}`];
 
-    const currentQuantity = newCart[index].quantity;
-    const newQuantity =
-      newMaxQuantity === 0
-        ? 0
-        : currentQuantity === 0
-        ? 1
-        : Math.min(currentQuantity, newMaxQuantity);
+    // Kiểm tra xem sản phẩm với cùng id và bộ nhớ mới đã tồn tại trong giỏ hàng chưa
+    const existingItemIndex = newCart.findIndex(
+      (item) =>
+        item.id === newCart[index].id &&
+        item.memory === newMemory &&
+        item !== newCart[index]
+    );
 
-    newCart[index] = {
-      ...newCart[index],
-      memory: newMemory,
-      price: newPrice,
-      maxQuantity: newMaxQuantity,
-      quantity: newQuantity,
-    };
+    if (existingItemIndex !== -1) {
+      // Nếu đã tồn tại, gộp số lượng
+      const currentQuantity = newCart[index].quantity;
+      const existingQuantity = newCart[existingItemIndex].quantity;
+      const combinedQuantity = currentQuantity + existingQuantity;
+
+      // Cập nhật số lượng cho sản phẩm hiện có
+      newCart[existingItemIndex].quantity = Math.min(
+        combinedQuantity,
+        newMaxQuantity
+      );
+      newCart[existingItemIndex].maxQuantity = newMaxQuantity;
+
+      // Xóa sản phẩm cũ
+      newCart.splice(index, 1);
+    } else {
+      // Nếu không tồn tại, cập nhật bộ nhớ như cũ
+      const currentQuantity = newCart[index].quantity;
+      const newQuantity =
+        newMaxQuantity === 0
+          ? 0
+          : currentQuantity === 0
+          ? 1
+          : Math.min(currentQuantity, newMaxQuantity);
+
+      newCart[index] = {
+        ...newCart[index],
+        memory: newMemory,
+        price: newPrice,
+        maxQuantity: newMaxQuantity,
+        quantity: newQuantity,
+      };
+    }
 
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
@@ -230,6 +256,13 @@ const Cart = () => {
     if (userId) {
       localStorage.setItem(`cart_${userId}`, JSON.stringify(newCart));
     }
+
+    // Cập nhật selectedItems
+    const newSelectedItems = {};
+    newCart.forEach((_, i) => {
+      newSelectedItems[i] = selectedItems[i] !== undefined ? selectedItems[i] : true;
+    });
+    setSelectedItems(newSelectedItems);
 
     setCart(newCart);
     if (newMaxQuantity === 0) {
