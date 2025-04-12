@@ -272,12 +272,14 @@ class HoaDonController {
   async thongKeDoanhThu(req, res) {
     try {
       const matchCompletedOrders = { $match: { paymentStatus: "Hoàn thành" } };
-
+  
       const doanhThuTheoNgay = await hoadon.aggregate([
         matchCompletedOrders,
         {
-         既に: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          tongDoanhThu: { $sum: "$total" },
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            tongDoanhThu: { $sum: "$total" },
+          },
         },
         { $sort: { _id: 1 } },
       ]);
