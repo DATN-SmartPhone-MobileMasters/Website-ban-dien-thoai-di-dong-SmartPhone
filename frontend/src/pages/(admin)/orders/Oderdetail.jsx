@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import { Modal, Form, Input,message  } from 'antd';
 import { 
   getOrderById, 
   updateOrder, 
@@ -18,6 +19,7 @@ const Orderdetail = () => {
   const [currentUserId, setCurrentUser] = useState(null); 
   const { id } = useParams();
   const navigate = useNavigate();
+  const [form] = Form.useForm();
   
   const refreshParent = () => {
     const event = new CustomEvent('orderStatusChanged');
@@ -50,65 +52,104 @@ const Orderdetail = () => {
     fetchData();
   }, [id]);
 
-  const handleStatusChange = async (newStatus) => {
-    confirmAlert({
-      title: "Xác nhận thay đổi trạng thái",
-      message: "Bạn có chắc chắn muốn thay đổi trạng thái?",
-      buttons: [
-        {
-          label: "Có",
-          onClick: async () => {
-            try {
-              const updateData = {
-                paymentStatus: newStatus
-              };
-              if (newStatus === "Hoàn thành") {
-                if (hoaDon.paymentMethod === "COD") {
-                  updateData.checkPayment = "Đã Thanh Toán";
-                }
-              }
-              if (newStatus === "Huỷ Đơn") {
-                const res= await getUserById(currentUserId);
-                const currentMaQuyen=res.data.MaQuyen;
-                let role = "User";
-                if (currentMaQuyen === 1) role = "Admin";
-                if (currentMaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
+ const handleStatusChange = async (newStatus) => {
+  if (newStatus === "Huỷ Đơn") {
+    let cancellationReason = '';
 
-                updateData.FeedBack = "Hủy bởi quản trị";
-              updateData.cancelledBy = {
-                userId: res.data._id,
-                role: role,
-                name: res.data.HoVaTen,
-              };
-                updateData.cancellationDate = new Date();
-              }
+    Modal.confirm({
+      title: "Xác nhận huỷ đơn hàng",
+      content: (
+        <Form form={form}>
+          <Form.Item
+            name="reason"
+            label="Lý Do Huỷ Đơn"
+            rules={[{ required: true, message: 'Vui lòng nhập lý do huỷ đơn' }]}
+          >
+            <Input.TextArea
+              placeholder="Nhập lý do huỷ đơn hàng..."
+              rows={4}
+              onChange={(e) => (cancellationReason = e.target.value)}
+            />
+          </Form.Item>
+        </Form>
+      ),
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await form.validateFields();
+          const userRes = await getUserById(currentUserId);
+          const currentMaQuyen = userRes.data.MaQuyen;
+          let role = "User";
+          if (currentMaQuyen === 1) role = "Admin";
+          if (currentMaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
 
-              await updateOrder(id, updateData);
+          const updateData = {
+            paymentStatus: newStatus,
+            FeedBack: cancellationReason,
+            cancelledBy: {
+              userId: userRes.data._id,
+              role: role,
+              name: userRes.data.HoVaTen,
+            },
+            cancellationDate: new Date(),
+          };
 
-              if (newStatus === "Đã Xác Nhận") {
-                await updateProductQuantities(hoaDon.products, "subtract");
-              }
-
-              if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
-                await updateProductQuantities(hoaDon.products, "add");
-              }
-              
-              alert("Cập nhật trạng thái thành công!");
-              refreshParent();
-              navigate("/admin/orders");
-            } catch (error) {
-              console.error("Lỗi khi cập nhật trạng thái:", error);
-              alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+          if (hoaDon.paymentMethod === "COD" || 
+              (hoaDon.paymentMethod === "VNPay" && hoaDon.checkPayment === "Đã Thanh Toán")) {
+            await updateProductQuantities(hoaDon.products, "add");
+            if (hoaDon.paymentMethod === "VNPay") {
+              updateData.checkPayment = "Yêu Cầu Hoàn Tiền";
             }
-          },
-        },
-        {
-          label: "Không",
-          onClick: () => {},
-        },
-      ],
+          }
+
+          await updateOrder(id, updateData);
+
+          message.success("Huỷ đơn hàng thành công!");
+          refreshParent();
+          navigate("/admin/orders");
+        } catch (error) {
+          if (error.errorFields) return Promise.reject();
+          console.error("Lỗi khi huỷ đơn:", error);
+          message.error("Huỷ đơn thất bại!");
+        }
+      },
     });
-  };
+  } else {
+    Modal.confirm({
+      title: "Xác nhận thay đổi trạng thái",
+      content: "Bạn có chắc chắn muốn thay đổi trạng thái?",
+      okText: "Có",
+      cancelText: "Không",
+      onOk: async () => {
+        try {
+          const updateData = { paymentStatus: newStatus };
+          
+          if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "COD") {
+            updateData.checkPayment = "Đã Thanh Toán";
+          }
+
+          if (newStatus === "Đã Xác Nhận") {
+            await updateProductQuantities(hoaDon.products, "subtract");
+          }
+
+          await updateOrder(id, updateData);
+
+          if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
+            await updateProductQuantities(hoaDon.products, "add");
+          }
+
+          message.success("Cập nhật trạng thái thành công!");
+          refreshParent();
+          navigate("/admin/orders");
+        } catch (error) {
+          console.error("Lỗi khi cập nhật trạng thái:", error);
+          message.error("Cập nhật thất bại!");
+        }
+      },
+    });
+  }
+};
   const handleRefundStatusChange = async (newStatus) => {
     confirmAlert({
       title: `Xác nhận chuyển sang ${newStatus}`,
