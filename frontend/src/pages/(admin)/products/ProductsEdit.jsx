@@ -413,11 +413,10 @@ const ProductsEdit = () => {
                         rules={[{ required: false }]}
                       >
                         <Select
-                          placeholder="Chọn bộ nhớ"
+                          placeholder="Không có"
                           onChange={(value) => handleMemoryChange(version, value)}
                         >
                           {[
-                            { value: "", label: "Chọn bộ nhớ" },
                             { value: "Không có", label: "Không có" },
                             { value: "32GB", label: "32GB" },
                             { value: "64GB", label: "64GB" },
@@ -429,7 +428,7 @@ const ProductsEdit = () => {
                             <Option
                               key={option.value}
                               value={option.value}
-                              disabled={selectedMemories.includes(option.value) && option.value !== ""}
+                              disabled={selectedMemories.includes(option.value) && option.value !== "Không có"}
                             >
                               {option.label}
                             </Option>
