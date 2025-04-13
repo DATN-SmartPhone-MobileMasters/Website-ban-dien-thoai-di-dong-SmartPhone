@@ -162,7 +162,13 @@ const ProductDetail = () => {
               ? "BoNhoTrong1"
               : selectedMemory.memory === updatedProduct.BoNhoTrong2
               ? "BoNhoTrong2"
-              : "BoNhoTrong3";
+              : selectedMemory.memory === updatedProduct.BoNhoTrong3
+              ? "BoNhoTrong3"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong4
+              ? "BoNhoTrong4"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong5
+              ? "BoNhoTrong5"
+              : "BoNhoTrong6";
           const memoryIndex = memoryKey.slice(-1);
           const newQuantity = updatedProduct[`SoLuong${memoryIndex}`] || 0;
 
@@ -197,13 +203,53 @@ const ProductDetail = () => {
         setProduct(updatedProduct);
         if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
 
-        // Thiết lập timeout để tự động chọn BoNhoTrong1 sau 2 giây
-        if (updatedProduct.BoNhoTrong1) {
+        // Thiết lập timeout để tự động chọn bộ nhớ đầu tiên hợp lệ sau 2 giây
+        if (updatedProduct.BoNhoTrong1 && updatedProduct.BoNhoTrong1 !== "Không có") {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong1,
               price: updatedProduct.GiaSP1,
               quantity: updatedProduct.SoLuong1,
+            });
+          }, 200);
+        } else if (updatedProduct.BoNhoTrong2 && updatedProduct.BoNhoTrong2 !== "Không có") {
+          timeoutRef.current = setTimeout(() => {
+            setSelectedMemory({
+              memory: updatedProduct.BoNhoTrong2,
+              price: updatedProduct.GiaSP2,
+              quantity: updatedProduct.SoLuong2,
+            });
+          }, 200);
+        } else if (updatedProduct.BoNhoTrong3 && updatedProduct.BoNhoTrong3 !== "Không có") {
+          timeoutRef.current = setTimeout(() => {
+            setSelectedMemory({
+              memory: updatedProduct.BoNhoTrong3,
+              price: updatedProduct.GiaSP3,
+              quantity: updatedProduct.SoLuong3,
+            });
+          }, 200);
+        } else if (updatedProduct.BoNhoTrong4 && updatedProduct.BoNhoTrong4 !== "Không có") {
+          timeoutRef.current = setTimeout(() => {
+            setSelectedMemory({
+              memory: updatedProduct.BoNhoTrong4,
+              price: updatedProduct.GiaSP4,
+              quantity: updatedProduct.SoLuong4,
+            });
+          }, 200);
+        } else if (updatedProduct.BoNhoTrong5 && updatedProduct.BoNhoTrong5 !== "Không có") {
+          timeoutRef.current = setTimeout(() => {
+            setSelectedMemory({
+              memory: updatedProduct.BoNhoTrong5,
+              price: updatedProduct.GiaSP5,
+              quantity: updatedProduct.SoLuong5,
+            });
+          }, 200);
+        } else if (updatedProduct.BoNhoTrong6 && updatedProduct.BoNhoTrong6 !== "Không có") {
+          timeoutRef.current = setTimeout(() => {
+            setSelectedMemory({
+              memory: updatedProduct.BoNhoTrong6,
+              price: updatedProduct.GiaSP6,
+              quantity: updatedProduct.SoLuong6,
             });
           }, 200);
         }
@@ -612,43 +658,49 @@ const ProductDetail = () => {
 
               <Divider orientation="left">Bộ nhớ trong</Divider>
               <Space wrap justify="center">
-                {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
-                  (memoryKey, index) =>
-                    product[memoryKey] ? (
-                      <div
-                        key={index}
-                        style={{ position: "relative", textAlign: "center" }}
+                {[
+                  "BoNhoTrong1",
+                  "BoNhoTrong2",
+                  "BoNhoTrong3",
+                  "BoNhoTrong4",
+                  "BoNhoTrong5",
+                  "BoNhoTrong6",
+                ].map((memoryKey, index) =>
+                  product[memoryKey] && product[memoryKey] !== "Không có" ? (
+                    <div
+                      key={index}
+                      style={{ position: "relative", textAlign: "center" }}
+                    >
+                      <Button
+                        type={
+                          selectedMemory.memory === product[memoryKey]
+                            ? "primary"
+                            : "default"
+                        }
+                        onClick={() => handleMemorySelection(memoryKey)}
                       >
-                        <Button
-                          type={
-                            selectedMemory.memory === product[memoryKey]
-                              ? "primary"
-                              : "default"
-                          }
-                          onClick={() => handleMemorySelection(memoryKey)}
-                        >
-                          {product[memoryKey]}
-                          {selectedMemory.memory === product[memoryKey] && (
-                            <span>
-                              {" "}
-                              ({product[`SoLuong${memoryKey.slice(-1)}`]})
-                            </span>
-                          )}
-                        </Button>
-                        {product[`SoLuong${memoryKey.slice(-1)}`] <= 0 && (
-                          <Text
-                            type="danger"
-                            style={{
-                              display: "block",
-                              fontSize: 12,
-                              marginTop: 4,
-                            }}
-                          >
-                            Hết hàng
-                          </Text>
+                        {product[memoryKey]}
+                        {selectedMemory.memory === product[memoryKey] && (
+                          <span>
+                            {" "}
+                            ({product[`SoLuong${memoryKey.slice(-1)}`]})
+                          </span>
                         )}
-                      </div>
-                    ) : null
+                      </Button>
+                      {product[`SoLuong${memoryKey.slice(-1)}`] <= 0 && (
+                        <Text
+                          type="danger"
+                          style={{
+                            display: "block",
+                            fontSize: 12,
+                            marginTop: 4,
+                          }}
+                        >
+                          Hết hàng
+                        </Text>
+                      )}
+                    </div>
+                  ) : null
                 )}
               </Space>
 

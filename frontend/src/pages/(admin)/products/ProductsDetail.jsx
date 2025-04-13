@@ -198,21 +198,27 @@ const ProductsDetail = () => {
                 <Text strong>Bộ Nhớ Trong:</Text>
                 <div style={{ marginTop: 8 }}>
                   <Space wrap>
-                    {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
-                      (key, index) =>
-                        product[key] && (
-                          <Button
-                            key={index}
-                            type={
-                              selectedMemory.memory === product[key]
-                                ? "primary"
-                                : "default"
-                            }
-                            onClick={() => handleMemorySelection(key)}
-                          >
-                            {product[key]}
-                          </Button>
-                        )
+                    {[
+                      "BoNhoTrong1",
+                      "BoNhoTrong2",
+                      "BoNhoTrong3",
+                      "BoNhoTrong4",
+                      "BoNhoTrong5",
+                      "BoNhoTrong6",
+                    ].map((key, index) =>
+                      product[key] && product[key] !== "Không có" ? (
+                        <Button
+                          key={index}
+                          type={
+                            selectedMemory.memory === product[key]
+                              ? "primary"
+                              : "default"
+                          }
+                          onClick={() => handleMemorySelection(key)}
+                        >
+                          {product[key]}
+                        </Button>
+                      ) : null
                     )}
                   </Space>
                 </div>
