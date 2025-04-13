@@ -22,12 +22,12 @@ const ProductsAdd = () => {
       HinhAnh5: null,
       HinhAnh6: null,
       memoryData: [
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
       ],
     },
   ]);
@@ -62,7 +62,7 @@ const ProductsAdd = () => {
       ...updatedProducts[productIndex].memoryData[memoryIndex],
       [field]: value,
     };
-    if (field === 'BoNhoTrong' && value === 'Không có') {
+    if (field === 'BoNhoTrong' && value === 'Vui lòng chọn bộ nhớ') {
       updatedProducts[productIndex].memoryData[memoryIndex].GiaSP = '0';
       updatedProducts[productIndex].memoryData[memoryIndex].SoLuong = '0';
       form.setFieldsValue({
@@ -70,7 +70,7 @@ const ProductsAdd = () => {
         [`SoLuong_${productIndex}_${memoryIndex}`]: '0',
       });
     }
-    if (field === 'BoNhoTrong' && value !== 'Không có') {
+    if (field === 'BoNhoTrong' && value !== 'Vui lòng chọn bộ nhớ') {
       updatedProducts[productIndex].memoryData[memoryIndex].GiaSP = '';
       updatedProducts[productIndex].memoryData[memoryIndex].SoLuong = '';
       form.setFieldsValue({
@@ -113,12 +113,12 @@ const ProductsAdd = () => {
       HinhAnh5: null,
       HinhAnh6: null,
       memoryData: [
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
-        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0' },
       ],
     };
     setProducts([...products, newProduct]);
@@ -134,6 +134,15 @@ const ProductsAdd = () => {
     setProducts(updatedProducts);
   };
 
+  const validateMemorySelection = (product) => {
+    const hasSelectedMemory = product.memoryData.some(
+      (data) => data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ'
+    );
+    if (!hasSelectedMemory) {
+      throw new Error('Phải chọn ít nhất một bộ nhớ cho sản phẩm!');
+    }
+  };
+
   const handleAddProduct = async (index) => {
     setLoading(true);
     setError('');
@@ -141,6 +150,9 @@ const ProductsAdd = () => {
       const mainValues = await form.validateFields();
       const product = products[index];
       if (!product.HinhAnh1) throw new Error('Hình ảnh 1 không được để trống!');
+
+      // Kiểm tra ít nhất một bộ nhớ được chọn
+      validateMemorySelection(product);
 
       const productToAdd = {
         ...product,
@@ -156,7 +168,7 @@ const ProductsAdd = () => {
         CapSac: mainValues.CapSac,
         ...product.memoryData.reduce((acc, data, i) => ({
           ...acc,
-          [`BoNhoTrong${i + 1}`]: data.BoNhoTrong,
+          [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,
           [`GiaSP${i + 1}`]: data.GiaSP,
           [`SoLuong${i + 1}`]: data.SoLuong,
         }), {}),
@@ -188,6 +200,9 @@ const ProductsAdd = () => {
         const product = products[i];
         if (!product.HinhAnh1) throw new Error(`Hình ảnh 1 của sản phẩm ${i + 1} không được để trống!`);
 
+        // Kiểm tra ít nhất một bộ nhớ được chọn
+        validateMemorySelection(product);
+
         const productToAdd = {
           ...product,
           TenSP: mainValues.TenSP,
@@ -202,7 +217,7 @@ const ProductsAdd = () => {
           CapSac: mainValues.CapSac,
           ...product.memoryData.reduce((acc, data, i) => ({
             ...acc,
-            [`BoNhoTrong${i + 1}`]: data.BoNhoTrong,
+            [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,
             [`GiaSP${i + 1}`]: data.GiaSP,
             [`SoLuong${i + 1}`]: data.SoLuong,
           }), {}),
@@ -251,11 +266,10 @@ const ProductsAdd = () => {
     },
   });
 
-  // Hàm lấy danh sách bộ nhớ đã chọn, ngoại trừ bộ nhớ của mục hiện tại
   const getSelectedMemories = (productIndex, currentMemoryIndex) => {
     return products[productIndex].memoryData
       .map((data, index) => (index !== currentMemoryIndex ? data.BoNhoTrong : null))
-      .filter((memory) => memory && memory !== 'Không có' && memory !== '');
+      .filter((memory) => memory && memory !== 'Vui lòng chọn bộ nhớ');
   };
 
   return (
@@ -492,13 +506,12 @@ const ProductsAdd = () => {
                             initialValue={data.BoNhoTrong}
                           >
                             <Select
-                              placeholder="Chọn bộ nhớ"
+                              placeholder="Vui lòng chọn bộ nhớ"
                               size="large"
                               onChange={(value) => handleMemoryDataChange(index, memoryIndex, 'BoNhoTrong', value)}
                             >
+                              <Option value="Vui lòng chọn bộ nhớ">Vui lòng chọn bộ nhớ</Option>
                               {[
-                                { value: '', label: 'Chọn bộ nhớ' },
-                                { value: 'Không có', label: 'Không có' },
                                 { value: '32GB', label: '32GB' },
                                 { value: '64GB', label: '64GB' },
                                 { value: '128GB', label: '128GB' },
@@ -507,7 +520,7 @@ const ProductsAdd = () => {
                                 { value: '1TB', label: '1TB' },
                               ].map((option) => {
                                 const selectedMemories = getSelectedMemories(index, memoryIndex);
-                                const isDisabled = selectedMemories.includes(option.value) && option.value !== '';
+                                const isDisabled = selectedMemories.includes(option.value);
                                 return (
                                   <Option key={option.value} value={option.value} disabled={isDisabled}>
                                     {option.label}
@@ -521,14 +534,14 @@ const ProductsAdd = () => {
                           <Form.Item
                             label={`Giá Sản Phẩm ${memoryIndex + 1}`}
                             name={`GiaSP_${index}_${memoryIndex}`}
-                            rules={[{ required: data.BoNhoTrong && data.BoNhoTrong !== 'Không có' }, { validator: noNegativeNumber }]}
+                            rules={[{ required: data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ', message: 'Vui lòng nhập giá!' }, { validator: noNegativeNumber }]}
                             initialValue={data.GiaSP}
                           >
                             <Input
                               type="number"
                               placeholder="Nhập giá"
                               size="large"
-                              disabled={data.BoNhoTrong === 'Không có'}
+                              disabled={data.BoNhoTrong === 'Vui lòng chọn bộ nhớ'}
                               onChange={(e) => handleMemoryDataChange(index, memoryIndex, 'GiaSP', e.target.value)}
                             />
                           </Form.Item>
@@ -537,14 +550,14 @@ const ProductsAdd = () => {
                           <Form.Item
                             label={`Số Lượng ${memoryIndex + 1}`}
                             name={`SoLuong_${index}_${memoryIndex}`}
-                            rules={[{ required: data.BoNhoTrong && data.BoNhoTrong !== 'Không có' }, { validator: noNegativeNumber }, atLeastOneQuantityGreaterThanZero(index)]}
+                            rules={[{ required: data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ', message: 'Vui lòng nhập số lượng!' }, { validator: noNegativeNumber }, atLeastOneQuantityGreaterThanZero(index)]}
                             initialValue={data.SoLuong}
                           >
                             <Input
                               type="number"
                               placeholder="Nhập số lượng"
                               size="large"
-                              disabled={data.BoNhoTrong === 'Không có'}
+                              disabled={data.BoNhoTrong === 'Vui lòng chọn bộ nhớ'}
                               onChange={(e) => handleMemoryDataChange(index, memoryIndex, 'SoLuong', e.target.value)}
                             />
                           </Form.Item>
