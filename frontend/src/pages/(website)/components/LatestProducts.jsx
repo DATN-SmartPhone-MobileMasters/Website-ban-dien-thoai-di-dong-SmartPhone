@@ -5,7 +5,7 @@ import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
 import Socket from "../socket/Socket";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules"; // Import từ swiper/modules
+import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -48,6 +48,30 @@ const LatestProducts = () => {
   useEffect(() => {
     getLatestProducts();
 
+    // Lắng nghe sự kiện productCreated
+    Socket.on("productCreated", (newProduct) => {
+      setProducts((prevProducts) => {
+        const isIphone = newProduct.TenSP.toLowerCase().includes("iphone");
+        const isInStock = !(
+          newProduct.SoLuong1 === 0 &&
+          newProduct.SoLuong2 === 0 &&
+          newProduct.SoLuong3 === 0
+        );
+
+        if (isIphone && isInStock) {
+          // Thêm sản phẩm mới vào đầu danh sách
+          const updatedProducts = [newProduct, ...prevProducts];
+          // Sắp xếp lại theo _id và giới hạn 8 sản phẩm
+          return updatedProducts
+            .sort((a, b) => b._id.localeCompare(a._id))
+            .slice(0, 8);
+        }
+
+        return prevProducts;
+      });
+    });
+
+    // Lắng nghe sự kiện productUpdated
     Socket.on("productUpdated", (updatedProduct) => {
       setProducts((prevProducts) => {
         let updatedProducts = [...prevProducts];
@@ -75,7 +99,9 @@ const LatestProducts = () => {
       });
     });
 
+    // Dọn dẹp các sự kiện khi component unmount
     return () => {
+      Socket.off("productCreated");
       Socket.off("productUpdated");
     };
   }, []);
@@ -87,7 +113,7 @@ const LatestProducts = () => {
     navigation: true,
     pagination: { clickable: true },
     loop: products.length >= 5,
-    modules: [Navigation, Pagination], // Đăng ký modules
+    modules: [Navigation, Pagination],
   };
 
   return (

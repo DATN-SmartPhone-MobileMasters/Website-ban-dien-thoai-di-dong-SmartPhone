@@ -22,10 +22,17 @@ const ProductList = () => {
   useEffect(() => {
     getProducts();
 
+    // Lắng nghe sự kiện productCreated từ server
+    Socket.on("productCreated", (newProduct) => {
+      setProducts((prevProducts) => {
+        // Thêm sản phẩm mới vào đầu danh sách
+        return [newProduct, ...prevProducts];
+      });
+    });
+
     // Lắng nghe sự kiện productUpdated từ server
     Socket.on("productUpdated", (updatedProduct) => {
       setProducts((prevProducts) => {
-        // Kiểm tra nếu sản phẩm cập nhật nằm trong danh sách hiện tại
         const productIndex = prevProducts.findIndex((p) => p._id === updatedProduct._id);
         let updatedProducts = [...prevProducts];
 
@@ -33,8 +40,8 @@ const ProductList = () => {
           // Cập nhật sản phẩm trong danh sách
           updatedProducts[productIndex] = updatedProduct;
         } else {
-          // Thêm sản phẩm mới vào danh sách nếu chưa có
-          updatedProducts.push(updatedProduct);
+          // Thêm sản phẩm mới vào đầu danh sách nếu chưa có
+          updatedProducts = [updatedProduct, ...updatedProducts];
         }
 
         return updatedProducts;
@@ -43,6 +50,7 @@ const ProductList = () => {
 
     // Cleanup listener khi component unmount
     return () => {
+      Socket.off("productCreated");
       Socket.off("productUpdated");
     };
   }, []);
