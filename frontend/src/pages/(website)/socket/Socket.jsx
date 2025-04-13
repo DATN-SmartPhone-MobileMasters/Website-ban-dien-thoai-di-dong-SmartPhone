@@ -4,7 +4,7 @@ const Socket = io("http://localhost:5000", {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
-  transports: ["websocket", "polling"], // Hỗ trợ cả WebSocket và polling
+  transports: ["websocket", "polling"], 
 });
 
 Socket.on("connect", () => {

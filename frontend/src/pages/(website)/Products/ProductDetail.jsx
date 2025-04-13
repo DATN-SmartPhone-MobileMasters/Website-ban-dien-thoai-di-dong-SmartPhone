@@ -515,7 +515,7 @@ const ProductDetail = () => {
     if (existingItemIndex !== -1) {
       const newQuantity = cartItems[existingItemIndex].quantity + 1;
       if (newQuantity > selectedMemory.quantity) {
-        message.warning("Sản phẩm không đủ số lượng!");
+        message.warning("Đã đạt giới hạn sản phẩm trong giỏ hàng!");
         return;
       }
       cartItems[existingItemIndex].quantity = newQuantity;
