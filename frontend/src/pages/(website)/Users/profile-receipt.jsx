@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Table, Tag, Button, message, Modal, Select, DatePicker, Form, Input } from 'antd';
-import { fetchOrdersByUserId, updateOrder,createVNPayPayment  } from '../../../service/api';
+import { fetchOrdersByUserId, updateOrder, createVNPayPayment } from '../../../service/api';
 import moment from 'moment';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -59,6 +59,7 @@ const ProfileReceipt = () => {
   // Lắng nghe sự kiện Socket.IO
   useEffect(() => {
     socket.on('orderStatusUpdated', (data) => {
+      console.log('Socket Update:', data); // Debug Socket data
       if (data.userId === userData.id) {
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
@@ -95,26 +96,34 @@ const ProfileReceipt = () => {
   useEffect(() => {
     let filtered = [...orders];
 
+    // Chuẩn hóa và lọc theo trạng thái
     if (statusFilter) {
-      filtered = filtered.filter((order) => order.paymentStatus === statusFilter);
+      filtered = filtered.filter((order) =>
+        order.paymentStatus.trim().toLowerCase() === statusFilter.trim().toLowerCase()
+      );
+      console.log('After status filter:', filtered); // Debug
     }
 
+    // Lọc theo ngày
     if (dateFilter) {
       filtered = filtered.filter((order) => {
         const createdAt = moment(order.createdAt).format('DD/MM/YYYY');
         return createdAt === dateFilter;
       });
+      console.log('After date filter:', filtered); // Debug
     }
 
+    // Sắp xếp theo tổng tiền
     if (sortTotal === 'high-to-low') {
       filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortTotal === 'low-to-high') {
-      filtered = filtered.sort((a, b) => (a.total || 0) - (a.total || 0));
+      filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
     } else {
       filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     setFilteredOrders(filtered);
+    console.log('Final filtered orders:', filtered); // Debug
   }, [statusFilter, dateFilter, sortTotal, orders]);
 
   const updateProductQuantities = async (products, action) => {
@@ -185,7 +194,10 @@ const ProfileReceipt = () => {
           if (order && order.paymentStatus === 'Đã Xác Nhận') {
             await updateProductQuantities(products, 'add');
           }
-          if (order.paymentMethod === 'COD' || (order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán')) {
+          if (
+            order.paymentMethod === 'COD' ||
+            (order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán')
+          ) {
             await updateOrder(orderId, {
               paymentStatus: 'Huỷ Đơn',
               FeedBack: cancellationReason,
@@ -195,7 +207,9 @@ const ProfileReceipt = () => {
                 name: userData.Email,
               },
               cancellationDate: new Date(),
-              ...(order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán' ? { checkPayment: 'Yêu Cầu Hoàn Tiền' } : {}),
+              ...(order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán'
+                ? { checkPayment: 'Yêu Cầu Hoàn Tiền' }
+                : {}),
             });
           } else if (order.paymentMethod === 'VNPay' && order.checkPayment !== 'Đã Thanh Toán') {
             await updateOrder(orderId, {
@@ -220,6 +234,7 @@ const ProfileReceipt = () => {
       },
     });
   };
+
   const handleRepayment = async (orderId, totalAmount) => {
     try {
       const vnpayData = {
@@ -228,16 +243,17 @@ const ProfileReceipt = () => {
         orderInfo: `Thanh toán lại đơn hàng ${orderId}`,
         returnUrl: `${window.location.origin}/order-return`,
       };
-  
+
       const response = await createVNPayPayment(vnpayData);
       if (response.data.paymentUrl) {
         window.location.href = response.data.paymentUrl;
       }
     } catch (error) {
-      console.error("Lỗi khi tạo thanh toán VNPay:", error);
-      message.error("Có lỗi xảy ra khi tạo thanh toán VNPay!");
+      console.error('Lỗi khi tạo thanh toán VNPay:', error);
+      message.error('Có lỗi xảy ra khi tạo thanh toán VNPay!');
     }
   };
+
   const columns = [
     {
       title: 'Mã đơn hàng',
@@ -280,20 +296,20 @@ const ProfileReceipt = () => {
       key: 'status',
       render: (status) => {
         let color = '';
-        switch (status) {
-          case 'Đã Xác Nhận':
+        switch (status.trim().toLowerCase()) {
+          case 'đã xác nhận':
             color = 'green';
             break;
-          case 'Chờ xử lý':
+          case 'chờ xử lý':
             color = 'orange';
             break;
-          case 'Đang giao':
+          case 'đang giao':
             color = 'purple';
             break;
-          case 'Huỷ Đơn':
+          case 'huỷ đơn':
             color = 'red';
             break;
-          case 'Hoàn thành':
+          case 'hoàn thành':
             color = 'blue';
             break;
           default:
@@ -308,38 +324,41 @@ const ProfileReceipt = () => {
       render: (_, record) => {
         const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
         const isReviewed = reviewedOrders[record._id];
-        const showRepayment = record.paymentMethod === "VNPay" && record.checkPayment === "Chưa Thanh Toán";
+        const showRepayment =
+          record.paymentMethod === 'VNPay' && record.checkPayment === 'Chưa Thanh Toán';
 
         return (
           <>
-          {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-            <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
-              Huỷ đơn
-            </Button>
-          )}
-          
-          {showRepayment && (
-            <Button 
-              type="primary" 
-              onClick={() => handleRepayment(record._id, record.total)}
-              style={{ marginLeft: 8 }}
-            >
-              Thanh toán lại
-            </Button>
-          )}
-  
-          {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
-            <Link to={`/adddanhgiauser/${record._id}`}>
-              <Button type="primary" style={{ marginLeft: 8 }}>Đánh giá</Button>
-            </Link>
-          )}
-          
-          {record.paymentStatus === 'Hoàn thành' && isReviewed && (
-            <Button type="primary" disabled style={{ marginLeft: 8 }}>
-              Đã đánh giá
-            </Button>
-          )}
-        </>
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+                Huỷ đơn
+              </Button>
+            )}
+
+            {showRepayment && (
+              <Button
+                type="primary"
+                onClick={() => handleRepayment(record._id, record.total)}
+                style={{ marginLeft: 8 }}
+              >
+                Thanh toán lại
+              </Button>
+            )}
+
+            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
+              <Link to={`/adddanhgiauser/${record._id}`}>
+                <Button type="primary" style={{ marginLeft: 8 }}>
+                  Đánh giá
+                </Button>
+              </Link>
+            )}
+
+            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
+              <Button type="primary" disabled style={{ marginLeft: 8 }}>
+                Đã đánh giá
+              </Button>
+            )}
+          </>
         );
       },
     },
@@ -397,11 +416,11 @@ const ProfileReceipt = () => {
                   allowClear
                 >
                   <Option value="">Tất cả</Option>
-                  <Option value="Chờ xử lý">Chờ xử lý</Option>
-                  <Option value="Đã Xác Nhận">Đã Xác Nhận</Option>
-                  <Option value="Đang giao">Đang giao</Option>
-                  <Option value="Huỷ Đơn">Huỷ Đơn</Option>
-                  <Option value="Hoàn thành">Hoàn thành</Option>
+                  <Option value="chờ xử lý">Chờ xử lý</Option>
+                  <Option value="đã xác nhận">Đã Xác Nhận</Option>
+                  <Option value="đang giao">Đang giao</Option>
+                  <Option value="huỷ đơn">Huỷ Đơn</Option>
+                  <Option value="hoàn thành">Hoàn thành</Option>
                 </Select>
               </div>
               <div>

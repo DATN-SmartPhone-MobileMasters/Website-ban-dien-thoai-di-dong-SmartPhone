@@ -85,6 +85,33 @@ const ProductList = () => {
     }
   };
 
+  // Hàm tìm bộ nhớ và giá hợp lệ đầu tiên
+  const getFirstValidMemoryAndPrice = (product) => {
+    const memories = [
+      product.BoNhoTrong1,
+      product.BoNhoTrong2,
+      product.BoNhoTrong3,
+      product.BoNhoTrong4,
+      product.BoNhoTrong5,
+      product.BoNhoTrong6,
+    ];
+    const prices = [
+      product.GiaSP1,
+      product.GiaSP2,
+      product.GiaSP3,
+      product.GiaSP4,
+      product.GiaSP5,
+      product.GiaSP6,
+    ];
+
+    for (let i = 0; i < memories.length; i++) {
+      if (memories[i] && memories[i].toLowerCase() !== "không có") {
+        return { memory: memories[i], price: prices[i] };
+      }
+    }
+    return { memory: null, price: null }; // Không xảy ra theo giả định
+  };
+
   const sortedProducts = [...products]
     .filter((product) => selectedStorage ? product.BoNhoTrong1 === selectedStorage : true)
     .filter((product) => {
@@ -94,14 +121,17 @@ const ProductList = () => {
     })
     .filter((product) => searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true)
     .filter((product) => {
-      const price = Number(product.GiaSP1) || 0;
-      return price >= priceRange[0] && price <= priceRange[1];
+      const { price } = getFirstValidMemoryAndPrice(product);
+      const priceValue = Number(price) || 0;
+      return priceValue >= priceRange[0] && priceValue <= priceRange[1];
     })
     .sort((a, b) => {
-      const priceA = Number(a.GiaSP1) || 0;
-      const priceB = Number(b.GiaSP1) || 0;
-      if (sortOrder === "asc") return priceA - priceB;
-      if (sortOrder === "desc") return priceB - priceA;
+      const { price: priceA } = getFirstValidMemoryAndPrice(a);
+      const { price: priceB } = getFirstValidMemoryAndPrice(b);
+      const priceAValue = Number(priceA) || 0;
+      const priceBValue = Number(priceB) || 0;
+      if (sortOrder === "asc") return priceAValue - priceBValue;
+      if (sortOrder === "desc") return priceBValue - priceAValue;
       return 0;
     });
 
@@ -164,6 +194,7 @@ const ProductList = () => {
                 size="large"
                 style={{ width: "100%" }}
               >
+                <Option value="32GB">32GB</Option>
                 <Option value="64GB">64GB</Option>
                 <Option value="128GB">128GB</Option>
                 <Option value="256GB">256GB</Option>
@@ -216,56 +247,59 @@ const ProductList = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {currentProducts.map((product) => (
-                <Link 
-                  to={`/products/product_detail/${product._id}`} 
-                  key={product._id}
-                  className="block bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400"
-                >
-                  <div className="h-56 flex justify-center items-center bg-gray-100 rounded-lg">
-                    <img 
-                      src={product.HinhAnh1} 
-                      alt={product.TenSP} 
-                      className="h-full w-full object-contain bg-white p-2 rounded-lg" 
-                    />
-                  </div>
-                  <div className="mt-4 text-center">
-                    <h3 className="text-lg font-semibold text-gray-800 break-words">{product.TenSP}</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
-                    </p>
-                    <p className={`font-bold text-lg mt-3 px-2 py-1 rounded-md ${
-                      product.SoLuong1 === 0 && 
-                      product.SoLuong2 === 0 && 
-                      product.SoLuong3 === 0 && 
-                      product.SoLuong4 === 0 && 
-                      product.SoLuong5 === 0 && 
-                      product.SoLuong6 === 0 
-                        ? "text-gray-500 bg-gray-300" 
-                        : "text-blue-600 bg-blue-200"
-                    }`}>
-                      {product.SoLuong1 === 0 && 
-                      product.SoLuong2 === 0 && 
-                      product.SoLuong3 === 0 && 
-                      product.SoLuong4 === 0 && 
-                      product.SoLuong5 === 0 && 
-                      product.SoLuong6 === 0 
-                        ? "Sản phẩm tạm thời hết hàng" 
-                        : (product.GiaSP1 ? `${product.GiaSP1.toLocaleString()} VNĐ` : "Chưa có giá")
-                      }
-                    </p>
-                  </div>
-                </Link>
-              ))}
+              {currentProducts.map((product) => {
+                const { memory, price } = getFirstValidMemoryAndPrice(product);
+                const isOutOfStock =
+                  product.SoLuong1 === 0 &&
+                  product.SoLuong2 === 0 &&
+                  product.SoLuong3 === 0 &&
+                  product.SoLuong4 === 0 &&
+                  product.SoLuong5 === 0 &&
+                  product.SoLuong6 === 0;
+
+                return (
+                  <Link
+                    to={`/products/product_detail/${product._id}`}
+                    key={product._id}
+                    className="block bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 p-5 border border-gray-200 hover:border-gray-400"
+                  >
+                    <div className="h-56 flex justify-center items-center bg-gray-100 rounded-lg">
+                      <img
+                        src={product.HinhAnh1}
+                        alt={product.TenSP}
+                        className="h-full w-full object-contain bg-white p-2 rounded-lg"
+                      />
+                    </div>
+                    <div className="mt-4 text-center">
+                      <h3 className="text-lg font-semibold text-gray-800 break-words">{product.TenSP}</h3>
+                      <p className="text-sm text-gray-600 mt-1">Bộ nhớ: {memory}</p>
+                      <p
+                        className={`font-bold text-lg mt-3 px-2 py-1 rounded-md ${
+                          isOutOfStock ? "text-gray-500 bg-gray-300" : "text-blue-600 bg-blue-200"
+                        }`}
+                      >
+                        {isOutOfStock
+                          ? "Liên hệ"
+                          : price
+                          ? `${new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(price)}`
+                          : "Chưa có giá"}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="flex justify-center mt-8">
-              <Pagination 
-                current={currentPage} 
-                pageSize={pageSize} 
-                total={sortedProducts.length} 
-                onChange={handlePageChange} 
-                showSizeChanger={false} 
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={sortedProducts.length}
+                onChange={handlePageChange}
+                showSizeChanger={false}
               />
             </div>
           </>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { message, Select, DatePicker } from "antd";
 import { fetchOrders } from "../../../service/api";
-import io from "socket.io-client"; // Import Socket.IO client
+import io from "socket.io-client";
 
 const { Option } = Select;
 
@@ -16,14 +16,24 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
+// Hàm chuẩn hóa chuỗi trạng thái (loại bỏ khoảng trắng thừa, chuẩn hóa unicode, không phân biệt hoa thường)
+const normalizeString = (str) => {
+  if (!str) return "";
+  return str
+    .trim()
+    .normalize("NFC") // Chuẩn hóa unicode
+    .replace(/\s+/g, " ") // Loại bỏ khoảng trắng thừa
+    .toLowerCase(); // Chuyển về chữ thường để so sánh không phân biệt hoa thường
+};
+
 const OrderList = () => {
   const [hoaDons, setHoaDons] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [hiddenOrders, setHiddenOrders] = useState([]);
   const [showHidden, setShowHidden] = useState(false);
-  const [statusFilter, setStatusFilter] = useState(""); // Bộ lọc trạng thái
-  const [dateFilter, setDateFilter] = useState(""); // Bộ lọc ngày
-  const [sortTotal, setSortTotal] = useState(""); // Bộ lọc sắp xếp tổng tiền
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [sortTotal, setSortTotal] = useState("");
   const location = useLocation();
 
   // Khởi tạo kết nối Socket.IO
@@ -44,6 +54,12 @@ const OrderList = () => {
         const all = (response.data.data || []).sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
+        // Debug: In ra danh sách trạng thái để kiểm tra
+        console.log("Danh sách trạng thái từ API:", all.map(order => ({
+          id: order._id,
+          paymentStatus: order.paymentStatus,
+          normalizedStatus: normalizeString(order.paymentStatus)
+        })));
         setAllOrders(all);
         applyFilters(all, storedHiddenOrders);
       } catch (error) {
@@ -102,7 +118,17 @@ const OrderList = () => {
 
     // Lọc theo trạng thái đơn hàng
     if (statusFilter) {
-      filtered = filtered.filter((order) => order.paymentStatus === statusFilter);
+      const normalizedStatusFilter = normalizeString(statusFilter);
+      console.log("Giá trị statusFilter (chuẩn hóa):", normalizedStatusFilter);
+      
+      filtered = filtered.filter((order) => {
+        const normalizedOrderStatus = normalizeString(order.paymentStatus);
+        // Logic đặc biệt cho "Đã xác nhận" và "Xác nhận"
+        if (normalizedStatusFilter === "đã xác nhận" || normalizedStatusFilter === "xác nhận") {
+          return normalizedOrderStatus === "đã xác nhận" || normalizedOrderStatus === "xác nhận";
+        }
+        return normalizedOrderStatus === normalizedStatusFilter;
+      });
     }
 
     // Lọc theo ngày
@@ -174,6 +200,7 @@ const OrderList = () => {
               >
                 <Option value="">Tất cả</Option>
                 <Option value="Chờ xử lý">Chờ xử lý</Option>
+                <Option value="Đã xác nhận">Đã xác nhận</Option>
                 <Option value="Đang giao">Đang giao</Option>
                 <Option value="Hoàn thành">Hoàn thành</Option>
                 <Option value="Huỷ Đơn">Huỷ Đơn</Option>
@@ -244,7 +271,7 @@ const OrderList = () => {
                           (hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Thanh Toán' ||
                             hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Hoàn Tiền' ||
                             hoaDon.paymentStatus === "Hoàn thành" && hoaDon.checkPayment === 'Đã Thanh Toán'
-                           ) && (
+                          ) && (
                             <button
                               onClick={() => handleHideOrder(hoaDon._id)}
                               className="btn btn-warning ml-2"
