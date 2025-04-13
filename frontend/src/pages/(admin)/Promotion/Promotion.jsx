@@ -132,35 +132,40 @@ const Promotion = () => {
                 </thead>
                 <tbody>
                   {promotionsList.length > 0 ? (
-                    promotionsList.map((promotion) => (
-                      <tr key={promotion._id}>
-                        <td>{promotion.MaKM}</td>
-                        <td>{promotion.TenKM}</td>
-                        <td>{promotion.LoaiKMText}</td>
-                        <td>{promotion.GiaTriKMText}</td>
-                        <td>{promotion.NgayBDText}</td>
-                        <td>{promotion.NgayKTText}</td>
-                        <td>
-                          <span className="badge bg-info">
-                            {promotion.TrangThaiText}
-                          </span>
-                        </td>
-                        <td className="d-flex justify-content-center gap-3">
-                          {/* <Link
+                    promotionsList
+                      .slice()
+                      .sort(
+                        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+                      )
+                      .map((promotion) => (
+                        <tr key={promotion._id}>
+                          <td>{promotion.MaKM}</td>
+                          <td>{promotion.TenKM}</td>
+                          <td>{promotion.LoaiKMText}</td>
+                          <td>{promotion.GiaTriKMText}</td>
+                          <td>{promotion.NgayBDText}</td>
+                          <td>{promotion.NgayKTText}</td>
+                          <td>
+                            <span className="badge bg-info">
+                              {promotion.TrangThaiText}
+                            </span>
+                          </td>
+                          <td className="d-flex justify-content-center gap-3">
+                            {/* <Link
                             to={`/admin/vouchers/edit/${promotion._id}`}
                             className="btn btn-warning btn-sm"
                           >
                             <i className="fas fa-edit"></i> Chỉnh Sửa
                           </Link> */}
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleDelete(promotion._id)}
-                          >
-                            <i className="fas fa-trash"></i> Xóa
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDelete(promotion._id)}
+                            >
+                              <i className="fas fa-trash"></i> Xóa
+                            </button>
+                          </td>
+                        </tr>
+                      ))
                   ) : (
                     <tr>
                       <td colSpan={8} className="text-center">

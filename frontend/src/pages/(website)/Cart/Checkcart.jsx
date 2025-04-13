@@ -121,7 +121,7 @@ const Checkcart = () => {
         message.error("Vui lòng điền đầy đủ thông tin địa chỉ mới!");
         return false;
       }
-      // Basic phone number validation
+
       const phoneRegex = /^0\d{9}$/;
       if (!phoneRegex.test(newAddress.phone)) {
         message.error("Số điện thoại bắt đầu bằng 0 và đủ 10 chữ số.");
