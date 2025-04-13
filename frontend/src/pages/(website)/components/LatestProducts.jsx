@@ -29,7 +29,14 @@ const LatestProducts = () => {
       const filteredProducts = data.filter(
         (product) =>
           product.TenSP.toLowerCase().includes("iphone") &&
-          !(product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0)
+          !(
+            product.SoLuong1 === 0 &&
+            product.SoLuong2 === 0 &&
+            product.SoLuong3 === 0 &&
+            product.SoLuong4 === 0 &&
+            product.SoLuong5 === 0 &&
+            product.SoLuong6 === 0
+          )
       );
 
       const sortedProducts = filteredProducts
@@ -55,13 +62,14 @@ const LatestProducts = () => {
         const isInStock = !(
           newProduct.SoLuong1 === 0 &&
           newProduct.SoLuong2 === 0 &&
-          newProduct.SoLuong3 === 0
+          newProduct.SoLuong3 === 0 &&
+          newProduct.SoLuong4 === 0 &&
+          newProduct.SoLuong5 === 0 &&
+          newProduct.SoLuong6 === 0
         );
 
         if (isIphone && isInStock) {
-          // Thêm sản phẩm mới vào đầu danh sách
           const updatedProducts = [newProduct, ...prevProducts];
-          // Sắp xếp lại theo _id và giới hạn 8 sản phẩm
           return updatedProducts
             .sort((a, b) => b._id.localeCompare(a._id))
             .slice(0, 8);
@@ -79,7 +87,10 @@ const LatestProducts = () => {
         const isInStock = !(
           updatedProduct.SoLuong1 === 0 &&
           updatedProduct.SoLuong2 === 0 &&
-          updatedProduct.SoLuong3 === 0
+          updatedProduct.SoLuong3 === 0 &&
+          updatedProduct.SoLuong4 === 0 &&
+          updatedProduct.SoLuong5 === 0 &&
+          updatedProduct.SoLuong6 === 0
         );
         const productIndex = updatedProducts.findIndex((p) => p._id === updatedProduct._id);
 

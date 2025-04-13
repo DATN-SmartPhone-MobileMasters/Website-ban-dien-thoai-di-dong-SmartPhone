@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
 import { Spin, message, Pagination, Select, Input, Slider, Card, Row, Col } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import Socket from "../socket/Socket"; // Import Socket.IO client
+import Socket from "../socket/Socket";
 
 const { Option } = Select;
 
@@ -25,7 +25,6 @@ const ProductList = () => {
     // Lắng nghe sự kiện productCreated từ server
     Socket.on("productCreated", (newProduct) => {
       setProducts((prevProducts) => {
-        // Thêm sản phẩm mới vào đầu danh sách
         return [newProduct, ...prevProducts];
       });
     });
@@ -37,10 +36,8 @@ const ProductList = () => {
         let updatedProducts = [...prevProducts];
 
         if (productIndex !== -1) {
-          // Cập nhật sản phẩm trong danh sách
           updatedProducts[productIndex] = updatedProduct;
         } else {
-          // Thêm sản phẩm mới vào đầu danh sách nếu chưa có
           updatedProducts = [updatedProduct, ...updatedProducts];
         }
 
@@ -48,7 +45,7 @@ const ProductList = () => {
       });
     });
 
-    // Cleanup listener khi component unmount
+    // Dọn dẹp listener khi component unmount
     return () => {
       Socket.off("productCreated");
       Socket.off("productUpdated");
@@ -238,11 +235,21 @@ const ProductList = () => {
                       {product.BoNhoTrong1 ? `Bộ nhớ: ${product.BoNhoTrong1}` : "Chưa có thông tin bộ nhớ"}
                     </p>
                     <p className={`font-bold text-lg mt-3 px-2 py-1 rounded-md ${
-                      product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 
+                      product.SoLuong1 === 0 && 
+                      product.SoLuong2 === 0 && 
+                      product.SoLuong3 === 0 && 
+                      product.SoLuong4 === 0 && 
+                      product.SoLuong5 === 0 && 
+                      product.SoLuong6 === 0 
                         ? "text-gray-500 bg-gray-300" 
                         : "text-blue-600 bg-blue-200"
                     }`}>
-                      {product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0 
+                      {product.SoLuong1 === 0 && 
+                      product.SoLuong2 === 0 && 
+                      product.SoLuong3 === 0 && 
+                      product.SoLuong4 === 0 && 
+                      product.SoLuong5 === 0 && 
+                      product.SoLuong6 === 0 
                         ? "Sản phẩm tạm thời hết hàng" 
                         : (product.GiaSP1 ? `${product.GiaSP1.toLocaleString()} VNĐ` : "Chưa có giá")
                       }

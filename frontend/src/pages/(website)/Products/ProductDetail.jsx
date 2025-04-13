@@ -66,11 +66,10 @@ const ProductDetail = () => {
 
   // Hàm chuẩn hóa tên sản phẩm
   const normalizeProductName = (name) => {
-    // Lấy phần trước dấu | (nếu có)
     const mainName = name.split("|")[0].trim();
     return mainName
-      .replace(/\s+/g, "") // Loại bỏ tất cả khoảng trắng
-      .toLowerCase(); // Chuyển về chữ thường
+      .replace(/\s+/g, "")
+      .toLowerCase();
   };
 
   const handleShowMore = () => {
@@ -165,7 +164,19 @@ const ProductDetail = () => {
       if (updatedProduct._id === id) {
         setProduct(updatedProduct);
 
-        if (selectedMemory.memory) {
+        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+        const allMemoriesNone = [
+          updatedProduct.BoNhoTrong1,
+          updatedProduct.BoNhoTrong2,
+          updatedProduct.BoNhoTrong3,
+          updatedProduct.BoNhoTrong4,
+          updatedProduct.BoNhoTrong5,
+          updatedProduct.BoNhoTrong6,
+        ].every((memory) => memory === "Không có");
+
+        if (allMemoriesNone) {
+          setSelectedMemory({ memory: "", price: 0, quantity: 0 });
+        } else if (selectedMemory.memory) {
           const memoryKey =
             selectedMemory.memory === updatedProduct.BoNhoTrong1
               ? "BoNhoTrong1"
@@ -212,72 +223,86 @@ const ProductDetail = () => {
         setProduct(updatedProduct);
         if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
 
-        if (
-          updatedProduct.BoNhoTrong1 &&
-          updatedProduct.BoNhoTrong1 !== "Không có"
-        ) {
-          timeoutRef.current = setTimeout(() => {
-            setSelectedMemory({
-              memory: updatedProduct.BoNhoTrong1,
-              price: updatedProduct.GiaSP1,
-              quantity: updatedProduct.SoLuong1,
-            });
-          }, 200);
-        } else if (
-          updatedProduct.BoNhoTrong2 &&
-          updatedProduct.BoNhoTrong2 !== "Không có"
-        ) {
-          timeoutRef.current = setTimeout(() => {
-            setSelectedMemory({
-              memory: updatedProduct.BoNhoTrong2,
-              price: updatedProduct.GiaSP2,
-              quantity: updatedProduct.SoLuong2,
-            });
-          }, 200);
-        } else if (
-          updatedProduct.BoNhoTrong3 &&
-          updatedProduct.BoNhoTrong3 !== "Không có"
-        ) {
-          timeoutRef.current = setTimeout(() => {
-            setSelectedMemory({
-              memory: updatedProduct.BoNhoTrong3,
-              price: updatedProduct.GiaSP3,
-              quantity: updatedProduct.SoLuong3,
-            });
-          }, 200);
-        } else if (
-          updatedProduct.BoNhoTrong4 &&
-          updatedProduct.BoNhoTrong4 !== "Không có"
-        ) {
-          timeoutRef.current = setTimeout(() => {
-            setSelectedMemory({
-              memory: updatedProduct.BoNhoTrong4,
-              price: updatedProduct.GiaSP4,
-              quantity: updatedProduct.SoLuong4,
-            });
-          }, 200);
-        } else if (
-          updatedProduct.BoNhoTrong5 &&
-          updatedProduct.BoNhoTrong5 !== "Không có"
-        ) {
-          timeoutRef.current = setTimeout(() => {
-            setSelectedMemory({
-              memory: updatedProduct.BoNhoTrong5,
-              price: updatedProduct.GiaSP5,
-              quantity: updatedProduct.SoLuong5,
-            });
-          }, 200);
-        } else if (
-          updatedProduct.BoNhoTrong6 &&
-          updatedProduct.BoNhoTrong6 !== "Không có"
-        ) {
-          timeoutRef.current = setTimeout(() => {
-            setSelectedMemory({
-              memory: updatedProduct.BoNhoTrong6,
-              price: updatedProduct.GiaSP6,
-              quantity: updatedProduct.SoLuong6,
-            });
-          }, 200);
+        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+        const allMemoriesNone = [
+          updatedProduct.BoNhoTrong1,
+          updatedProduct.BoNhoTrong2,
+          updatedProduct.BoNhoTrong3,
+          updatedProduct.BoNhoTrong4,
+          updatedProduct.BoNhoTrong5,
+          updatedProduct.BoNhoTrong6,
+        ].every((memory) => memory === "Không có");
+
+        if (allMemoriesNone) {
+          setSelectedMemory({ memory: "", price: 0, quantity: 0 });
+        } else {
+          if (
+            updatedProduct.BoNhoTrong1 &&
+            updatedProduct.BoNhoTrong1 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong1,
+                price: updatedProduct.GiaSP1,
+                quantity: updatedProduct.SoLuong1,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong2 &&
+            updatedProduct.BoNhoTrong2 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong2,
+                price: updatedProduct.GiaSP2,
+                quantity: updatedProduct.SoLuong2,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong3 &&
+            updatedProduct.BoNhoTrong3 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong3,
+                price: updatedProduct.GiaSP3,
+                quantity: updatedProduct.SoLuong3,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong4 &&
+            updatedProduct.BoNhoTrong4 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong4,
+                price: updatedProduct.GiaSP4,
+                quantity: updatedProduct.SoLuong4,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong5 &&
+            updatedProduct.BoNhoTrong5 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong5,
+                price: updatedProduct.GiaSP5,
+                quantity: updatedProduct.SoLuong5,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong6 &&
+            updatedProduct.BoNhoTrong6 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong6,
+                price: updatedProduct.GiaSP6,
+                quantity: updatedProduct.SoLuong6,
+              });
+            }, 200);
+          }
         }
 
         setLoading(false);
@@ -286,10 +311,8 @@ const ProductDetail = () => {
           const allProducts = response.data.data || [];
           setAllProducts(allProducts);
 
-          // Chuẩn hóa tên sản phẩm hiện tại (chỉ lấy phần trước dấu |)
           const normalizedProductName = normalizeProductName(productData.TenSP);
 
-          // Lọc các sản phẩm liên quan dựa trên tên chuẩn hóa
           const related = allProducts
             .filter((p) => {
               const normalizedRelatedName = normalizeProductName(p.TenSP);
@@ -583,6 +606,16 @@ const ProductDetail = () => {
   if (!product)
     return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
 
+  // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+  const allMemoriesNone = [
+    product.BoNhoTrong1,
+    product.BoNhoTrong2,
+    product.BoNhoTrong3,
+    product.BoNhoTrong4,
+    product.BoNhoTrong5,
+    product.BoNhoTrong6,
+  ].every((memory) => memory === "Không có");
+
   return (
     <div className="container mt-4">
       <Row gutter={[16, 16]}>
@@ -656,7 +689,12 @@ const ProductDetail = () => {
               <Title level={2}>{product.TenSP}</Title>
               <Text type="secondary">Mã sản phẩm: {product.MaSP}</Text>
               <Text type="secondary">Thương hiệu: {product.TenTH}</Text>
-              {selectedMemory.memory ? (
+              {allMemoriesNone ? (
+                <>
+                  <Title level={4}>Sản phẩm ngừng kinh doanh</Title>
+                  <Badge status="error" text="Hết hàng" />
+                </>
+              ) : selectedMemory.memory ? (
                 <>
                   <Title level={3} type="danger">
                     {formatCurrency(selectedMemory.price)}
@@ -688,53 +726,57 @@ const ProductDetail = () => {
                 )}
               </Space>
 
-              <Divider orientation="left">Bộ nhớ trong</Divider>
-              <Space wrap justify="center">
-                {[
-                  "BoNhoTrong1",
-                  "BoNhoTrong2",
-                  "BoNhoTrong3",
-                  "BoNhoTrong4",
-                  "BoNhoTrong5",
-                  "BoNhoTrong6",
-                ].map((memoryKey, index) =>
-                  product[memoryKey] && product[memoryKey] !== "Không có" ? (
-                    <div
-                      key={index}
-                      style={{ position: "relative", textAlign: "center" }}
-                    >
-                      <Button
-                        type={
-                          selectedMemory.memory === product[memoryKey]
-                            ? "primary"
-                            : "default"
-                        }
-                        onClick={() => handleMemorySelection(memoryKey)}
-                      >
-                        {product[memoryKey]}
-                        {selectedMemory.memory === product[memoryKey] && (
-                          <span>
-                            {" "}
-                            ({product[`SoLuong${memoryKey.slice(-1)}`]})
-                          </span>
-                        )}
-                      </Button>
-                      {product[`SoLuong${memoryKey.slice(-1)}`] <= 0 && (
-                        <Text
-                          type="danger"
-                          style={{
-                            display: "block",
-                            fontSize: 12,
-                            marginTop: 4,
-                          }}
+              {!allMemoriesNone && (
+                <>
+                  <Divider orientation="left">Bộ nhớ trong</Divider>
+                  <Space wrap justify="center">
+                    {[
+                      "BoNhoTrong1",
+                      "BoNhoTrong2",
+                      "BoNhoTrong3",
+                      "BoNhoTrong4",
+                      "BoNhoTrong5",
+                      "BoNhoTrong6",
+                    ].map((memoryKey, index) =>
+                      product[memoryKey] && product[memoryKey] !== "Không có" ? (
+                        <div
+                          key={index}
+                          style={{ position: "relative", textAlign: "center" }}
                         >
-                          Hết hàng
-                        </Text>
-                      )}
-                    </div>
-                  ) : null
-                )}
-              </Space>
+                          <Button
+                            type={
+                              selectedMemory.memory === product[memoryKey]
+                                ? "primary"
+                                : "default"
+                            }
+                            onClick={() => handleMemorySelection(memoryKey)}
+                          >
+                            {product[memoryKey]}
+                            {selectedMemory.memory === product[memoryKey] && (
+                              <span>
+                                {" "}
+                                ({product[`SoLuong${memoryKey.slice(-1)}`]})
+                              </span>
+                            )}
+                          </Button>
+                          {product[`SoLuong${memoryKey.slice(-1)}`] <= 0 && (
+                            <Text
+                              type="danger"
+                              style={{
+                                display: "block",
+                                fontSize: 12,
+                                marginTop: 4,
+                              }}
+                            >
+                              Hết hàng
+                            </Text>
+                          )}
+                        </div>
+                      ) : null
+                    )}
+                  </Space>
+                </>
+              )}
 
               <Space style={{ marginTop: 16 }} size="large">
                 <Button
@@ -742,6 +784,7 @@ const ProductDetail = () => {
                   icon={<FaShoppingCart />}
                   onClick={addToCart}
                   disabled={
+                    allMemoriesNone ||
                     !selectedMemory.memory ||
                     selectedMemory.quantity <= 0 ||
                     product.Mau1 === "Hết Hàng"

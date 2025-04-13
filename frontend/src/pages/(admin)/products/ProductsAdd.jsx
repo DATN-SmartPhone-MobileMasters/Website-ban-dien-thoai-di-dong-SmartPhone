@@ -143,51 +143,19 @@ const ProductsAdd = () => {
     }
   };
 
-  const handleAddProduct = async (index) => {
-    setLoading(true);
-    setError('');
-    try {
-      const mainValues = await form.validateFields();
-      const product = products[index];
-      if (!product.HinhAnh1) throw new Error('Hình ảnh 1 không được để trống!');
-
-      // Kiểm tra ít nhất một bộ nhớ được chọn
-      validateMemorySelection(product);
-
-      const productToAdd = {
-        ...product,
-        TenSP: mainValues.TenSP,
-        TenTH: mainValues.TenTH,
-        MoTa: mainValues.MoTa,
-        CamTruoc: mainValues.CamTruoc,
-        CamSau: mainValues.CamSau,
-        CPU: mainValues.CPU,
-        ManHinh: mainValues.ManHinh,
-        HDH: mainValues.HDH,
-        LoaiPin: mainValues.LoaiPin,
-        CapSac: mainValues.CapSac,
-        ...product.memoryData.reduce((acc, data, i) => ({
-          ...acc,
-          [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,
-          [`GiaSP${i + 1}`]: data.GiaSP,
-          [`SoLuong${i + 1}`]: data.SoLuong,
-        }), {}),
-      };
-
-      delete productToAdd.memoryData;
-
-      await createProducts(productToAdd);
-      message.success(`Thêm sản phẩm ${index + 1} thành công!`);
-      if (index === products.length - 1) {
-        navigate('/admin/products');
+  const validateImages = (product, index) => {
+    const images = [
+      { field: 'HinhAnh1', label: 'Hình ảnh 1' },
+      { field: 'HinhAnh2', label: 'Hình ảnh 2' },
+      { field: 'HinhAnh3', label: 'Hình ảnh 3' },
+      { field: 'HinhAnh4', label: 'Hình ảnh 4' },
+      { field: 'HinhAnh5', label: 'Hình ảnh 5' },
+      { field: 'HinhAnh6', label: 'Hình ảnh 6' },
+    ];
+    for (const img of images) {
+      if (!product[img.field]) {
+        throw new Error(`${img.label} của sản phẩm ${index + 1} không được để trống!`);
       }
-    } catch (error) {
-      console.error('Lỗi khi thêm sản phẩm:', error.response?.data || error);
-      const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm sản phẩm.';
-      setError(errorMsg);
-      message.error(errorMsg);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -195,12 +163,12 @@ const ProductsAdd = () => {
     setLoading(true);
     setError('');
     try {
-      const mainValues = await form.validateFields();
+      await form.validateFields();
+      const mainValues = form.getFieldsValue();
       for (let i = 0; i < products.length; i++) {
         const product = products[i];
-        if (!product.HinhAnh1) throw new Error(`Hình ảnh 1 của sản phẩm ${i + 1} không được để trống!`);
 
-        // Kiểm tra ít nhất một bộ nhớ được chọn
+        validateImages(product, i);
         validateMemorySelection(product);
 
         const productToAdd = {
@@ -261,6 +229,21 @@ const ProductsAdd = () => {
         if (quantities.every((q) => !q || Number(q) === 0)) {
           return Promise.reject(new Error("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!"));
         }
+      }
+      return Promise.resolve();
+    },
+  });
+
+  const validateDuplicateMaSP = (index) => ({
+    validator(_, value) {
+      if (!value) {
+        return Promise.resolve();
+      }
+      const isDuplicate = products.some(
+        (product, i) => i !== index && product.MaSP.trim() === value.trim()
+      );
+      if (isDuplicate) {
+        return Promise.reject(new Error('Mã sản phẩm đã tồn tại ở form trên!'));
       }
       return Promise.resolve();
     },
@@ -449,7 +432,11 @@ const ProductsAdd = () => {
                       <Form.Item
                         label="Mã Sản Phẩm"
                         name={`MaSP_${index}`}
-                        rules={[{ required: true, message: 'Vui lòng nhập mã sản phẩm!' }, { validator: noWhitespace }]}
+                        rules={[
+                          { required: true, message: 'Vui lòng nhập mã sản phẩm!' },
+                          { validator: noWhitespace },
+                          validateDuplicateMaSP(index),
+                        ]}
                       >
                         <Input
                           value={product.MaSP}
@@ -796,15 +783,6 @@ const ProductsAdd = () => {
                   </Card>
                 </Col>
               </Row>
-              <Button
-                type="primary"
-                onClick={() => handleAddProduct(index)}
-                loading={loading}
-                size="large"
-                style={{ marginTop: '20px', width: '200px' }}
-              >
-                {loading ? 'Đang thêm...' : `Thêm Sản Phẩm ${index + 1}`}
-              </Button>
             </Card>
           ))}
 
