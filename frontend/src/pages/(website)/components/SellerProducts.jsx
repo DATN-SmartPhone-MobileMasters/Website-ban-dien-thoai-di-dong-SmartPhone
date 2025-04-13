@@ -7,7 +7,7 @@ import { Navigation, Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import Socket from "../socket/Socket"; // Import Socket.IO client
+import Socket from "../socket/Socket";
 
 const { Text } = Typography;
 const { Meta } = Card;
@@ -30,7 +30,17 @@ const SellerProducts = () => {
         const quantity1 = product.SoLuong1 || 0;
         const quantity2 = product.SoLuong2 || 0;
         const quantity3 = product.SoLuong3 || 0;
-        const quantityCondition = !(quantity1 === 0 && quantity2 === 0 && quantity3 === 0);
+        const quantity4 = product.SoLuong4 || 0;
+        const quantity5 = product.SoLuong5 || 0;
+        const quantity6 = product.SoLuong6 || 0;
+        const quantityCondition = !(
+          quantity1 === 0 &&
+          quantity2 === 0 &&
+          quantity3 === 0 &&
+          quantity4 === 0 &&
+          quantity5 === 0 &&
+          quantity6 === 0
+        );
 
         return nameCondition && quantityCondition;
       });
@@ -53,13 +63,14 @@ const SellerProducts = () => {
         const isInStock = !(
           newProduct.SoLuong1 === 0 &&
           newProduct.SoLuong2 === 0 &&
-          newProduct.SoLuong3 === 0
+          newProduct.SoLuong3 === 0 &&
+          newProduct.SoLuong4 === 0 &&
+          newProduct.SoLuong5 === 0 &&
+          newProduct.SoLuong6 === 0
         );
 
         if (isNotIphone && isInStock) {
-          // Thêm sản phẩm mới vào cuối danh sách
           const updatedProducts = [...prevProducts, newProduct];
-          // Giữ 8 sản phẩm cuối
           return updatedProducts.slice(-8);
         }
 
@@ -75,7 +86,10 @@ const SellerProducts = () => {
         const isInStock = !(
           updatedProduct.SoLuong1 === 0 &&
           updatedProduct.SoLuong2 === 0 &&
-          updatedProduct.SoLuong3 === 0
+          updatedProduct.SoLuong3 === 0 &&
+          updatedProduct.SoLuong4 === 0 &&
+          updatedProduct.SoLuong5 === 0 &&
+          updatedProduct.SoLuong6 === 0
         );
         const productIndex = updatedProducts.findIndex((p) => p._id === updatedProduct._id);
 
@@ -94,7 +108,7 @@ const SellerProducts = () => {
       });
     });
 
-    // Cleanup listener khi component unmount
+    // Dọn dẹp listener khi component unmount
     return () => {
       Socket.off("productCreated");
       Socket.off("productUpdated");

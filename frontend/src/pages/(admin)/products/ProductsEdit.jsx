@@ -75,10 +75,19 @@ const ProductsEdit = () => {
     Promise.all([getProducts(id), fetchBrands()])
       .then(([productRes, brandsRes]) => {
         const productData = productRes.data.data;
-        setProduct(productData);
-        form.setFieldsValue(productData);
+        // Xử lý các bộ nhớ chưa có giá trị
+        const updatedProductData = { ...productData };
+        for (let i = 1; i <= 6; i++) {
+          if (!updatedProductData[`BoNhoTrong${i}`] || updatedProductData[`BoNhoTrong${i}`] === "") {
+            updatedProductData[`BoNhoTrong${i}`] = "Không có";
+            updatedProductData[`GiaSP${i}`] = 0;
+            updatedProductData[`SoLuong${i}`] = 0;
+          }
+        }
+        setProduct(updatedProductData);
+        form.setFieldsValue(updatedProductData);
         setBrands(brandsRes.data.data);
-        validateQuantities(productData);
+        validateQuantities(updatedProductData);
       })
       .catch(() => setError("Không thể tải dữ liệu sản phẩm hoặc thương hiệu."))
       .finally(() => setLoading(false));
@@ -105,7 +114,73 @@ const ProductsEdit = () => {
 
   const onFinish = async (values) => {
     try {
-      const updatedProduct = await updateProducts(id, values);
+      let updatedValues = { ...values };
+
+      // Kiểm tra trạng thái
+      if (updatedValues.TrangThai === "Ngừng kinh doanh") {
+        // Nếu trạng thái là "Ngừng kinh doanh", đặt tất cả bộ nhớ thành "Không có"
+        for (let i = 1; i <= 6; i++) {
+          updatedValues[`BoNhoTrong${i}`] = "Không có";
+          updatedValues[`SoLuong${i}`] = 0;
+          updatedValues[`GiaSP${i}`] = 0;
+        }
+        // Cập nhật form và product state
+        form.setFieldsValue({
+          TrangThai: "Ngừng kinh doanh",
+          ...Object.fromEntries(
+            Array.from({ length: 6 }, (_, i) => [
+              [`BoNhoTrong${i + 1}`, "Không có"],
+              [`SoLuong${i + 1}`, 0],
+              [`GiaSP${i + 1}`, 0],
+            ]).flat()
+          ),
+        });
+        setProduct((prev) => ({
+          ...prev,
+          TrangThai: "Ngừng kinh doanh",
+          ...Object.fromEntries(
+            Array.from({ length: 6 }, (_, i) => [
+              [`BoNhoTrong${i + 1}`, "Không có"],
+              [`SoLuong${i + 1}`, 0],
+              [`GiaSP${i + 1}`, 0],
+            ]).flat()
+          ),
+        }));
+        setQuantityErrors({});
+        setPriceErrors({});
+        setIsSubmitDisabled(false);
+      } else {
+        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+        const allMemoriesNone = Array.from({ length: 6 }, (_, i) => updatedValues[`BoNhoTrong${i + 1}`]).every(
+          (memory) => memory === "Không có"
+        );
+
+        if (allMemoriesNone) {
+          // Nếu tất cả là "Không có", đặt trạng thái thành "Hết hàng"
+          updatedValues.TrangThai = "Hết hàng";
+          for (let i = 1; i <= 6; i++) {
+            updatedValues[`SoLuong${i}`] = 0;
+            updatedValues[`GiaSP${i}`] = 0;
+          }
+          // Cập nhật form và product state
+          form.setFieldsValue({ TrangThai: "Hết hàng" });
+          setProduct((prev) => ({
+            ...prev,
+            TrangThai: "Hết hàng",
+            ...Object.fromEntries(
+              Array.from({ length: 6 }, (_, i) => [
+                [`SoLuong${i + 1}`, 0],
+                [`GiaSP${i + 1}`, 0],
+              ]).flat()
+            ),
+          }));
+          setQuantityErrors({});
+          setPriceErrors({});
+          setIsSubmitDisabled(false);
+        }
+      }
+
+      const updatedProduct = await updateProducts(id, updatedValues);
       message.success("Cập nhật sản phẩm thành công!");
       socket.emit("productUpdated", updatedProduct.data.data);
       navigate("/admin/products");
@@ -117,13 +192,25 @@ const ProductsEdit = () => {
 
   const handleStatusChange = (value) => {
     const updatedFields = {};
-    if (value === "Hết hàng") {
-      // Chỉ đặt số lượng về 0, giữ nguyên giá
+    if (value === "Ngừng kinh doanh") {
+      // Nếu chọn "Ngừng kinh doanh", đặt tất cả bộ nhớ thành "Không có"
       for (let i = 1; i <= 6; i++) {
+        updatedFields[`BoNhoTrong${i}`] = "Không có";
         updatedFields[`SoLuong${i}`] = 0;
+        updatedFields[`GiaSP${i}`] = 0;
+      }
+      setQuantityErrors({});
+      setPriceErrors({});
+      setIsSubmitDisabled(false);
+    } else if (value === "Hết hàng") {
+      // Chỉ đặt số lượng về 0, giữ nguyên giá và bộ nhớ
+      for (let i = 1; i <= 6; i++) {
+        if (product[`BoNhoTrong${i}`] !== "Không có") {
+          updatedFields[`SoLuong${i}`] = 0;
+        }
       }
     } else {
-      // Khi chuyển sang Còn hàng, đặt số lượng về 1 nếu đang là 0
+      // Khi chuyển sang Còn hàng, đặt số lượng về 1 nếu đang là 0 và bộ nhớ không phải "Không có"
       for (let i = 1; i <= 6; i++) {
         if (product[`SoLuong${i}`] === 0 && product[`BoNhoTrong${i}`] !== "Không có") {
           updatedFields[`SoLuong${i}`] = 1;
@@ -157,10 +244,10 @@ const ProductsEdit = () => {
         [`GiaSP${version}`]: null,
       }));
     } else {
-      updatedProduct[`GiaSP${version}`] = product[`GiaSP${version}`] || "";
+      updatedProduct[`GiaSP${version}`] = product[`GiaSP${version}`] || 0;
       updatedProduct[`SoLuong${version}`] = product[`SoLuong${version}`] || (product.TrangThai === "Còn hàng" ? 1 : 0);
       form.setFieldsValue({
-        [`GiaSP${version}`]: product[`GiaSP${version}`] || "",
+        [`GiaSP${version}`]: product[`GiaSP${version}`] || 0,
         [`SoLuong${version}`]: product[`SoLuong${version}`] || (product.TrangThai === "Còn hàng" ? 1 : 0),
       });
       validateQuantity(version, product[`SoLuong${version}`] || (product.TrangThai === "Còn hàng" ? 1 : 0));
@@ -365,6 +452,7 @@ const ProductsEdit = () => {
                 <Select placeholder="Chọn trạng thái" onChange={handleStatusChange}>
                   <Option value="Còn hàng">Còn hàng</Option>
                   <Option value="Hết hàng">Hết hàng</Option>
+                  <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -415,6 +503,7 @@ const ProductsEdit = () => {
                         <Select
                           placeholder="Không có"
                           onChange={(value) => handleMemoryChange(version, value)}
+                          disabled={product.TrangThai === "Ngừng kinh doanh"}
                         >
                           {[
                             { value: "Không có", label: "Không có" },
@@ -454,7 +543,9 @@ const ProductsEdit = () => {
                           type="number"
                           placeholder="Nhập số lượng"
                           disabled={
-                            product.TrangThai === "Hết hàng" || product[`BoNhoTrong${version}`] === "Không có"
+                            product.TrangThai === "Hết hàng" ||
+                            product.TrangThai === "Ngừng kinh doanh" ||
+                            product[`BoNhoTrong${version}`] === "Không có"
                           }
                           onChange={(e) => handleQuantityChange(version, e.target.value)}
                         />
@@ -477,7 +568,10 @@ const ProductsEdit = () => {
                         <Input
                           type="number"
                           placeholder={`Nhập giá sản phẩm ${version}`}
-                          disabled={product[`BoNhoTrong${version}`] === "Không có"}
+                          disabled={
+                            product.TrangThai === "Ngừng kinh doanh" ||
+                            product[`BoNhoTrong${version}`] === "Không có"
+                          }
                           onChange={(e) => handlePriceChange(version, e.target.value)}
                         />
                       </Form.Item>

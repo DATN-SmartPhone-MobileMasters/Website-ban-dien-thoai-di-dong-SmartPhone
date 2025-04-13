@@ -117,7 +117,15 @@ const ProductsList = () => {
     }
 
     if (memory) {
-      filtered = filtered.filter((p) => p.BoNhoTrong1 === memory);
+      filtered = filtered.filter(
+        (p) =>
+          p.BoNhoTrong1 === memory ||
+          p.BoNhoTrong2 === memory ||
+          p.BoNhoTrong3 === memory ||
+          p.BoNhoTrong4 === memory ||
+          p.BoNhoTrong5 === memory ||
+          p.BoNhoTrong6 === memory
+      );
     }
 
     if (status) {
@@ -186,10 +194,46 @@ const ProductsList = () => {
       sorter: (a, b) => a.TenSP.localeCompare(b.TenSP),
     },
     {
-      title: "Bộ Nhớ",
+      title: "Bộ Nhớ 1",
       dataIndex: "BoNhoTrong1",
       key: "BoNhoTrong1",
       width: 100,
+      render: (text) => text || "-",
+    },
+    {
+      title: "Bộ Nhớ 2",
+      dataIndex: "BoNhoTrong2",
+      key: "BoNhoTrong2",
+      width: 100,
+      render: (text) => text || "-",
+    },
+    {
+      title: "Bộ Nhớ 3",
+      dataIndex: "BoNhoTrong3",
+      key: "BoNhoTrong3",
+      width: 100,
+      render: (text) => text || "-",
+    },
+    {
+      title: "Bộ Nhớ 4",
+      dataIndex: "BoNhoTrong4",
+      key: "BoNhoTrong4",
+      width: 100,
+      render: (text) => text || "-",
+    },
+    {
+      title: "Bộ Nhớ 5",
+      dataIndex: "BoNhoTrong5",
+      key: "BoNhoTrong5",
+      width: 100,
+      render: (text) => text || "-",
+    },
+    {
+      title: "Bộ Nhớ 6",
+      dataIndex: "BoNhoTrong6",
+      key: "BoNhoTrong6",
+      width: 100,
+      render: (text) => text || "-",
     },
     {
       title: "Trạng Thái",
@@ -299,6 +343,33 @@ const ProductsList = () => {
         }`}</span>
       ),
     },
+    {
+      title: "Bộ Nhớ 4 / Giá",
+      key: "BoNhoTrong4_GiaSP4",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong4 || "-"} / ${
+          record.GiaSP4 ? record.GiaSP4 + "đ" : "-"
+        }`}</span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 5 / Giá",
+      key: "BoNhoTrong5_GiaSP5",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong5 || "-"} / ${
+          record.GiaSP5 ? record.GiaSP5 + "đ" : "-"
+        }`}</span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 6 / Giá",
+      key: "BoNhoTrong6_GiaSP6",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong6 || "-"} / ${
+          record.GiaSP6 ? record.GiaSP6 + "đ" : "-"
+        }`}</span>
+      ),
+    },
   ];
 
   const compareData = selectedProducts.map((id) =>
@@ -396,7 +467,7 @@ const ProductsList = () => {
         }}
         bordered
         pagination={{ pageSize: 10 }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1600 }}
       />
 
       <Modal
@@ -404,7 +475,7 @@ const ProductsList = () => {
         visible={isModalVisible}
         onCancel={handleModalClose}
         footer={null}
-        width={1000}
+        width={1200}
       >
         <Table
           dataSource={compareData}
@@ -412,7 +483,7 @@ const ProductsList = () => {
           rowKey="_id"
           pagination={false}
           bordered
-          scroll={{ x: 800 }}
+          scroll={{ x: 1000 }}
         />
       </Modal>
     </div>
