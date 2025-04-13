@@ -119,6 +119,33 @@ const SellerProducts = () => {
     navigate(`/products/product_detail/${id}`);
   };
 
+  // Hàm tìm bộ nhớ và giá hợp lệ đầu tiên
+  const getFirstValidMemoryAndPrice = (product) => {
+    const memories = [
+      product.BoNhoTrong1,
+      product.BoNhoTrong2,
+      product.BoNhoTrong3,
+      product.BoNhoTrong4,
+      product.BoNhoTrong5,
+      product.BoNhoTrong6,
+    ];
+    const prices = [
+      product.GiaSP1,
+      product.GiaSP2,
+      product.GiaSP3,
+      product.GiaSP4,
+      product.GiaSP5,
+      product.GiaSP6,
+    ];
+
+    for (let i = 0; i < memories.length; i++) {
+      if (memories[i] && memories[i].toLowerCase() !== "không có") {
+        return { memory: memories[i], price: prices[i] };
+      }
+    }
+    return { memory: null, price: null }; // Không xảy ra theo giả định
+  };
+
   return (
     <div className="w-full py-12 bg-gradient-to-b from-gray-100 to-gray-200">
       <div className="max-w-7xl mx-auto px-4">
@@ -147,54 +174,57 @@ const SellerProducts = () => {
             className="w-full"
           >
             {products.length > 0 ? (
-              products.map((product) => (
-                <SwiperSlide key={product._id}>
-                  <Card
-                    hoverable
-                    cover={
-                      <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
-                        <img
-                          alt={product.TenSP}
-                          src={product.HinhAnh1}
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
-                    }
-                    className="h-full border border-gray-200 hover:border-blue-300 transition-all"
-                    onClick={() => handleCardClick(product._id)}
-                  >
-                    <Meta
-                      title={
-                        <div className="text-center">
-                          <Text
-                            ellipsis={{ tooltip: product.TenSP }}
-                            className="font-semibold text-blue-600"
-                          >
-                            {product.TenSP}
-                          </Text>
+              products.map((product) => {
+                const { memory, price } = getFirstValidMemoryAndPrice(product);
+                return (
+                  <SwiperSlide key={product._id}>
+                    <Card
+                      hoverable
+                      cover={
+                        <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
+                          <img
+                            alt={product.TenSP}
+                            src={product.HinhAnh1}
+                            className="max-h-full max-w-full object-contain"
+                          />
                         </div>
                       }
-                      description={
-                        <div className="text-center">
-                          <div className="mb-2">
-                            <Text type="secondary" className="text-gray-600">
-                              {product.BoNhoTrong1 || "Chưa có thông tin bộ nhớ"}
+                      className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                      onClick={() => handleCardClick(product._id)}
+                    >
+                      <Meta
+                        title={
+                          <div className="text-center">
+                            <Text
+                              ellipsis={{ tooltip: product.TenSP }}
+                              className="font-semibold text-blue-600"
+                            >
+                              {product.TenSP}
                             </Text>
                           </div>
-                          <Text strong className="text-blue-600 text-lg">
-                            {product.GiaSP1
-                              ? new Intl.NumberFormat("vi-VN", {
-                                  style: "currency",
-                                  currency: "VND",
-                                }).format(product.GiaSP1)
-                              : "Liên hệ"}
-                          </Text>
-                        </div>
-                      }
-                    />
-                  </Card>
-                </SwiperSlide>
-              ))
+                        }
+                        description={
+                          <div className="text-center">
+                            <div className="mb-2">
+                              <Text type="secondary" className="text-gray-600">
+                                {memory}
+                              </Text>
+                            </div>
+                            <Text strong className="text-blue-600 text-lg">
+                              {price
+                                ? new Intl.NumberFormat("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                  }).format(price)
+                                : "Liên hệ"}
+                            </Text>
+                          </div>
+                        }
+                      />
+                    </Card>
+                  </SwiperSlide>
+                );
+              })
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-600 text-lg">Không có sản phẩm nào.</p>
