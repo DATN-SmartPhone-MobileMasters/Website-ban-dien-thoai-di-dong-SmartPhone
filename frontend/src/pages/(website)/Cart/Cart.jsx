@@ -54,10 +54,14 @@ const Cart = () => {
     fetchPromotions();
   }, []);
 
+  // Hàm lấy key bộ nhớ tương ứng với giá trị bộ nhớ
   const getMemoryKey = (memory, availableMemories) => {
     if (memory === availableMemories.BoNhoTrong1) return "BoNhoTrong1";
     if (memory === availableMemories.BoNhoTrong2) return "BoNhoTrong2";
     if (memory === availableMemories.BoNhoTrong3) return "BoNhoTrong3";
+    if (memory === availableMemories.BoNhoTrong4) return "BoNhoTrong4";
+    if (memory === availableMemories.BoNhoTrong5) return "BoNhoTrong5";
+    if (memory === availableMemories.BoNhoTrong6) return "BoNhoTrong6";
     return "BoNhoTrong1";
   };
 
@@ -87,6 +91,7 @@ const Cart = () => {
             let newPrice = item.price;
             let newMaxQuantity = item.maxQuantity;
 
+            // Kiểm tra và cập nhật giá và số lượng dựa trên bộ nhớ
             if (productData.BoNhoTrong1 === item.memory) {
               newPrice = productData.GiaSP1;
               newMaxQuantity = productData.SoLuong1;
@@ -96,6 +101,15 @@ const Cart = () => {
             } else if (productData.BoNhoTrong3 === item.memory) {
               newPrice = productData.GiaSP3;
               newMaxQuantity = productData.SoLuong3;
+            } else if (productData.BoNhoTrong4 === item.memory) {
+              newPrice = productData.GiaSP4;
+              newMaxQuantity = productData.SoLuong4;
+            } else if (productData.BoNhoTrong5 === item.memory) {
+              newPrice = productData.GiaSP5;
+              newMaxQuantity = productData.SoLuong5;
+            } else if (productData.BoNhoTrong6 === item.memory) {
+              newPrice = productData.GiaSP6;
+              newMaxQuantity = productData.SoLuong6;
             }
 
             let newQuantity = item.quantity;
@@ -117,12 +131,21 @@ const Cart = () => {
                 BoNhoTrong1: productData.BoNhoTrong1,
                 BoNhoTrong2: productData.BoNhoTrong2,
                 BoNhoTrong3: productData.BoNhoTrong3,
+                BoNhoTrong4: productData.BoNhoTrong4,
+                BoNhoTrong5: productData.BoNhoTrong5,
+                BoNhoTrong6: productData.BoNhoTrong6,
                 GiaSP1: productData.GiaSP1,
                 GiaSP2: productData.GiaSP2,
                 GiaSP3: productData.GiaSP3,
+                GiaSP4: productData.GiaSP4,
+                GiaSP5: productData.GiaSP5,
+                GiaSP6: productData.GiaSP6,
                 SoLuong1: productData.SoLuong1,
                 SoLuong2: productData.SoLuong2,
                 SoLuong3: productData.SoLuong3,
+                SoLuong4: productData.SoLuong4,
+                SoLuong5: productData.SoLuong5,
+                SoLuong6: productData.SoLuong6,
               },
             };
           } catch (error) {
@@ -391,7 +414,7 @@ const Cart = () => {
 
     const total = calculateTotal();
 
-    // **Điều kiện: Tổng tiền tối thiểu để áp dụng mã giảm giá
+    // Điều kiện: Tổng tiền tối thiểu để áp dụng mã giảm giá
     if (total < 10000000) {
       message.error(
         "Đơn hàng giá trị tối thiểu 10 triệu để áp dụng mã giảm giá."
@@ -399,7 +422,7 @@ const Cart = () => {
       return;
     }
 
-    // **Tính giảm giá**
+    // Tính giảm giá
     let discountAmount = 0;
     if (promotion.LoaiKM === "percentage") {
       discountAmount = (total * promotion.GiaTriKM) / 100;
@@ -407,7 +430,7 @@ const Cart = () => {
       discountAmount = promotion.GiaTriKM;
     }
 
-    // **Giới hạn số tiền giảm giá tối đa**
+    // Giới hạn số tiền giảm giá tối đa
     const maxDiscount = 2000000; // Giảm giá tối đa là 2000k
     if (discountAmount > maxDiscount) {
       discountAmount = maxDiscount;
@@ -467,6 +490,7 @@ const Cart = () => {
       },
     });
   };
+
   const showVoucherModal = () => {
     setTempVoucher(voucher);
     setTempDiscount(discount);
@@ -556,9 +580,17 @@ const Cart = () => {
               <Text type="secondary">
                 Bộ nhớ: {record.memory}
                 <div className="d-flex gap-2 mt-2">
-                  {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
+                  {[
+                    "BoNhoTrong1",
+                    "BoNhoTrong2",
+                    "BoNhoTrong3",
+                    "BoNhoTrong4",
+                    "BoNhoTrong5",
+                    "BoNhoTrong6",
+                  ].map(
                     (memoryKey) =>
-                      record.availableMemories[memoryKey] ? (
+                      record.availableMemories[memoryKey] &&
+                      record.availableMemories[memoryKey] !== "Không có" ? (
                         <div
                           key={memoryKey}
                           style={{ position: "relative", textAlign: "center" }}

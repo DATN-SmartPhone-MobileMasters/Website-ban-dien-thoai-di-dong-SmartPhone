@@ -14,9 +14,6 @@ const ProductsAdd = () => {
     {
       MaSP: '',
       Mau1: '',
-      SoLuong1: '',
-      SoLuong2: '',
-      SoLuong3: '',
       TrangThai: '',
       HinhAnh1: null,
       HinhAnh2: null,
@@ -24,6 +21,14 @@ const ProductsAdd = () => {
       HinhAnh4: null,
       HinhAnh5: null,
       HinhAnh6: null,
+      memoryData: [
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+      ],
     },
   ]);
   const [error, setError] = useState('');
@@ -35,7 +40,7 @@ const ProductsAdd = () => {
         const response = await fetchBrands();
         setBrands(response.data.data);
       } catch (err) {
-        console.error('Error fetching brands:', err);
+        console.error('Lỗi khi tải thương hiệu:', err);
         setError('Không thể tải danh sách thương hiệu.');
       }
     };
@@ -48,6 +53,31 @@ const ProductsAdd = () => {
       ...updatedProducts[index],
       [field]: value,
     };
+    setProducts(updatedProducts);
+  };
+
+  const handleMemoryDataChange = (productIndex, memoryIndex, field, value) => {
+    const updatedProducts = [...products];
+    updatedProducts[productIndex].memoryData[memoryIndex] = {
+      ...updatedProducts[productIndex].memoryData[memoryIndex],
+      [field]: value,
+    };
+    if (field === 'BoNhoTrong' && value === 'Không có') {
+      updatedProducts[productIndex].memoryData[memoryIndex].GiaSP = '0';
+      updatedProducts[productIndex].memoryData[memoryIndex].SoLuong = '0';
+      form.setFieldsValue({
+        [`GiaSP_${productIndex}_${memoryIndex}`]: '0',
+        [`SoLuong_${productIndex}_${memoryIndex}`]: '0',
+      });
+    }
+    if (field === 'BoNhoTrong' && value !== 'Không có') {
+      updatedProducts[productIndex].memoryData[memoryIndex].GiaSP = '';
+      updatedProducts[productIndex].memoryData[memoryIndex].SoLuong = '';
+      form.setFieldsValue({
+        [`GiaSP_${productIndex}_${memoryIndex}`]: '',
+        [`SoLuong_${productIndex}_${memoryIndex}`]: '',
+      });
+    }
     setProducts(updatedProducts);
   };
 
@@ -64,7 +94,7 @@ const ProductsAdd = () => {
       message.success(`Tải ảnh ${fieldName} thành công!`);
       return false;
     } catch (error) {
-      console.error(`Error uploading ${fieldName}:`, error);
+      console.error(`Lỗi khi tải ${fieldName}:`, error);
       message.error(`Tải ảnh ${fieldName} thất bại`);
       setError(`Không thể tải ảnh ${fieldName}.`);
       return false;
@@ -75,9 +105,6 @@ const ProductsAdd = () => {
     const newProduct = {
       MaSP: '',
       Mau1: '',
-      SoLuong1: '',
-      SoLuong2: '',
-      SoLuong3: '',
       TrangThai: '',
       HinhAnh1: null,
       HinhAnh2: null,
@@ -85,6 +112,14 @@ const ProductsAdd = () => {
       HinhAnh4: null,
       HinhAnh5: null,
       HinhAnh6: null,
+      memoryData: [
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+        { BoNhoTrong: '', GiaSP: '', SoLuong: '' },
+      ],
     };
     setProducts([...products, newProduct]);
   };
@@ -106,6 +141,7 @@ const ProductsAdd = () => {
       const mainValues = await form.validateFields();
       const product = products[index];
       if (!product.HinhAnh1) throw new Error('Hình ảnh 1 không được để trống!');
+
       const productToAdd = {
         ...product,
         TenSP: mainValues.TenSP,
@@ -118,13 +154,15 @@ const ProductsAdd = () => {
         HDH: mainValues.HDH,
         LoaiPin: mainValues.LoaiPin,
         CapSac: mainValues.CapSac,
-        BoNhoTrong1: mainValues.BoNhoTrong1,
-        BoNhoTrong2: mainValues.BoNhoTrong2,
-        BoNhoTrong3: mainValues.BoNhoTrong3,
-        GiaSP1: mainValues.GiaSP1,
-        GiaSP2: mainValues.GiaSP2,
-        GiaSP3: mainValues.GiaSP3,
+        ...product.memoryData.reduce((acc, data, i) => ({
+          ...acc,
+          [`BoNhoTrong${i + 1}`]: data.BoNhoTrong,
+          [`GiaSP${i + 1}`]: data.GiaSP,
+          [`SoLuong${i + 1}`]: data.SoLuong,
+        }), {}),
       };
+
+      delete productToAdd.memoryData;
 
       await createProducts(productToAdd);
       message.success(`Thêm sản phẩm ${index + 1} thành công!`);
@@ -132,7 +170,7 @@ const ProductsAdd = () => {
         navigate('/admin/products');
       }
     } catch (error) {
-      console.error('Error adding product:', error.response?.data || error);
+      console.error('Lỗi khi thêm sản phẩm:', error.response?.data || error);
       const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm sản phẩm.';
       setError(errorMsg);
       message.error(errorMsg);
@@ -149,6 +187,7 @@ const ProductsAdd = () => {
       for (let i = 0; i < products.length; i++) {
         const product = products[i];
         if (!product.HinhAnh1) throw new Error(`Hình ảnh 1 của sản phẩm ${i + 1} không được để trống!`);
+
         const productToAdd = {
           ...product,
           TenSP: mainValues.TenSP,
@@ -161,20 +200,23 @@ const ProductsAdd = () => {
           HDH: mainValues.HDH,
           LoaiPin: mainValues.LoaiPin,
           CapSac: mainValues.CapSac,
-          BoNhoTrong1: mainValues.BoNhoTrong1,
-          BoNhoTrong2: mainValues.BoNhoTrong2,
-          BoNhoTrong3: mainValues.BoNhoTrong3,
-          GiaSP1: mainValues.GiaSP1,
-          GiaSP2: mainValues.GiaSP2,
-          GiaSP3: mainValues.GiaSP3,
+          ...product.memoryData.reduce((acc, data, i) => ({
+            ...acc,
+            [`BoNhoTrong${i + 1}`]: data.BoNhoTrong,
+            [`GiaSP${i + 1}`]: data.GiaSP,
+            [`SoLuong${i + 1}`]: data.SoLuong,
+          }), {}),
         };
+
+        delete productToAdd.memoryData;
+
         await createProducts(productToAdd);
         message.success(`Thêm sản phẩm ${i + 1} thành công!`);
       }
       navigate('/admin/products');
       message.success('Thêm tất cả sản phẩm thành công!');
     } catch (error) {
-      console.error('Error adding all products:', error.response?.data || error);
+      console.error('Lỗi khi thêm tất cả sản phẩm:', error.response?.data || error);
       const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm tất cả sản phẩm.';
       setError(errorMsg);
       message.error(errorMsg);
@@ -191,13 +233,29 @@ const ProductsAdd = () => {
   };
 
   const noNegativeNumber = (rule, value) => {
-    if (!value || value.trim() === '') {
-      return Promise.reject('Không được để trống!');
-    }
-    if (Number(value) < 0) {
+    if (value && Number(value) < 0) {
       return Promise.reject('Không được nhập số âm!');
     }
     return Promise.resolve();
+  };
+
+  const atLeastOneQuantityGreaterThanZero = (productIndex) => ({
+    validator(_, values) {
+      if (values[`TrangThai_${productIndex}`] === "Còn hàng") {
+        const quantities = products[productIndex].memoryData.map((data) => data.SoLuong);
+        if (quantities.every((q) => !q || Number(q) === 0)) {
+          return Promise.reject(new Error("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!"));
+        }
+      }
+      return Promise.resolve();
+    },
+  });
+
+  // Hàm lấy danh sách bộ nhớ đã chọn, ngoại trừ bộ nhớ của mục hiện tại
+  const getSelectedMemories = (productIndex, currentMemoryIndex) => {
+    return products[productIndex].memoryData
+      .map((data, index) => (index !== currentMemoryIndex ? data.BoNhoTrong : null))
+      .filter((memory) => memory && memory !== 'Không có' && memory !== '');
   };
 
   return (
@@ -350,95 +408,6 @@ const ProductsAdd = () => {
             </Row>
           </Card>
 
-          <Card title="Bộ Nhớ và Giá Sản Phẩm" style={{ marginBottom: '30px', padding: '20px' }}>
-            <Row gutter={[16, 16]}>
-              <Col span={8}>
-                <Form.Item
-                  label="Bộ Nhớ Trong 1"
-                  name="BoNhoTrong1"
-                  rules={[{ required: true, message: 'Vui lòng chọn bộ nhớ trong 1!' }]}
-                >
-                  <Select placeholder="Chọn bộ nhớ" size="large">
-                    <Option value="">Chọn bộ nhớ</Option>
-                    <Option value="64GB">64GB</Option>
-                    <Option value="128GB">128GB</Option>
-                    <Option value="256GB">256GB</Option>
-                    <Option value="512GB">512GB</Option>
-                    <Option value="1TB">1TB</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="Bộ Nhớ Trong 2"
-                  name="BoNhoTrong2"
-                  rules={[{ required: true, message: 'Vui lòng chọn bộ nhớ trong 2!' }]}
-                >
-                  <Select placeholder="Chọn bộ nhớ" size="large">
-                    <Option value="">Chọn bộ nhớ</Option>
-                    <Option value="64GB">64GB</Option>
-                    <Option value="128GB">128GB</Option>
-                    <Option value="256GB">256GB</Option>
-                    <Option value="512GB">512GB</Option>
-                    <Option value="1TB">1TB</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="Bộ Nhớ Trong 3"
-                  name="BoNhoTrong3"
-                  rules={[{ required: true, message: 'Vui lòng chọn bộ nhớ trong 3!' }]}
-                >
-                  <Select placeholder="Chọn bộ nhớ" size="large">
-                    <Option value="">Chọn bộ nhớ</Option>
-                    <Option value="64GB">64GB</Option>
-                    <Option value="128GB">128GB</Option>
-                    <Option value="256GB">256GB</Option>
-                    <Option value="512GB">512GB</Option>
-                    <Option value="1TB">1TB</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="Giá Sản Phẩm 1"
-                  name="GiaSP1"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập giá sản phẩm 1!' },
-                    { validator: noNegativeNumber },
-                  ]}
-                >
-                  <Input type="number" placeholder="Nhập giá" size="large" />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="Giá Sản Phẩm 2"
-                  name="GiaSP2"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập giá sản phẩm 2!' },
-                    { validator: noNegativeNumber },
-                  ]}
-                >
-                  <Input type="number" placeholder="Nhập giá" size="large" />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  label="Giá Sản Phẩm 3"
-                  name="GiaSP3"
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập giá sản phẩm 3!' },
-                    { validator: noNegativeNumber },
-                  ]}
-                >
-                  <Input type="number" placeholder="Nhập giá" size="large" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
-
           <Divider orientation="left">Danh Sách Sản Phẩm</Divider>
 
           {products.map((product, index) => (
@@ -460,7 +429,6 @@ const ProductsAdd = () => {
               }
             >
               <Row gutter={[16, 16]}>
-                {/* Hàng 1: Mã Sản Phẩm, Trạng Thái, Màu Sắc */}
                 <Col span={24}>
                   <Row gutter={[16, 16]}>
                     <Col span={8}>
@@ -512,111 +480,120 @@ const ProductsAdd = () => {
                   </Row>
                 </Col>
 
-                {/* Hàng 2: Số Lượng Bộ Nhớ 1, 2, 3 */}
                 <Col span={24}>
-                  <Row gutter={[16, 16]}>
-                    <Col span={8}>
-                      <Form.Item
-                        label="Số Lượng Bộ Nhớ 1"
-                        name={`SoLuong1_${index}`}
-                        rules={[
-                          { required: true, message: 'Vui lòng nhập số lượng bộ nhớ 1!' },
-                          { validator: noNegativeNumber },
-                          { validator: noWhitespace },
-                        ]}
-                      >
-                        <Input
-                          type="number"
-                          value={product.SoLuong1}
-                          onChange={(e) => handleProductChange(index, 'SoLuong1', e.target.value)}
-                          placeholder="Nhập số lượng"
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                      <Form.Item
-                        label="Số Lượng Bộ Nhớ 2"
-                        name={`SoLuong2_${index}`}
-                        rules={[
-                          { required: true, message: 'Vui lòng nhập số lượng bộ nhớ 2!' },
-                          { validator: noNegativeNumber },
-                          { validator: noWhitespace },
-                        ]}
-                      >
-                        <Input
-                          type="number"
-                          value={product.SoLuong2}
-                          onChange={(e) => handleProductChange(index, 'SoLuong2', e.target.value)}
-                          placeholder="Nhập số lượng"
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                      <Form.Item
-                        label="Số Lượng Bộ Nhớ 3"
-                        name={`SoLuong3_${index}`}
-                        rules={[
-                          { required: true, message: 'Vui lòng nhập số lượng bộ nhớ 3!' },
-                          { validator: noNegativeNumber },
-                          { validator: noWhitespace },
-                        ]}
-                      >
-                        <Input
-                          type="number"
-                          value={product.SoLuong3}
-                          onChange={(e) => handleProductChange(index, 'SoLuong3', e.target.value)}
-                          placeholder="Nhập số lượng"
-                          size="large"
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                  <Card title="Bộ Nhớ, Giá và Số Lượng" style={{ marginBottom: '20px', padding: '10px' }}>
+                    {product.memoryData.map((data, memoryIndex) => (
+                      <Row key={memoryIndex} gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label={`Bộ Nhớ Trong ${memoryIndex + 1}`}
+                            name={`BoNhoTrong_${index}_${memoryIndex}`}
+                            rules={[{ required: false }]}
+                            initialValue={data.BoNhoTrong}
+                          >
+                            <Select
+                              placeholder="Chọn bộ nhớ"
+                              size="large"
+                              onChange={(value) => handleMemoryDataChange(index, memoryIndex, 'BoNhoTrong', value)}
+                            >
+                              {[
+                                { value: '', label: 'Chọn bộ nhớ' },
+                                { value: 'Không có', label: 'Không có' },
+                                { value: '32GB', label: '32GB' },
+                                { value: '64GB', label: '64GB' },
+                                { value: '128GB', label: '128GB' },
+                                { value: '256GB', label: '256GB' },
+                                { value: '512GB', label: '512GB' },
+                                { value: '1TB', label: '1TB' },
+                              ].map((option) => {
+                                const selectedMemories = getSelectedMemories(index, memoryIndex);
+                                const isDisabled = selectedMemories.includes(option.value) && option.value !== '';
+                                return (
+                                  <Option key={option.value} value={option.value} disabled={isDisabled}>
+                                    {option.label}
+                                  </Option>
+                                );
+                              })}
+                            </Select>
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label={`Giá Sản Phẩm ${memoryIndex + 1}`}
+                            name={`GiaSP_${index}_${memoryIndex}`}
+                            rules={[{ required: data.BoNhoTrong && data.BoNhoTrong !== 'Không có' }, { validator: noNegativeNumber }]}
+                            initialValue={data.GiaSP}
+                          >
+                            <Input
+                              type="number"
+                              placeholder="Nhập giá"
+                              size="large"
+                              disabled={data.BoNhoTrong === 'Không có'}
+                              onChange={(e) => handleMemoryDataChange(index, memoryIndex, 'GiaSP', e.target.value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={8}>
+                          <Form.Item
+                            label={`Số Lượng ${memoryIndex + 1}`}
+                            name={`SoLuong_${index}_${memoryIndex}`}
+                            rules={[{ required: data.BoNhoTrong && data.BoNhoTrong !== 'Không có' }, { validator: noNegativeNumber }, atLeastOneQuantityGreaterThanZero(index)]}
+                            initialValue={data.SoLuong}
+                          >
+                            <Input
+                              type="number"
+                              placeholder="Nhập số lượng"
+                              size="large"
+                              disabled={data.BoNhoTrong === 'Không có'}
+                              onChange={(e) => handleMemoryDataChange(index, memoryIndex, 'SoLuong', e.target.value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    ))}
+                  </Card>
                 </Col>
 
-                {/* Hàng 3: Hình Ảnh */}
                 <Col span={24}>
                   <Card title="Hình Ảnh Sản Phẩm" style={{ padding: '10px' }}>
                     <Row gutter={[16, 16]}>
-                    <Col span={8}>
-  <Form.Item
-    label="Hình Ảnh 1"
-    name={`HinhAnh1_${index}`}
-    valuePropName="file"
-    getValueFromEvent={() => product.HinhAnh1}
-    // Bỏ rules để không bắt buộc
-  >
-    <Upload
-      beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh1')}
-      showUploadList={false}
-    >
-      <Button icon={<UploadOutlined />} size="large">
-        Tải lên
-      </Button>
-    </Upload>
-    {product.HinhAnh1 && (
-      <div style={{ marginTop: '10px' }}>
-        <img
-          src={product.HinhAnh1}
-          alt="Hình ảnh 1"
-          style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
-          onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
-            console.error('Error loading HinhAnh1:', product.HinhAnh1);
-          }}
-        />
-        <Button
-          type="link"
-          onClick={() => handleProductChange(index, 'HinhAnh1', null)}
-          style={{ marginLeft: '10px', color: 'red' }}
-        >
-          Xóa
-        </Button>
-      </div>
-    )}
-  </Form.Item>
-</Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Hình Ảnh 1"
+                          name={`HinhAnh1_${index}`}
+                          valuePropName="file"
+                          getValueFromEvent={() => product.HinhAnh1}
+                        >
+                          <Upload
+                            beforeUpload={(file) => handleImageUpload(index, file, 'HinhAnh1')}
+                            showUploadList={false}
+                          >
+                            <Button icon={<UploadOutlined />} size="large">
+                              Tải lên
+                            </Button>
+                          </Upload>
+                          {product.HinhAnh1 && (
+                            <div style={{ marginTop: '10px' }}>
+                              <img
+                                src={product.HinhAnh1}
+                                alt="Hình ảnh 1"
+                                style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
+                                onError={(e) => {
+                                  e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
+                                  console.error('Lỗi tải HinhAnh1:', product.HinhAnh1);
+                                }}
+                              />
+                              <Button
+                                type="link"
+                                onClick={() => handleProductChange(index, 'HinhAnh1', null)}
+                                style={{ marginLeft: '10px', color: 'red' }}
+                              >
+                                Xóa
+                              </Button>
+                            </div>
+                          )}
+                        </Form.Item>
+                      </Col>
                       <Col span={8}>
                         <Form.Item
                           label="Hình Ảnh 2"
@@ -640,7 +617,7 @@ const ProductsAdd = () => {
                                 style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
-                                  console.error('Error loading HinhAnh2:', product.HinhAnh2);
+                                  console.error('Lỗi tải HinhAnh2:', product.HinhAnh2);
                                 }}
                               />
                               <Button
@@ -677,7 +654,7 @@ const ProductsAdd = () => {
                                 style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
-                                  console.error('Error loading HinhAnh3:', product.HinhAnh3);
+                                  console.error('Lỗi tải HinhAnh3:', product.HinhAnh3);
                                 }}
                               />
                               <Button
@@ -714,7 +691,7 @@ const ProductsAdd = () => {
                                 style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
-                                  console.error('Error loading HinhAnh4:', product.HinhAnh4);
+                                  console.error('Lỗi tải HinhAnh4:', product.HinhAnh4);
                                 }}
                               />
                               <Button
@@ -751,7 +728,7 @@ const ProductsAdd = () => {
                                 style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
-                                  console.error('Error loading HinhAnh5:', product.HinhAnh5);
+                                  console.error('Lỗi tải HinhAnh5:', product.HinhAnh5);
                                 }}
                               />
                               <Button
@@ -788,7 +765,7 @@ const ProductsAdd = () => {
                                 style={{ maxWidth: '100px', maxHeight: '100px', border: '1px solid #ddd' }}
                                 onError={(e) => {
                                   e.target.src = 'https://via.placeholder.com/100?text=Error+Loading+Image';
-                                  console.error('Error loading HinhAnh6:', product.HinhAnh6);
+                                  console.error('Lỗi tải HinhAnh6:', product.HinhAnh6);
                                 }}
                               />
                               <Button

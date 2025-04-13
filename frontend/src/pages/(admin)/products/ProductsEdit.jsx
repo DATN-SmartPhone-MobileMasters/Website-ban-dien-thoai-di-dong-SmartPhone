@@ -29,6 +29,8 @@ const ProductsEdit = () => {
   const [brands, setBrands] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [quantityErrors, setQuantityErrors] = useState({});
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
 
   // Validators
   const noWhitespace = (_, value) => {
@@ -58,18 +60,6 @@ const ProductsEdit = () => {
     return Promise.resolve();
   };
 
-  const atLeastOneQuantityGreaterThanZero = () => ({
-    validator(_, values) {
-      if (values.TrangThai === "Còn hàng") {
-        const quantities = [values.SoLuong1, values.SoLuong2, values.SoLuong3];
-        if (quantities.every((q) => Number(q) === 0)) {
-          return Promise.reject(new Error("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!"));
-        }
-      }
-      return Promise.resolve();
-    },
-  });
-
   useEffect(() => {
     setLoading(true);
     Promise.all([getProducts(id), fetchBrands()])
@@ -78,6 +68,7 @@ const ProductsEdit = () => {
         setProduct(productData);
         form.setFieldsValue(productData);
         setBrands(brandsRes.data.data);
+        validateQuantities(productData); // Kiểm tra số lượng khi tải dữ liệu
       })
       .catch(() => setError("Không thể tải dữ liệu sản phẩm hoặc thương hiệu."))
       .finally(() => setLoading(false));
@@ -105,7 +96,7 @@ const ProductsEdit = () => {
   const onFinish = async (values) => {
     try {
       await updateProducts(id, values);
-      message.success("Cập nhật sản phẩm thành công!"); // Thông báo chỉ hiển thị ở đây
+      message.success("Cập nhật sản phẩm thành công!");
       navigate("/admin/products");
     } catch (error) {
       setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
@@ -115,12 +106,125 @@ const ProductsEdit = () => {
 
   const handleStatusChange = (value) => {
     if (value === "Hết hàng") {
-      form.setFieldsValue({ SoLuong1: 0, SoLuong2: 0, SoLuong3: 0 });
+      // Đặt lại số lượng về 0 và xóa lỗi
+      form.setFieldsValue({
+        SoLuong1: 0,
+        SoLuong2: 0,
+        SoLuong3: 0,
+        SoLuong4: 0,
+        SoLuong5: 0,
+        SoLuong6: 0,
+      });
+      setQuantityErrors({});
+      setIsSubmitDisabled(false);
+    } else {
+      // Kiểm tra số lượng khi chuyển sang Còn hàng
+      validateQuantities({ ...product, TrangThai: value });
     }
     setProduct((prev) => ({
       ...prev,
       TrangThai: value,
     }));
+  };
+
+  const handleMemoryChange = (version, value) => {
+    const updatedProduct = { ...product, [`BoNhoTrong${version}`]: value };
+    if (value === "Không có") {
+      updatedProduct[`GiaSP${version}`] = 0;
+      updatedProduct[`SoLuong${version}`] = 0;
+      form.setFieldsValue({
+        [`GiaSP${version}`]: 0,
+        [`SoLuong${version}`]: 0,
+      });
+      setQuantityErrors((prev) => ({
+        ...prev,
+        [`SoLuong${version}`]: null,
+      }));
+    } else {
+      updatedProduct[`GiaSP${version}`] = product[`GiaSP${version}`] || "";
+      updatedProduct[`SoLuong${version}`] = product[`SoLuong${version}`] || "";
+      form.setFieldsValue({
+        [`GiaSP${version}`]: product[`GiaSP${version}`] || "",
+        [`SoLuong${version}`]: product[`SoLuong${version}`] || "",
+      });
+      validateQuantity(version, product[`SoLuong${version}`] || 0);
+    }
+    setProduct(updatedProduct);
+    validateQuantities(updatedProduct);
+  };
+
+  const handleQuantityChange = (version, value) => {
+    const updatedProduct = { ...product, [`SoLuong${version}`]: value };
+    setProduct(updatedProduct);
+    validateQuantity(version, value);
+    validateQuantities(updatedProduct);
+  };
+
+  const validateQuantity = (version, value) => {
+    if (
+      product.TrangThai === "Còn hàng" &&
+      Number(value) === 0 &&
+      product[`BoNhoTrong${version}`] !== "Không có"
+    ) {
+      setQuantityErrors((prev) => ({
+        ...prev,
+        [`SoLuong${version}`]: "Số lượng không thể là 0 khi còn hàng!",
+      }));
+    } else {
+      setQuantityErrors((prev) => ({
+        ...prev,
+        [`SoLuong${version}`]: null,
+      }));
+    }
+  };
+
+  const validateQuantities = (currentProduct) => {
+    const quantities = [
+      currentProduct.SoLuong1 || 0,
+      currentProduct.SoLuong2 || 0,
+      currentProduct.SoLuong3 || 0,
+      currentProduct.SoLuong4 || 0,
+      currentProduct.SoLuong5 || 0,
+      currentProduct.SoLuong6 || 0,
+    ];
+    let hasError = false;
+
+    if (currentProduct.TrangThai === "Còn hàng") {
+      for (let i = 1; i <= 6; i++) {
+        const memory = currentProduct[`BoNhoTrong${i}`];
+        const quantity = Number(quantities[i - 1]);
+        if (memory !== "Không có" && quantity === 0) {
+          hasError = true;
+          setQuantityErrors((prev) => ({
+            ...prev,
+            [`SoLuong${i}`]: "Số lượng không thể là 0 khi còn hàng!",
+          }));
+        } else {
+          setQuantityErrors((prev) => ({
+            ...prev,
+            [`SoLuong${i}`]: null,
+          }));
+        }
+      }
+    } else {
+      setQuantityErrors({});
+    }
+
+    setIsSubmitDisabled(hasError);
+  };
+
+  const getSelectedMemories = (currentVersion) => {
+    const memories = [
+      product.BoNhoTrong1,
+      product.BoNhoTrong2,
+      product.BoNhoTrong3,
+      product.BoNhoTrong4,
+      product.BoNhoTrong5,
+      product.BoNhoTrong6,
+    ];
+    return memories
+      .map((memory, index) => (index + 1 !== currentVersion ? memory : null))
+      .filter((memory) => memory && memory !== "Không có" && memory !== "");
   };
 
   if (loading) {
@@ -230,152 +334,90 @@ const ProductsEdit = () => {
               </Form.Item>
             </Col>
 
-            <Col xs={24}>
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Bộ Nhớ Trong 1"
-                    name="BoNhoTrong1"
-                    rules={[{ required: true, message: "Vui lòng chọn bộ nhớ trong 1!" }]}
-                  >
-                    <Select placeholder="Chọn bộ nhớ">
-                      <Option value="64GB">64GB</Option>
-                      <Option value="128GB">128GB</Option>
-                      <Option value="256GB">256GB</Option>
-                      <Option value="512GB">512GB</Option>
-                      <Option value="1TB">1TB</Option>
-                    </Select>
-                  </Form.Item>
+            {Array.from({ length: 6 }, (_, index) => {
+              const version = index + 1;
+              const selectedMemories = getSelectedMemories(version);
+              return (
+                <Col xs={24} key={version}>
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label={`Bộ Nhớ Trong ${version}`}
+                        name={`BoNhoTrong${version}`}
+                        rules={[{ required: false }]}
+                      >
+                        <Select
+                          placeholder="Chọn bộ nhớ"
+                          onChange={(value) => handleMemoryChange(version, value)}
+                        >
+                          {[
+                            { value: "", label: "Chọn bộ nhớ" },
+                            { value: "Không có", label: "Không có" },
+                            { value: "32GB", label: "32GB" },
+                            { value: "64GB", label: "64GB" },
+                            { value: "128GB", label: "128GB" },
+                            { value: "256GB", label: "256GB" },
+                            { value: "512GB", label: "512GB" },
+                            { value: "1TB", label: "1TB" },
+                          ].map((option) => (
+                            <Option
+                              key={option.value}
+                              value={option.value}
+                              disabled={selectedMemories.includes(option.value) && option.value !== ""}
+                            >
+                              {option.label}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label={`Số Lượng Bộ Nhớ Trong ${version}`}
+                        name={`SoLuong${version}`}
+                        rules={[
+                          {
+                            required: product[`BoNhoTrong${version}`] !== "Không có",
+                            message: "Vui lòng nhập số lượng!",
+                          },
+                          { validator: noNegativeNumber },
+                        ]}
+                        validateStatus={quantityErrors[`SoLuong${version}`] ? "error" : ""}
+                        help={quantityErrors[`SoLuong${version}`]}
+                      >
+                        <Input
+                          type="number"
+                          placeholder="Nhập số lượng"
+                          disabled={
+                            product.TrangThai === "Hết hàng" || product[`BoNhoTrong${version}`] === "Không có"
+                          }
+                          onChange={(e) => handleQuantityChange(version, e.target.value)}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label={`Giá ${version}`}
+                        name={`GiaSP${version}`}
+                        rules={[
+                          {
+                            required: product[`BoNhoTrong${version}`] !== "Không có",
+                            message: "Vui lòng nhập giá!",
+                          },
+                          { validator: noNegativeNumber },
+                        ]}
+                      >
+                        <Input
+                          type="number"
+                          placeholder={`Nhập giá sản phẩm ${version}`}
+                          disabled={product[`BoNhoTrong${version}`] === "Không có"}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
                 </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label={<Text>Số Lượng Bộ Nhớ Trong 1</Text>}
-                    name="SoLuong1"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập số lượng!" },
-                      { validator: noNegativeNumber },
-                      atLeastOneQuantityGreaterThanZero(),
-                    ]}
-                  >
-                    <Input
-                      type="number"
-                      placeholder="Nhập số lượng"
-                      disabled={product.TrangThai === "Hết hàng"}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Giá 1"
-                    name="GiaSP1"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập giá!" },
-                      { validator: noNegativeNumber },
-                    ]}
-                  >
-                    <Input type="number" placeholder="Nhập giá sản phẩm 1" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Col>
-
-            <Col xs={24}>
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Bộ Nhớ Trong 2"
-                    name="BoNhoTrong2"
-                    rules={[{ required: true, message: "Vui lòng chọn bộ nhớ trong 2!" }]}
-                  >
-                    <Select placeholder="Chọn bộ nhớ">
-                      <Option value="64GB">64GB</Option>
-                      <Option value="128GB">128GB</Option>
-                      <Option value="256GB">256GB</Option>
-                      <Option value="512GB">512GB</Option>
-                      <Option value="1TB">1TB</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label={<Text>Số Lượng Bộ Nhớ Trong 2</Text>}
-                    name="SoLuong2"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập số lượng!" },
-                      { validator: noNegativeNumber },
-                      atLeastOneQuantityGreaterThanZero(),
-                    ]}
-                  >
-                    <Input
-                      type="number"
-                      placeholder="Nhập số lượng"
-                      disabled={product.TrangThai === "Hết hàng"}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Giá 2"
-                    name="GiaSP2"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập giá!" },
-                      { validator: noNegativeNumber },
-                    ]}
-                  >
-                    <Input type="number" placeholder="Nhập giá sản phẩm 2" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Col>
-
-            <Col xs={24}>
-              <Row gutter={[16, 16]}>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Bộ Nhớ Trong 3"
-                    name="BoNhoTrong3"
-                    rules={[{ required: true, message: "Vui lòng chọn bộ nhớ trong 3!" }]}
-                  >
-                    <Select placeholder="Chọn bộ nhớ">
-                      <Option value="64GB">64GB</Option>
-                      <Option value="128GB">128GB</Option>
-                      <Option value="256GB">256GB</Option>
-                      <Option value="512GB">512GB</Option>
-                      <Option value="1TB">1TB</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label={<Text>Số Lượng Bộ Nhớ Trong 3</Text>}
-                    name="SoLuong3"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập số lượng!" },
-                      { validator: noNegativeNumber },
-                      atLeastOneQuantityGreaterThanZero(),
-                    ]}
-                  >
-                    <Input
-                      type="number"
-                      placeholder="Nhập số lượng"
-                      disabled={product.TrangThai === "Hết hàng"}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    label="Giá 3"
-                    name="GiaSP3"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập giá!" },
-                      { validator: noNegativeNumber },
-                    ]}
-                  >
-                    <Input type="number" placeholder="Nhập giá sản phẩm 3" />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Col>
+              );
+            })}
           </Row>
         </Card>
 
@@ -427,7 +469,7 @@ const ProductsEdit = () => {
         </Card>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" block>
+          <Button type="primary" htmlType="submit" block disabled={isSubmitDisabled}>
             Cập Nhật
           </Button>
         </Form.Item>
