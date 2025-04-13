@@ -30,6 +30,7 @@ const ProductsEdit = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [quantityErrors, setQuantityErrors] = useState({});
+  const [priceErrors, setPriceErrors] = useState({}); // Thêm trạng thái để lưu lỗi giá
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
 
   // Validators
@@ -68,7 +69,7 @@ const ProductsEdit = () => {
         setProduct(productData);
         form.setFieldsValue(productData);
         setBrands(brandsRes.data.data);
-        validateQuantities(productData); // Kiểm tra số lượng khi tải dữ liệu
+        validateQuantities(productData); // Kiểm tra số lượng và giá khi tải dữ liệu
       })
       .catch(() => setError("Không thể tải dữ liệu sản phẩm hoặc thương hiệu."))
       .finally(() => setLoading(false));
@@ -106,7 +107,7 @@ const ProductsEdit = () => {
 
   const handleStatusChange = (value) => {
     if (value === "Hết hàng") {
-      // Đặt lại số lượng về 0 và xóa lỗi
+      // Đặt lại số lượng và giá về 0, xóa lỗi
       form.setFieldsValue({
         SoLuong1: 0,
         SoLuong2: 0,
@@ -114,11 +115,18 @@ const ProductsEdit = () => {
         SoLuong4: 0,
         SoLuong5: 0,
         SoLuong6: 0,
+        GiaSP1: 0,
+        GiaSP2: 0,
+        GiaSP3: 0,
+        GiaSP4: 0,
+        GiaSP5: 0,
+        GiaSP6: 0,
       });
       setQuantityErrors({});
+      setPriceErrors({});
       setIsSubmitDisabled(false);
     } else {
-      // Kiểm tra số lượng khi chuyển sang Còn hàng
+      // Kiểm tra số lượng và giá khi chuyển sang Còn hàng
       validateQuantities({ ...product, TrangThai: value });
     }
     setProduct((prev) => ({
@@ -140,6 +148,10 @@ const ProductsEdit = () => {
         ...prev,
         [`SoLuong${version}`]: null,
       }));
+      setPriceErrors((prev) => ({
+        ...prev,
+        [`GiaSP${version}`]: null,
+      }));
     } else {
       updatedProduct[`GiaSP${version}`] = product[`GiaSP${version}`] || "";
       updatedProduct[`SoLuong${version}`] = product[`SoLuong${version}`] || "";
@@ -148,6 +160,7 @@ const ProductsEdit = () => {
         [`SoLuong${version}`]: product[`SoLuong${version}`] || "",
       });
       validateQuantity(version, product[`SoLuong${version}`] || 0);
+      validatePrice(version, product[`GiaSP${version}`] || 0);
     }
     setProduct(updatedProduct);
     validateQuantities(updatedProduct);
@@ -157,6 +170,13 @@ const ProductsEdit = () => {
     const updatedProduct = { ...product, [`SoLuong${version}`]: value };
     setProduct(updatedProduct);
     validateQuantity(version, value);
+    validateQuantities(updatedProduct);
+  };
+
+  const handlePriceChange = (version, value) => {
+    const updatedProduct = { ...product, [`GiaSP${version}`]: value };
+    setProduct(updatedProduct);
+    validatePrice(version, value);
     validateQuantities(updatedProduct);
   };
 
@@ -178,6 +198,24 @@ const ProductsEdit = () => {
     }
   };
 
+  const validatePrice = (version, value) => {
+    if (
+      product.TrangThai === "Còn hàng" &&
+      Number(value) === 0 &&
+      product[`BoNhoTrong${version}`] !== "Không có"
+    ) {
+      setPriceErrors((prev) => ({
+        ...prev,
+        [`GiaSP${version}`]: "Giá không thể là 0 khi còn hàng!",
+      }));
+    } else {
+      setPriceErrors((prev) => ({
+        ...prev,
+        [`GiaSP${version}`]: null,
+      }));
+    }
+  };
+
   const validateQuantities = (currentProduct) => {
     const quantities = [
       currentProduct.SoLuong1 || 0,
@@ -187,12 +225,23 @@ const ProductsEdit = () => {
       currentProduct.SoLuong5 || 0,
       currentProduct.SoLuong6 || 0,
     ];
+    const prices = [
+      currentProduct.GiaSP1 || 0,
+      currentProduct.GiaSP2 || 0,
+      currentProduct.GiaSP3 || 0,
+      currentProduct.GiaSP4 || 0,
+      currentProduct.GiaSP5 || 0,
+      currentProduct.GiaSP6 || 0,
+    ];
     let hasError = false;
 
     if (currentProduct.TrangThai === "Còn hàng") {
       for (let i = 1; i <= 6; i++) {
         const memory = currentProduct[`BoNhoTrong${i}`];
         const quantity = Number(quantities[i - 1]);
+        const price = Number(prices[i - 1]);
+
+        // Kiểm tra số lượng
         if (memory !== "Không có" && quantity === 0) {
           hasError = true;
           setQuantityErrors((prev) => ({
@@ -205,9 +254,24 @@ const ProductsEdit = () => {
             [`SoLuong${i}`]: null,
           }));
         }
+
+        // Kiểm tra giá
+        if (memory !== "Không có" && price === 0) {
+          hasError = true;
+          setPriceErrors((prev) => ({
+            ...prev,
+            [`GiaSP${i}`]: "Giá không thể là 0 khi còn hàng!",
+          }));
+        } else {
+          setPriceErrors((prev) => ({
+            ...prev,
+            [`GiaSP${i}`]: null,
+          }));
+        }
       }
     } else {
       setQuantityErrors({});
+      setPriceErrors({});
     }
 
     setIsSubmitDisabled(hasError);
@@ -406,11 +470,14 @@ const ProductsEdit = () => {
                           },
                           { validator: noNegativeNumber },
                         ]}
+                        validateStatus={priceErrors[`GiaSP${version}`] ? "error" : ""}
+                        help={priceErrors[`GiaSP${version}`]}
                       >
                         <Input
                           type="number"
                           placeholder={`Nhập giá sản phẩm ${version}`}
                           disabled={product[`BoNhoTrong${version}`] === "Không có"}
+                          onChange={(e) => handlePriceChange(version, e.target.value)}
                         />
                       </Form.Item>
                     </Col>
