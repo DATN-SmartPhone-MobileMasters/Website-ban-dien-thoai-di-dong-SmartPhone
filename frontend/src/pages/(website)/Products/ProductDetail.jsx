@@ -64,6 +64,15 @@ const ProductDetail = () => {
   const [displayedComments, setDisplayedComments] = useState(5);
   const timeoutRef = useRef(null);
 
+  // Hàm chuẩn hóa tên sản phẩm
+  const normalizeProductName = (name) => {
+    // Lấy phần trước dấu | (nếu có)
+    const mainName = name.split("|")[0].trim();
+    return mainName
+      .replace(/\s+/g, "") // Loại bỏ tất cả khoảng trắng
+      .toLowerCase(); // Chuyển về chữ thường
+  };
+
   const handleShowMore = () => {
     setDisplayedComments(comments.length);
   };
@@ -203,8 +212,10 @@ const ProductDetail = () => {
         setProduct(updatedProduct);
         if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
 
-        // Thiết lập timeout để tự động chọn bộ nhớ đầu tiên hợp lệ sau 2 giây
-        if (updatedProduct.BoNhoTrong1 && updatedProduct.BoNhoTrong1 !== "Không có") {
+        if (
+          updatedProduct.BoNhoTrong1 &&
+          updatedProduct.BoNhoTrong1 !== "Không có"
+        ) {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong1,
@@ -212,7 +223,10 @@ const ProductDetail = () => {
               quantity: updatedProduct.SoLuong1,
             });
           }, 200);
-        } else if (updatedProduct.BoNhoTrong2 && updatedProduct.BoNhoTrong2 !== "Không có") {
+        } else if (
+          updatedProduct.BoNhoTrong2 &&
+          updatedProduct.BoNhoTrong2 !== "Không có"
+        ) {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong2,
@@ -220,7 +234,10 @@ const ProductDetail = () => {
               quantity: updatedProduct.SoLuong2,
             });
           }, 200);
-        } else if (updatedProduct.BoNhoTrong3 && updatedProduct.BoNhoTrong3 !== "Không có") {
+        } else if (
+          updatedProduct.BoNhoTrong3 &&
+          updatedProduct.BoNhoTrong3 !== "Không có"
+        ) {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong3,
@@ -228,7 +245,10 @@ const ProductDetail = () => {
               quantity: updatedProduct.SoLuong3,
             });
           }, 200);
-        } else if (updatedProduct.BoNhoTrong4 && updatedProduct.BoNhoTrong4 !== "Không có") {
+        } else if (
+          updatedProduct.BoNhoTrong4 &&
+          updatedProduct.BoNhoTrong4 !== "Không có"
+        ) {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong4,
@@ -236,7 +256,10 @@ const ProductDetail = () => {
               quantity: updatedProduct.SoLuong4,
             });
           }, 200);
-        } else if (updatedProduct.BoNhoTrong5 && updatedProduct.BoNhoTrong5 !== "Không có") {
+        } else if (
+          updatedProduct.BoNhoTrong5 &&
+          updatedProduct.BoNhoTrong5 !== "Không có"
+        ) {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong5,
@@ -244,7 +267,10 @@ const ProductDetail = () => {
               quantity: updatedProduct.SoLuong5,
             });
           }, 200);
-        } else if (updatedProduct.BoNhoTrong6 && updatedProduct.BoNhoTrong6 !== "Không có") {
+        } else if (
+          updatedProduct.BoNhoTrong6 &&
+          updatedProduct.BoNhoTrong6 !== "Không có"
+        ) {
           timeoutRef.current = setTimeout(() => {
             setSelectedMemory({
               memory: updatedProduct.BoNhoTrong6,
@@ -260,18 +286,16 @@ const ProductDetail = () => {
           const allProducts = response.data.data || [];
           setAllProducts(allProducts);
 
-          const productNameParts = productData.TenSP.split("|").map((part) =>
-            part.trim()
-          );
-          const mainProductName = productNameParts[0];
+          // Chuẩn hóa tên sản phẩm hiện tại (chỉ lấy phần trước dấu |)
+          const normalizedProductName = normalizeProductName(productData.TenSP);
+
+          // Lọc các sản phẩm liên quan dựa trên tên chuẩn hóa
           const related = allProducts
             .filter((p) => {
-              const relatedNameParts = p.TenSP.split("|").map((part) =>
-                part.trim()
-              );
-              const relatedMainName = relatedNameParts[0];
+              const normalizedRelatedName = normalizeProductName(p.TenSP);
               return (
-                relatedMainName === mainProductName && p._id !== productData._id
+                normalizedRelatedName === normalizedProductName &&
+                p._id !== productData._id
               );
             })
             .slice(0, 4);
@@ -283,7 +307,6 @@ const ProductDetail = () => {
         setLoading(false);
       });
 
-    // Cleanup timeout khi component unmount
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -477,7 +500,6 @@ const ProductDetail = () => {
     if (newQuantity <= 0) {
       message.warning(`Bộ nhớ ${memory} đã hết hàng!`);
     }
-    // Hủy timeout nếu người dùng chọn bộ nhớ trước 2 giây
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -617,7 +639,17 @@ const ProductDetail = () => {
               )}
             </Row>
           </Card>
+
+          <Card
+            title={<Title level={4}>Mô tả sản phẩm</Title>}
+            style={{ marginTop: 24 }}
+          >
+            <Paragraph style={{ whiteSpace: "pre-line", textAlign: "justify" }}>
+              {product.MoTa || "Không có thông tin"}
+            </Paragraph>
+          </Card>
         </Col>
+
         <Col xs={24} md={12}>
           <Card style={{ padding: 16 }}>
             <Flex vertical>
@@ -894,14 +926,6 @@ const ProductDetail = () => {
                 {product.LoaiPin || "Không có thông tin"}
               </Descriptions.Item>
             </Descriptions>
-          </Card>
-        </Col>
-
-        <Col span={24}>
-          <Card title={<Title level={4}>Mô tả sản phẩm</Title>}>
-            <Paragraph style={{ whiteSpace: "pre-line", textAlign: "justify" }}>
-              {product.MoTa || "Không có thông tin"}
-            </Paragraph>
           </Card>
         </Col>
       </Row>
