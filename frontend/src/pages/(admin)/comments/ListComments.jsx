@@ -1,4 +1,13 @@
-import { message, Rate, Table, Button, Input, Typography, Space, Card } from "antd";
+import {
+  message,
+  Rate,
+  Table,
+  Button,
+  Input,
+  Typography,
+  Space,
+  Card,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -22,7 +31,11 @@ const AdminListComment = () => {
     const fetchData = async () => {
       try {
         const resComments = await fetchComments();
-        setComments(resComments.data);
+        // Sắp xếp comments theo ngày bình luận (mới nhất lên đầu)
+        const sortedComments = resComments.data.sort(
+          (a, b) => new Date(b.NgayBL) - new Date(a.NgayBL)
+        );
+        setComments(sortedComments);
 
         const resUsers = await fetchUsers();
         setUsers(resUsers.data);
@@ -66,9 +79,12 @@ const AdminListComment = () => {
   const handleDeleteReply = async (commentId) => {
     if (window.confirm("Bạn có chắc muốn xóa câu trả lời này không?")) {
       try {
-        const updatedComment = { ...comments.find(c => c._id === commentId), Reply: null };
-        setComments(prevComments =>
-          prevComments.map(comment =>
+        const updatedComment = {
+          ...comments.find((c) => c._id === commentId),
+          Reply: null,
+        };
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
             comment._id === commentId ? updatedComment : comment
           )
         );
@@ -105,7 +121,7 @@ const AdminListComment = () => {
       const replyData = {
         Content: replyContent[commentId],
         Date: new Date().toISOString(),
-        AdminEmail: "admin@example.com",
+        AdminEmail: "admin@vip.pro",
       };
       const response = await replyComment(commentId, replyData);
       message.success("Đã gửi câu trả lời thành công!");
@@ -247,9 +263,16 @@ const AdminListComment = () => {
         Danh Sách Bình Luận
       </Title>
       <Card
-        title={<Text strong style={{ color: "#1890ff" }}>Database bình luận</Text>}
+        title={
+          <Text strong style={{ color: "#1890ff" }}>
+            Database bình luận
+          </Text>
+        }
         bordered={false}
-        style={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", borderRadius: "8px" }}
+        style={{
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          borderRadius: "8px",
+        }}
       >
         <Table
           columns={columns}
