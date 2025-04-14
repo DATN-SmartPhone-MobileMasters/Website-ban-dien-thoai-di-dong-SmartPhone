@@ -309,10 +309,20 @@ const ProductsAdd = () => {
           <Row gutter={[16, 16]}>
             <Col span={12}>
               <Form.Item
-                label="Tên imputSản Phẩm (Chung)"
+                label="Tên Sản Phẩm"
                 name="TenSP"
-                rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }, { validator: noWhitespace },
-                  { max: 255, message: 'Tên sản phẩm không được dài quá 255 ký tự!' }
+                rules={[
+                  { required: true, message: "Vui lòng nhập tên sản phẩm!" },
+                  { validator: noWhitespace },
+                  { max: 255, message: 'Tên sản phẩm không được dài quá 255 ký tự!' },
+                  {
+                    validator: (_, value) => {
+                      if (!value || value.trim().length < 3) {
+                        return Promise.reject(new Error('Tên sản phẩm tối thiểu 3 ký tự!'));
+                      }
+                      return Promise.resolve();
+                    },
+                  },
                 ]}
               >
                 <Input placeholder="Nhập tên sản phẩm" size="large" />
