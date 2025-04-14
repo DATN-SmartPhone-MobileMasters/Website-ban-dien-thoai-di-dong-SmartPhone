@@ -236,72 +236,106 @@ const ProductDetail = () => {
         if (allMemoriesNone) {
           setSelectedMemory({ memory: "", price: 0, quantity: 0 });
         } else {
-          if (
-            updatedProduct.BoNhoTrong1 &&
-            updatedProduct.BoNhoTrong1 !== "Không có"
-          ) {
+          // Đếm số bộ nhớ khả dụng
+          const availableMemories = [
+            updatedProduct.BoNhoTrong1,
+            updatedProduct.BoNhoTrong2,
+            updatedProduct.BoNhoTrong3,
+            updatedProduct.BoNhoTrong4,
+            updatedProduct.BoNhoTrong5,
+            updatedProduct.BoNhoTrong6,
+          ].filter((memory) => memory !== "Không có");
+
+          // Nếu chỉ có 1 bộ nhớ khả dụng, tự động chọn sau 200ms
+          if (availableMemories.length === 1) {
+            const memoryKey = availableMemories[0] === updatedProduct.BoNhoTrong1
+              ? "BoNhoTrong1"
+              : availableMemories[0] === updatedProduct.BoNhoTrong2
+              ? "BoNhoTrong2"
+              : availableMemories[0] === updatedProduct.BoNhoTrong3
+              ? "BoNhoTrong3"
+              : availableMemories[0] === updatedProduct.BoNhoTrong4
+              ? "BoNhoTrong4"
+              : availableMemories[0] === updatedProduct.BoNhoTrong5
+              ? "BoNhoTrong5"
+              : "BoNhoTrong6";
+            const memoryIndex = memoryKey.slice(-1);
             timeoutRef.current = setTimeout(() => {
               setSelectedMemory({
-                memory: updatedProduct.BoNhoTrong1,
-                price: updatedProduct.GiaSP1,
-                quantity: updatedProduct.SoLuong1,
+                memory: updatedProduct[memoryKey],
+                price: updatedProduct[`GiaSP${memoryIndex}`],
+                quantity: updatedProduct[`SoLuong${memoryIndex}`],
               });
             }, 200);
-          } else if (
-            updatedProduct.BoNhoTrong2 &&
-            updatedProduct.BoNhoTrong2 !== "Không có"
-          ) {
-            timeoutRef.current = setTimeout(() => {
-              setSelectedMemory({
-                memory: updatedProduct.BoNhoTrong2,
-                price: updatedProduct.GiaSP2,
-                quantity: updatedProduct.SoLuong2,
-              });
-            }, 200);
-          } else if (
-            updatedProduct.BoNhoTrong3 &&
-            updatedProduct.BoNhoTrong3 !== "Không có"
-          ) {
-            timeoutRef.current = setTimeout(() => {
-              setSelectedMemory({
-                memory: updatedProduct.BoNhoTrong3,
-                price: updatedProduct.GiaSP3,
-                quantity: updatedProduct.SoLuong3,
-              });
-            }, 200);
-          } else if (
-            updatedProduct.BoNhoTrong4 &&
-            updatedProduct.BoNhoTrong4 !== "Không có"
-          ) {
-            timeoutRef.current = setTimeout(() => {
-              setSelectedMemory({
-                memory: updatedProduct.BoNhoTrong4,
-                price: updatedProduct.GiaSP4,
-                quantity: updatedProduct.SoLuong4,
-              });
-            }, 200);
-          } else if (
-            updatedProduct.BoNhoTrong5 &&
-            updatedProduct.BoNhoTrong5 !== "Không có"
-          ) {
-            timeoutRef.current = setTimeout(() => {
-              setSelectedMemory({
-                memory: updatedProduct.BoNhoTrong5,
-                price: updatedProduct.GiaSP5,
-                quantity: updatedProduct.SoLuong5,
-              });
-            }, 200);
-          } else if (
-            updatedProduct.BoNhoTrong6 &&
-            updatedProduct.BoNhoTrong6 !== "Không có"
-          ) {
-            timeoutRef.current = setTimeout(() => {
-              setSelectedMemory({
-                memory: updatedProduct.BoNhoTrong6,
-                price: updatedProduct.GiaSP6,
-                quantity: updatedProduct.SoLuong6,
-              });
-            }, 200);
+          } else {
+            // Logic cũ: Chọn bộ nhớ đầu tiên khả dụng
+            if (
+              updatedProduct.BoNhoTrong1 &&
+              updatedProduct.BoNhoTrong1 !== "Không có"
+            ) {
+              timeoutRef.current = setTimeout(() => {
+                setSelectedMemory({
+                  memory: updatedProduct.BoNhoTrong1,
+                  price: updatedProduct.GiaSP1,
+                  quantity: updatedProduct.SoLuong1,
+                });
+              }, 200);
+            } else if (
+              updatedProduct.BoNhoTrong2 &&
+              updatedProduct.BoNhoTrong2 !== "Không có"
+            ) {
+              timeoutRef.current = setTimeout(() => {
+                setSelectedMemory({
+                  memory: updatedProduct.BoNhoTrong2,
+                  price: updatedProduct.GiaSP2,
+                  quantity: updatedProduct.SoLuong2,
+                });
+              }, 200);
+            } else if (
+              updatedProduct.BoNhoTrong3 &&
+              updatedProduct.BoNhoTrong3 !== "Không có"
+            ) {
+              timeoutRef.current = setTimeout(() => {
+                setSelectedMemory({
+                  memory: updatedProduct.BoNhoTrong3,
+                  price: updatedProduct.GiaSP3,
+                  quantity: updatedProduct.SoLuong3,
+                });
+              }, 200);
+            } else if (
+              updatedProduct.BoNhoTrong4 &&
+              updatedProduct.BoNhoTrong4 !== "Không có"
+            ) {
+              timeoutRef.current = setTimeout(() => {
+                setSelectedMemory({
+                  memory: updatedProduct.BoNhoTrong4,
+                  price: updatedProduct.GiaSP4,
+                  quantity: updatedProduct.SoLuong4,
+                });
+              }, 200);
+            } else if (
+              updatedProduct.BoNhoTrong5 &&
+              updatedProduct.BoNhoTrong5 !== "Không có"
+            ) {
+              timeoutRef.current = setTimeout(() => {
+                setSelectedMemory({
+                  memory: updatedProduct.BoNhoTrong5,
+                  price: updatedProduct.GiaSP5,
+                  quantity: updatedProduct.SoLuong5,
+                });
+              }, 200);
+            } else if (
+              updatedProduct.BoNhoTrong6 &&
+              updatedProduct.BoNhoTrong6 !== "Không có"
+            ) {
+              timeoutRef.current = setTimeout(() => {
+                setSelectedMemory({
+                  memory: updatedProduct.BoNhoTrong6,
+                  price: updatedProduct.GiaSP6,
+                  quantity: updatedProduct.SoLuong6,
+                });
+              }, 200);
+            }
           }
         }
 
