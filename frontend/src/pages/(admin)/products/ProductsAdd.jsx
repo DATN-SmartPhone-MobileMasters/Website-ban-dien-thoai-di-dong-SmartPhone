@@ -221,6 +221,8 @@ const ProductsAdd = () => {
           HDH: mainValues.HDH,
           LoaiPin: mainValues.LoaiPin,
           CapSac: mainValues.CapSac,
+          ManHinh: mainValues.ManHinh, // Thêm trường ManHinh
+          CPU: mainValues.CPU,         // Thêm trường CPU
           ...product.memoryData.reduce((acc, data, i) => ({
             ...acc,
             [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,
@@ -307,7 +309,7 @@ const ProductsAdd = () => {
           <Row gutter={[16, 16]}>
             <Col span={12}>
               <Form.Item
-                label="Tên Sản Phẩm (Chung)"
+                label="Tên imputSản Phẩm (Chung)"
                 name="TenSP"
                 rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }, { validator: noWhitespace },
                   { max: 255, message: 'Tên sản phẩm không được dài quá 255 ký tự!' }

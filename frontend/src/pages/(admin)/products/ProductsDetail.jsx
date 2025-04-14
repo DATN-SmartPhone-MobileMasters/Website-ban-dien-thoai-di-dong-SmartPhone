@@ -37,6 +37,7 @@ const ProductsDetail = () => {
     getProducts(id)
       .then((response) => {
         const productData = response.data.data;
+        console.log("Dữ liệu sản phẩm:", productData); // Debug
         setProduct(productData);
 
         if (productData.BoNhoTrong1) {
@@ -154,7 +155,7 @@ const ProductsDetail = () => {
               </Col>
               <Col xs={24} md={12}>
                 <Text strong>Màn Hình: </Text>
-                <Text>{product.ManHinh}</Text>
+                <Text>{product.ManHinh || "Chưa có thông tin"}</Text>
               </Col>
               <Col xs={24} md={12}>
                 <Text strong>Pin: </Text>
@@ -174,7 +175,7 @@ const ProductsDetail = () => {
               </Col>
               <Col xs={24} md={12}>
                 <Text strong>CPU: </Text>
-                <Text>{product.CPU}</Text>
+                <Text>{product.CPU || "Chưa có thông tin"}</Text>
               </Col>
               <Col xs={24} md={12}>
                 <Text strong>Trạng Thái: </Text>
@@ -237,30 +238,27 @@ const ProductsDetail = () => {
                 <Text strong>Màu Sắc:</Text>
                 <div style={{ marginTop: 8 }}>
                   <Space direction="vertical">
-                    {[product.Mau1, product.Mau2, product.Mau3].map(
-                      (color, index) =>
-                        color && (
-                          <div key={index} style={{ display: "flex", alignItems: "center" }}>
-                            <div
-                              style={{
-                                width: 30,
-                                height: 30,
-                                backgroundColor: color,
-                                borderRadius: 5,
-                                border: "1px solid #d9d9d9",
-                                marginRight: 8,
-                                transition: "all 0.3s",
-                              }}
-                              onMouseEnter={(e) =>
-                                (e.target.style.transform = "scale(1.1)")
-                              }
-                              onMouseLeave={(e) =>
-                                (e.target.style.transform = "scale(1)")
-                              }
-                            />
-                            <Text>{color}</Text>
-                          </div>
-                        )
+                    {product.Mau1 && (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <div
+                          style={{
+                            width: 30,
+                            height: 30,
+                            backgroundColor: product.Mau1,
+                            borderRadius: 5,
+                            border: "1px solid #d9d9d9",
+                            marginRight: 8,
+                            transition: "all 0.3s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.transform = "scale(1.1)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.transform = "scale(1)")
+                          }
+                        />
+                        <Text>{product.Mau1}</Text>
+                      </div>
                     )}
                   </Space>
                 </div>
