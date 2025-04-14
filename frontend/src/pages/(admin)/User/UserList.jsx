@@ -93,7 +93,6 @@ const UserList = () => {
                   <th>Email</th>
                   <th>Giới Tính</th>
                   <th>Vai Trò</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
