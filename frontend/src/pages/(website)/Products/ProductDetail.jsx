@@ -67,9 +67,7 @@ const ProductDetail = () => {
   // Hàm chuẩn hóa tên sản phẩm
   const normalizeProductName = (name) => {
     const mainName = name.split("|")[0].trim();
-    return mainName
-      .replace(/\s+/g, "")
-      .toLowerCase();
+    return mainName.replace(/\s+/g, "").toLowerCase();
   };
 
   const handleShowMore = () => {
@@ -194,7 +192,8 @@ const ProductDetail = () => {
 
           setSelectedMemory({
             memory: updatedProduct[memoryKey] || selectedMemory.memory,
-            price: updatedProduct[`GiaSP${memoryIndex}`] || selectedMemory.price,
+            price:
+              updatedProduct[`GiaSP${memoryIndex}`] || selectedMemory.price,
             quantity: newQuantity,
           });
 
@@ -772,7 +771,8 @@ const ProductDetail = () => {
                       "BoNhoTrong5",
                       "BoNhoTrong6",
                     ].map((memoryKey, index) =>
-                      product[memoryKey] && product[memoryKey] !== "Không có" ? (
+                      product[memoryKey] &&
+                      product[memoryKey] !== "Không có" ? (
                         <div
                           key={index}
                           style={{ position: "relative", textAlign: "center" }}
