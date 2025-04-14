@@ -309,7 +309,9 @@ const ProductsAdd = () => {
               <Form.Item
                 label="Tên Sản Phẩm (Chung)"
                 name="TenSP"
-                rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }, { validator: noWhitespace }]}
+                rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }, { validator: noWhitespace },
+                  { max: 255, message: 'Tên sản phẩm không được dài quá 255 ký tự!' }
+                ]}
               >
                 <Input placeholder="Nhập tên sản phẩm" size="large" />
               </Form.Item>
