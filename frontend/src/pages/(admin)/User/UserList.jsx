@@ -100,7 +100,6 @@ const UserList = () => {
                 {users.map((user) => (
                   <tr key={user._id}>
                     <td>{user.MaND}</td>
-                    <td>{user.HoVaTen}</td>
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
