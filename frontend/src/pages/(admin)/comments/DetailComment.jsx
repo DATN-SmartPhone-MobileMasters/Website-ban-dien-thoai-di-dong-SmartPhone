@@ -1,18 +1,25 @@
-import { message, Rate } from "antd";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { fetchCommentById } from "../../../service/api";
+import { message, Card, Descriptions, Typography, Button, Space, Image, Row, Col } from "antd";
+import { fetchCommentById, getProducts } from "../../../service/api";
+
+const { Title, Text } = Typography;
 
 const AdminDetailComment = () => {
   const { id } = useParams();
   const [comment, setComment] = useState(null);
+  const [product, setProduct] = useState(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetchCommentById(id);
-        setComment(response.data.data);
+        const commentResponse = await fetchCommentById(id);
+        setComment(commentResponse.data.data);
+
+        if (commentResponse.data.data.MaSP) {
+          const productResponse = await getProducts(commentResponse.data.data.MaSP);
+          setProduct(productResponse.data.data);
+        }
       } catch (error) {
         console.log(error);
         message.error("Lỗi khi lấy dữ liệu");
@@ -20,55 +27,82 @@ const AdminDetailComment = () => {
     })();
   }, [id]);
 
-  if (!comment) return <p>Đang tải dữ liệu...</p>; // Hiển thị khi dữ liệu chưa sẵn sàng
+  if (!comment) return <div style={{ textAlign: "center", padding: "20px" }}>Đang tải dữ liệu...</div>;
+
+  const images = product
+    ? [1, 2, 3, 4, 5, 6]
+        .map((index) => product[`HinhAnh${index}`])
+        .filter(Boolean)
+    : [];
 
   return (
-    <div>
-      <h1 className="h3 mb-2 text-gray-800">Chi tiết bình luận</h1>
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">
-            Thông tin chi tiết bình luận
-          </h6>
-        </div>
-        <div className="card-body">
-          <div className="mb-4">
-            <strong>Mã bình luận:</strong> {comment._id}
+    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+      <Title level={2} style={{ marginBottom: "24px" }}>Chi tiết bình luận</Title>
+      <Card
+        title={<Text strong style={{ color: "#1890ff", fontSize: "18px" }}>Thông tin chi tiết bình luận</Text>}
+        bordered={false}
+        style={{ boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", borderRadius: "8px" }}
+      >
+        <Descriptions
+          bordered
+          column={1}
+          labelStyle={{ width: "200px", fontWeight: "bold", background: "#fafafa", padding: "12px" }}
+          contentStyle={{ padding: "12px" }}
+        >
+          <Descriptions.Item label="Mã bình luận">
+            <Text>{comment._id}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="Mã sản phẩm">
+            <Text>{comment.MaSP}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="Tên sản phẩm">
+            <Text>{product ? product.TenSP : "Đang tải..."}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="Email">
+            <Text>{comment.Email}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="Nội dung">
+            <Text>{comment.NoiDung}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày bình luận">
+            <Text>{new Date(comment.NgayBL).toLocaleDateString("vi-VN")}</Text>
+          </Descriptions.Item>
+        </Descriptions>
+
+        {images.length > 0 && (
+          <div style={{ marginTop: "24px" }}>
+            <Text strong style={{ fontSize: "16px", display: "block", marginBottom: "16px" }}>
+              Hình ảnh sản phẩm
+            </Text>
+            <Row gutter={[16, 16]}>
+              {images.map((image, index) => (
+                <Col xs={12} sm={8} md={4} key={index}>
+                  <Image
+                    src={image}
+                    alt={`Hình ảnh ${index + 1}`}
+                    style={{
+                      width: "100%",
+                      height: "150px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                    }}
+                    preview
+                  />
+                </Col>
+              ))}
+            </Row>
           </div>
-          {/* <div className="mb-4">
-            <strong>Tên Sản Phẩm:</strong> {comment.TenSP}
-          </div> */}
-          <div className="mb-4">
-            <strong>Email:</strong> {comment.Email}
-          </div>
-          <div className="mb-4">
-            <strong>Mã sản phẩm:</strong> {comment.MaSP}
-          </div>
-          <div className="mb-4">
-            <strong>Nội dung:</strong> {comment.NoiDung}
-          </div>
-          <div className="mb-4">
-            <strong>Đánh giá:</strong>{" "}
-            <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
-          </div>
-          <div className="mb-4">
-            <strong>Ngày bình luận:</strong>{" "}
-            {new Date(comment.NgayBL).toLocaleDateString()}
-          </div>
-          {/* <div className="mb-4">
-            <strong>Hình ảnh sản phẩm:</strong>
-            <br />
-            <img
-              src={comment.HinhAnhSP}
-              alt="Hình ảnh sản phẩm"
-              style={{ width: "200px", marginTop: "5px" }}
-            />
-          </div> */}
-          <Link to="/admin/comments" className="btn btn-primary mt-3">
-            Quay lại danh sách
+        )}
+
+        <Space style={{ marginTop: "24px" }}>
+          <Link to="/admin/comments">
+            <Button type="primary" style={{ borderRadius: "4px", padding: "6px 16px" }}>
+              Quay lại danh sách
+            </Button>
           </Link>
-        </div>
-      </div>
+        </Space>
+      </Card>
     </div>
   );
 };

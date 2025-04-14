@@ -24,7 +24,6 @@ const PromotionSchema = new mongoose.Schema(
     NgayBD: { type: Date, required: true },
     NgayKT: { type: Date, required: true },
     TrangThai: { type: Number, default: 0 }, // Trạng thái (0: chưa bắt đầu, 1: Đang kích hoạt, 2: Đã kết thúc)
-    sanpham: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   },
   { timestamps: true }
 );

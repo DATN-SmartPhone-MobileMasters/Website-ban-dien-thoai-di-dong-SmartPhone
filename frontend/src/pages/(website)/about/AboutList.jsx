@@ -39,11 +39,11 @@ const AboutList = () => {
   const TIMELINE_DATA = [
     {
       time: "2010 - 2012",
-      content: "Xây dựng ý tưởng mở công ty MobileStore.",
+      content: "Xây dựng ý tưởng mở công ty Smartphone.",
     },
     {
       time: "2013 - 2014",
-      content: "Công ty MobileStore được thành lập, tìm kiếm khách hàng.",
+      content: "Công ty Smarphone được thành lập, tìm kiếm khách hàng.",
     },
     {
       time: "2014 - 2015",
@@ -51,7 +51,7 @@ const AboutList = () => {
     },
     {
       time: "2017 - 2018",
-      content: "Mở thêm nhiều chi nhánh và phát triển trang web MobileStore.",
+      content: "Mở thêm nhiều chi nhánh và phát triển trang web Smarphone.",
     },
   ];
 
@@ -77,11 +77,11 @@ const AboutList = () => {
       {/* Giới thiệu */}
       <section style={{ marginBottom: 48 }}>
         <Title level={2} className="text-center">
-          <RocketOutlined /> Chào mừng đến với MobileStore
+          <RocketOutlined /> Chào mừng đến với SmartPhone
         </Title>
         <Paragraph className="text-center" style={{ fontSize: 16 }}>
-          MobileStore là một trang web bán điện thoại trực tuyến do công ty
-          MobileStore tạo ra và chi phối...
+          SmartPhone là một trang web bán điện thoại trực tuyến do công ty
+          SmartPhone tạo ra và chi phối...
         </Paragraph>
       </section>
 

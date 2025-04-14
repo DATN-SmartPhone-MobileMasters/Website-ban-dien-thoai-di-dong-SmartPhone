@@ -135,10 +135,6 @@ const AccountPage = () => {
                 )}
               </Form.Item>
 
-              <Form.Item label="Tên Tài Khoản" name="TaiKhoan" rules={[{ required: true }]}>
-                <Input placeholder="Mời Nhập Thông Tin " />
-              </Form.Item>
-
               <Form.Item label="Họ và Tên" name="HoVaTen" rules={[{ required: true }]}>
                 <Input placeholder="Mời Nhập Thông Tin  " />
               </Form.Item>
@@ -157,14 +153,7 @@ const AccountPage = () => {
               <Form.Item label="Địa Chỉ" name="DiaChi">
                 <Input placeholder="Mời Nhập Thông Tin " />
               </Form.Item>
-
-              <Form.Item label="Giới Tính" name="GioiTinh">
-                <Radio.Group>
-                  <Radio value="Nam">Nam</Radio>
-                  <Radio value="Nữ">Nữ</Radio>
-                  <Radio value="Khác">Khác</Radio>
-                </Radio.Group>
-              </Form.Item>
+              
 
               <Button 
                 type="primary" 

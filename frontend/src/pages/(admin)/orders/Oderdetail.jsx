@@ -3,20 +3,44 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-
-const API_URL = "http://localhost:5000/api";
+import { Modal, Form, Input, message } from 'antd';
+import { 
+  getOrderById, 
+  updateOrder, 
+  getProducts, 
+  updateProducts,
+  getUserById 
+} from "../../../service/api"; 
 
 const Orderdetail = () => {
   const [hoaDon, setHoaDon] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUser] = useState(null); 
   const { id } = useParams();
   const navigate = useNavigate();
+  const [form] = Form.useForm();
+  
+  const refreshParent = () => {
+    const event = new CustomEvent('orderStatusChanged');
+    window.dispatchEvent(event);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/hoadons/${id}`);
-        setHoaDon(data.data);
+        const orderResponse = await getOrderById(id);
+        setHoaDon(orderResponse.data.data);
+
+        const storedUser = localStorage.getItem('userData');
+        if (!storedUser) {
+          console.error("No user data in localStorage");
+          return;
+        }
+        const { id: userId } = JSON.parse(storedUser);
+        const userResponse = await getUserById(userId);
+        
+        const userDataId = userResponse.data._id;
+        setCurrentUser(userDataId);
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
       } finally {
@@ -27,51 +51,133 @@ const Orderdetail = () => {
   }, [id]);
 
   const handleStatusChange = async (newStatus) => {
+    if (newStatus === "Huỷ Đơn") {
+      let cancellationReason = '';
+
+      Modal.confirm({
+        title: "Xác nhận huỷ đơn hàng",
+        content: (
+          <Form form={form}>
+            <Form.Item
+              name="reason"
+              label="Lý Do Huỷ Đơn"
+              rules={[{ required: true, message: 'Vui lòng nhập lý do huỷ đơn' }]}
+            >
+              <Input.TextArea
+                placeholder="Nhập lý do huỷ đơn hàng..."
+                rows={4}
+                onChange={(e) => (cancellationReason = e.target.value)}
+              />
+            </Form.Item>
+          </Form>
+        ),
+        okText: 'Xác nhận',
+        cancelText: 'Hủy',
+        onOk: async () => {
+          try {
+            await form.validateFields();
+            const userRes = await getUserById(currentUserId);
+            const currentMaQuyen = userRes.data.MaQuyen;
+            let role = "User";
+            if (currentMaQuyen === 1) role = "Admin";
+            if (currentMaQuyen === 2) role = "Nhân Viên Kiểm Đơn";
+
+            const updateData = {
+              paymentStatus: newStatus,
+              FeedBack: cancellationReason,
+              cancelledBy: {
+                userId: userRes.data._id,
+                role: role,
+                name: userRes.data.HoVaTen,
+              },
+              cancellationDate: new Date(),
+            };
+
+            if (hoaDon.paymentMethod === "COD" || 
+                (hoaDon.paymentMethod === "VNPay" && hoaDon.checkPayment === "Đã Thanh Toán")) {
+              await updateProductQuantities(hoaDon.products, "add");
+              if (hoaDon.paymentMethod === "VNPay") {
+                updateData.checkPayment = "Yêu Cầu Hoàn Tiền";
+              }
+            }
+
+            await updateOrder(id, updateData);
+
+            message.success("Huỷ đơn hàng thành công!");
+            refreshParent();
+            navigate("/admin/orders");
+          } catch (error) {
+            if (error.errorFields) return Promise.reject();
+            console.error("Lỗi khi huỷ đơn:", error);
+            message.error("Huỷ đơn thất bại!");
+          }
+        },
+      });
+    } else {
+      Modal.confirm({
+        title: "Xác nhận thay đổi trạng thái",
+        content: "Bạn có chắc chắn muốn thay đổi trạng thái?",
+        okText: "Có",
+        cancelText: "Không",
+        onOk: async () => {
+          try {
+            const updateData = { paymentStatus: newStatus };
+            
+            if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "COD") {
+              updateData.checkPayment = "Đã Thanh Toán";
+            }
+
+            await updateOrder(id, updateData);
+
+            if (newStatus === "Huỷ Đơn" && hoaDon.paymentStatus === "Đã Xác Nhận") {
+              await updateProductQuantities(hoaDon.products, "add");
+            }
+
+            message.success("Cập nhật trạng thái thành công!");
+            refreshParent();
+            navigate("/admin/orders");
+          } catch (error) {
+            console.error("Lỗi khi cập nhật trạng thái:", error);
+            message.error("Cập nhật thất bại!");
+          }
+        },
+      });
+    }
+  };
+
+  const handleRefundStatusChange = async (newStatus) => {
     confirmAlert({
-      title: "Xác nhận thay đổi trạng thái",
-      message: "Bạn có chắc chắn muốn thay đổi trạng thái?",
+      title: `Xác nhận chuyển sang ${newStatus}`,
+      message: `Bạn có chắc chắn muốn chuyển trạng thái hoàn tiền thành ${newStatus}?`,
       buttons: [
         {
           label: "Có",
           onClick: async () => {
             try {
-              await axios.put(`${API_URL}/hoadons/${id}`, {
-                paymentStatus: newStatus,
-              });
-
-              // Nếu trạng thái là "Đã Xác Nhận", trừ số lượng sản phẩm
-              if (newStatus === "Đã Xác Nhận") {
-                await updateProductQuantities(hoaDon.products, "subtract");
-              }
-
-              // Nếu trạng thái là "Huỷ Đơn", trả lại số lượng sản phẩm
-              if (newStatus === "Huỷ Đơn") {
-                await updateProductQuantities(hoaDon.products, "add");
-              }
-
-              alert("Cập nhật trạng thái thành công!");
+              await updateOrder(id, { checkPayment: newStatus });
+              message.success("Cập nhật trạng thái thành công!");
+              refreshParent();
               navigate("/admin/orders");
             } catch (error) {
               console.error("Lỗi khi cập nhật trạng thái:", error);
-              alert("Có lỗi xảy ra khi cập nhật trạng thái!");
+              message.error("Cập nhật thất bại!");
             }
-          },
+          }
         },
         {
           label: "Không",
-          onClick: () => {}, // Do nothing if "No" is clicked
-        },
-      ],
+          onClick: () => {}
+        }
+      ]
     });
   };
 
   const updateProductQuantities = async (products, action) => {
     for (const product of products) {
       try {
-        // Lấy thông tin sản phẩm hiện tại
-        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
+        const productResponse = await getProducts(product.productId);
+        const data = productResponse.data;
 
-        // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
         let updatedQuantity1 = data.data.SoLuong1;
         let updatedQuantity2 = data.data.SoLuong2;
         let updatedQuantity3 = data.data.SoLuong3;
@@ -93,8 +199,7 @@ const Orderdetail = () => {
               : data.data.SoLuong3 + product.quantity;
         }
 
-        // Cập nhật số lượng sản phẩm
-        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
+        await updateProducts(product.productId, { 
           SoLuong1: updatedQuantity1,
           SoLuong2: updatedQuantity2,
           SoLuong3: updatedQuantity3,
@@ -141,7 +246,6 @@ const Orderdetail = () => {
         <div className="bg-white shadow-lg rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-blue-800">Chi tiết hóa đơn</h1>
 
-          {/* Thông tin sản phẩm */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-blue-700">Sản phẩm</h2>
             <table className="table-auto w-full">
@@ -177,7 +281,6 @@ const Orderdetail = () => {
             </table>
           </div>
 
-          {/* Thông tin hóa đơn */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-blue-700">Thông tin hóa đơn</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,6 +295,10 @@ const Orderdetail = () => {
                 </p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-600">Phương thức thanh toán:</p>
+                <p className="font-medium text-blue-800">{hoaDon.paymentMethod}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <p className="text-sm text-blue-600">Tổng tiền:</p>
                 <p className="font-medium text-blue-800">
                   {hoaDon.total?.toLocaleString()}đ
@@ -201,10 +308,13 @@ const Orderdetail = () => {
                 <p className="text-sm text-blue-600">Trạng thái:</p>
                 <p className="font-medium text-blue-800">{hoaDon.paymentStatus}</p>
               </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-600">Trạng thái thanh toán:</p>
+                <p className="font-medium text-blue-800">{hoaDon.checkPayment}</p>
+              </div>
             </div>
           </div>
 
-          {/* Thông tin khách hàng */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-blue-700">Thông tin khách hàng</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -223,18 +333,46 @@ const Orderdetail = () => {
             </div>
           </div>
 
-          {/* Cập nhật trạng thái */}
+          {hoaDon.paymentStatus === "Huỷ Đơn" && (
+            <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-100">
+              <h2 className="text-xl font-semibold mb-2 text-red-700">Thông tin hủy đơn</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-red-600">Huỷ Bởi:</p>
+                  <p className="font-medium text-red-800">
+                    {hoaDon.cancelledBy?.name}-{hoaDon.cancelledBy?.role}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-red-600">Thời gian hủy:</p>
+                  <p className="font-medium text-red-800">
+                    {hoaDon.cancellationDate ? 
+                      new Date(hoaDon.cancellationDate).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-sm text-red-600">Lý do:</p>
+                  <p className="font-medium text-red-800">
+                    {hoaDon.FeedBack}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+         
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h3 className="text-lg font-semibold mb-3 text-blue-700">Cập nhật trạng thái</h3>
             <div className="flex gap-2 flex-wrap">
               {hoaDon.paymentStatus === "Chờ xử lý" && (
                 <>
-                  <button
-                    className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
-                    onClick={() => handleStatusChange("Đã Xác Nhận")}
-                  >
-                    ✅ Xác Nhận
-                  </button>
+                  {!(hoaDon.paymentMethod === "VNPay" && hoaDon.checkPayment === "Chưa Thanh Toán") && (
+                    <button
+                      className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
+                      onClick={() => handleStatusChange("Đã Xác Nhận")}
+                    >
+                      ✅ Xác Nhận
+                    </button>
+                  )}
                   <button
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
                     onClick={() => handleStatusChange("Huỷ Đơn")}
@@ -269,10 +407,27 @@ const Orderdetail = () => {
                   ✅ Hoàn thành
                 </button>
               )}
+
+              {hoaDon.checkPayment === 'Yêu Cầu Hoàn Tiền' && (
+                <button
+                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition duration-200"
+                  onClick={() => handleRefundStatusChange('Đang Hoàn Tiền')}
+                >
+                  → Đang Hoàn Tiền
+                </button>
+              )}
+
+              {hoaDon.checkPayment === 'Đang Hoàn Tiền' && (
+                <button
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
+                  onClick={() => handleRefundStatusChange('Đã Hoàn Tiền')}
+                >
+                  → Đã Hoàn Tiền
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Quay lại danh sách */}
           <div className="mt-6">
             <Link
               to="/admin/orders"

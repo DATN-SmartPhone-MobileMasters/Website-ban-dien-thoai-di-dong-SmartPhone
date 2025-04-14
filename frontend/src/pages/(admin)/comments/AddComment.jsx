@@ -23,6 +23,7 @@ const AddComment = () => {
   };
 
   return (
+    <>
     <div>
       <h1 className="h3 mb-2 text-gray-800">Thêm Bình Luận</h1>
       <div className="card shadow mb-4">
@@ -72,6 +73,7 @@ const AddComment = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

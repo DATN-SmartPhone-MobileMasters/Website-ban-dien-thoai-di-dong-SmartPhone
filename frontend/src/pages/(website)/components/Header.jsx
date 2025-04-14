@@ -8,6 +8,7 @@ import {
   FaSignOutAlt,
   FaUser,
   FaUserPlus,
+  FaBoxOpen,
 } from "react-icons/fa";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
@@ -18,7 +19,7 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
-  const [cartCount, setCartCount] = useState(0); // State để lưu số lượng sản phẩm trong giỏ hàng
+  const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
 
   // Kiểm tra đăng nhập và lấy thông tin người dùng
@@ -37,21 +38,16 @@ const Header = () => {
     const updateCartCount = () => {
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-
+  
       if (userId) {
         const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-        const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
-        setCartCount(totalItems);
+        // Thay vì tính tổng quantity, chỉ đếm số lượng sản phẩm (số phần tử trong mảng)
+        setCartCount(cartItems.length);
       }
     };
-
-    // Cập nhật số lượng sản phẩm khi component được tạo
+  
     updateCartCount();
-
-    // Lắng nghe sự kiện cartUpdated
     window.addEventListener("cartUpdated", updateCartCount);
-
-    // Dọn dẹp sự kiện khi component bị hủy
     return () => {
       window.removeEventListener("cartUpdated", updateCartCount);
     };
@@ -64,15 +60,12 @@ const Header = () => {
       await updateUser(userData.id, { TrangThai: 0 });
     }
 
-    // Xóa thông tin đăng nhập nhưng giữ nguyên giỏ hàng
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
-
     setIsLoggedIn(false);
     setUserData(null);
-    setCartCount(0); // Đặt số lượng sản phẩm trong giỏ hàng về 0
-
-    window.location.href = "/"; // Chuyển hướng về trang chủ
+    setCartCount(0);
+    window.location.href = "/";
   };
 
   const checkUserExists = async (userId) => {
@@ -93,7 +86,6 @@ const Header = () => {
       const parsedUserData = JSON.parse(storedUserData);
       setUserData(parsedUserData);
 
-      // Kiểm tra định kỳ
       const interval = setInterval(async () => {
         const user = await checkUserExists(parsedUserData.id);
         if (!user) {
@@ -112,25 +104,25 @@ const Header = () => {
     setIsLoggedIn(false);
     setUserData(null);
     setCartCount(0);
-    window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+    window.location.href = "/login";
   };
 
   // Xử lý khi bấm vào giỏ hàng
   const handleCartClick = (e) => {
     const authToken = localStorage.getItem("authToken");
     if (!authToken) {
-      e.preventDefault(); // Ngăn chặn chuyển hướng mặc định
+      e.preventDefault();
       confirmAlert({
         title: "Yêu cầu đăng nhập",
         message: "Bạn cần đăng nhập để xem giỏ hàng.",
         buttons: [
           {
             label: "Đăng nhập",
-            onClick: () => navigate("/login"), // Chuyển hướng đến trang đăng nhập
+            onClick: () => navigate("/login"),
           },
           {
             label: "Hủy",
-            onClick: () => {}, // Không làm gì nếu người dùng chọn hủy
+            onClick: () => {},
           },
         ],
       });
@@ -197,27 +189,36 @@ const Header = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="absolute right-0 w-56 bg-white shadow-lg rounded-lg overflow-hidden z-10 border border-gray-200"
+              className="absolute right-0 w-64 bg-white shadow-lg rounded-lg overflow-hidden z-10 border border-gray-200"
             >
-              <ul className="py-2 text-gray-700">
+              <ul className="py-2 text-gray-700 text-sm">
                 {isLoggedIn ? (
                   <>
                     <li>
                       <Link
                         to={`/account-details/${userData.id}`}
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-blue-600 hover:text-white transition duration-200 whitespace-nowrap"
                       >
-                        <FaUser />
-                        Thông Tin Tài Khoản
+                        <FaUser className="flex-shrink-0" />
+                        <span>Thông tin tài khoản</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to={`/sanphamdamua`}
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-purple-600 hover:text-white transition duration-200 whitespace-nowrap"
+                      >
+                        <FaBoxOpen className="flex-shrink-0" />
+                        <span>Sản phẩm đã mua</span>
                       </Link>
                     </li>
                     <li>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white transition"
+                        className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-600 hover:text-white transition duration-200 whitespace-nowrap"
                       >
-                        <FaSignOutAlt />
-                        Đăng xuất
+                        <FaSignOutAlt className="flex-shrink-0" />
+                        <span>Đăng xuất</span>
                       </button>
                     </li>
                   </>
@@ -226,19 +227,19 @@ const Header = () => {
                     <li>
                       <Link
                         to="/login"
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition whitespace-nowrap"
                       >
-                        <FaSignInAlt />
-                        Đăng nhập
+                        <FaSignInAlt className="flex-shrink-0" />
+                        <span>Đăng nhập</span>
                       </Link>
                     </li>
                     <li>
                       <Link
                         to="/signup"
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-green-500 hover:text-white transition"
+                        className="flex items-center gap-2 px-4 py-2 hover:bg-green-500 hover:text-white transition whitespace-nowrap"
                       >
-                        <FaUserPlus />
-                        Đăng ký
+                        <FaUserPlus className="flex-shrink-0" />
+                        <span>Đăng ký</span>
                       </Link>
                     </li>
                   </>
@@ -252,11 +253,11 @@ const Header = () => {
         <Link
           to="/cart"
           className="relative text-gray-600 hover:text-blue-600 ml-3"
-          onClick={handleCartClick}
+          onClick={handleCartClick} // Hàm đã được định nghĩa ở trên
         >
           <FaShoppingCart size={20} />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">
-            {cartCount} {/* Hiển thị số lượng sản phẩm trong giỏ hàng */}
+            {cartCount}
           </span>
         </Link>
       </div>
@@ -286,7 +287,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link to="/listdanhgia" className="py-4 inline-block text-white">
+              <Link to="/listdanhgiauser" className="py-4 inline-block text-white">
                 Đánh giá
               </Link>
             </li>

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import SanPhamController from "../controllers/SanPhamController.js";
-import DanhMucController from "../controllers/DanhMucController.js";
 import ThuongHieuController from "../controllers/ThuongHieuController.js";
 import UsersController from "../controllers/UsersController.js";
 import CommentController from "../controllers/CommentController.js";
@@ -15,23 +14,21 @@ const DanhGiaControl = new DanhGiaController();
 apiRouter.get("/danhgias", DanhGiaControl.apiList);
 apiRouter.delete("/danhgias/:id", DanhGiaControl.apiDelete);
 apiRouter.post("/danhgias", DanhGiaControl.apiCreate);
-
-const DanhMucControl = new DanhMucController();
-//api thực hiện các chức năng danh mục
-apiRouter.get("/danhmucs", DanhMucControl.apiList); //lấy danh sách bản ghi
-apiRouter.delete("/danhmucs/:id", DanhMucControl.apiDelete);
-apiRouter.get("/danhmucs/:id", DanhMucControl.apiDetail);
-apiRouter.post("/danhmucs", DanhMucControl.apiCreate);
-apiRouter.put("/danhmucs/:id", DanhMucControl.apiUpdate);
+apiRouter.put("/danhgias/:id", DanhGiaControl.apiUpdate);
 
 const HoaDonControl = new HoaDonController();
 // API thực hiện các chức năng hóa đơn (chỉ lấy danh sách, chi tiết và chỉnh sửa)
 apiRouter.post("/hoadons", HoaDonControl.apiCreate);
 apiRouter.get("/hoadons", HoaDonControl.apiList); // Lấy danh sách bản ghi
+apiRouter.get("/hoadons/vnpay-return", HoaDonControl.apiHandleVNPayReturn);
 apiRouter.get("/hoadons/:id", HoaDonControl.apiDetail); // Lấy chi tiết bản ghi
 apiRouter.put("/hoadons/:id", HoaDonControl.apiEdit);
 apiRouter.get("/hoadons/user/:userId", HoaDonControl.apiListByUserId); // Cập nhật hóa đơn
 apiRouter.delete("/hoadons/:id", HoaDonControl.apiDelete);
+apiRouter.post(
+  "/hoadons/create-vnpay-payment",
+  HoaDonControl.apiCreateVNPayPayment
+);
 
 // API thực hiện thống kê doanh thu
 apiRouter.get("/hoadons/thongke/doanhthu", HoaDonControl.thongKeDoanhThu);
@@ -69,6 +66,8 @@ apiRouter.get("/comments", CommentControl.cmtList);
 apiRouter.get("/comments/:id", CommentControl.cmtDetail);
 apiRouter.delete("/comments/:id", CommentControl.cmtDelete);
 apiRouter.post("/comments", CommentControl.cmtCreate);
+apiRouter.put("/comments/:id/reply", CommentControl.cmtReply);
+apiRouter.put("/comments/:id/approve", CommentControl.cmtApprove);
 
 const PromotionControl = new PromotionController();
 apiRouter.get("/promotions", PromotionControl.getListPromotion);
@@ -76,5 +75,6 @@ apiRouter.get("/promotions/:id", PromotionControl.getDetailPromotion);
 apiRouter.post("/promotions", PromotionControl.createPromotion);
 apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
 apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
+
 
 export default apiRouter;

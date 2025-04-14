@@ -1,21 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Socket from "../socket/Socket";
 import {
   createComment,
   fetchComments,
   getProducts,
+  fetchProducts,
 } from "../../../service/api";
 import SellerProducts from "../../(website)/components/SellerProducts";
 import LatestProducts from "../../(website)/components/LatestProducts";
 import {
-  FaMobileAlt,
-  FaCamera,
-  FaMicrochip,
-  FaBatteryFull,
-  FaPlug,
-  FaInfoCircle,
+  FaShoppingCart,
+  FaExchangeAlt,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
-import { Button, Form, Input, message, Rate } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Modal,
+  Table,
+  Card,
+  Row,
+  Col,
+  Descriptions,
+  Space,
+  Divider,
+  Typography,
+  Badge,
+  Flex,
+  Tag,
+} from "antd";
+
+const { Title, Text, Paragraph } = Typography;
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -28,94 +47,464 @@ const ProductDetail = () => {
     price: 0,
     quantity: 0,
   });
-  const [selectedColor, setSelectedColor] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [zoomStyle, setZoomStyle] = useState({});
-  const [isColorAvailable, setIsColorAvailable] = useState(true);
   const [comments, setComments] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [form] = Form.useForm();
+  const [compareModalVisible, setCompareModalVisible] = useState(false);
+  const [compareProducts, setCompareProducts] = useState([]);
+  const [filteredCompareProducts, setFilteredCompareProducts] = useState([]);
+  const [selectedCompareProducts, setSelectedCompareProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const userData = JSON.parse(localStorage.getItem("userData"));
   const email = userData?.Email;
   const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
+  const [displayedComments, setDisplayedComments] = useState(5);
+  const timeoutRef = useRef(null);
+
+  // Hàm chuẩn hóa tên sản phẩm
+  const normalizeProductName = (name) => {
+    const mainName = name.split("|")[0].trim();
+    return mainName
+      .replace(/\s+/g, "")
+      .toLowerCase();
+  };
+
+  const handleShowMore = () => {
+    setDisplayedComments(comments.length);
+  };
+
+  const productListRef = useRef(null);
+  const relatedProductsRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+  const [showRelatedLeftArrow, setShowRelatedLeftArrow] = useState(false);
+  const [showRelatedRightArrow, setShowRelatedRightArrow] = useState(false);
+
+  const scrollProducts = (direction) => {
+    const container = productListRef.current;
+    const scrollAmount = 300;
+    if (direction === "left") {
+      container.scrollLeft -= scrollAmount;
+    } else {
+      container.scrollLeft += scrollAmount;
+    }
+    updateArrowVisibility();
+  };
+
+  const scrollRelatedProducts = (direction) => {
+    const container = relatedProductsRef.current;
+    const scrollAmount = 200;
+    if (direction === "left") {
+      container.scrollLeft -= scrollAmount;
+    } else {
+      container.scrollLeft += scrollAmount;
+    }
+    updateRelatedArrowVisibility();
+  };
+
+  const updateArrowVisibility = () => {
+    const container = productListRef.current;
+    if (container) {
+      setShowLeftArrow(container.scrollLeft > 0);
+      setShowRightArrow(
+        container.scrollLeft < container.scrollWidth - container.clientWidth
+      );
+    }
+  };
+
+  const updateRelatedArrowVisibility = () => {
+    const container = relatedProductsRef.current;
+    if (container) {
+      const isOverflowing = container.scrollWidth > container.clientWidth;
+      setShowRelatedLeftArrow(isOverflowing && container.scrollLeft > 0);
+      setShowRelatedRightArrow(
+        isOverflowing &&
+          container.scrollLeft < container.scrollWidth - container.clientWidth
+      );
+    }
+  };
+
+  useEffect(() => {
+    const container = productListRef.current;
+    const handleScroll = () => updateArrowVisibility();
+    container?.addEventListener("scroll", handleScroll);
+    return () => container?.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const container = relatedProductsRef.current;
+    const handleScroll = () => updateRelatedArrowVisibility();
+
+    const checkOverflow = () => {
+      if (container) {
+        const isOverflowing = container.scrollWidth > container.clientWidth;
+        setShowRelatedLeftArrow(isOverflowing && container.scrollLeft > 0);
+        setShowRelatedRightArrow(
+          isOverflowing &&
+            container.scrollLeft < container.scrollWidth - container.clientWidth
+        );
+      }
+    };
+
+    container?.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", checkOverflow);
+    checkOverflow();
+
+    return () => {
+      container?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkOverflow);
+    };
+  }, [relatedProducts]);
+
+  useEffect(() => {
+    Socket.on("productUpdated", (updatedProduct) => {
+      if (updatedProduct._id === id) {
+        setProduct(updatedProduct);
+
+        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+        const allMemoriesNone = [
+          updatedProduct.BoNhoTrong1,
+          updatedProduct.BoNhoTrong2,
+          updatedProduct.BoNhoTrong3,
+          updatedProduct.BoNhoTrong4,
+          updatedProduct.BoNhoTrong5,
+          updatedProduct.BoNhoTrong6,
+        ].every((memory) => memory === "Không có");
+
+        if (allMemoriesNone) {
+          setSelectedMemory({ memory: "", price: 0, quantity: 0 });
+        } else if (selectedMemory.memory) {
+          const memoryKey =
+            selectedMemory.memory === updatedProduct.BoNhoTrong1
+              ? "BoNhoTrong1"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong2
+              ? "BoNhoTrong2"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong3
+              ? "BoNhoTrong3"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong4
+              ? "BoNhoTrong4"
+              : selectedMemory.memory === updatedProduct.BoNhoTrong5
+              ? "BoNhoTrong5"
+              : "BoNhoTrong6";
+          const memoryIndex = memoryKey.slice(-1);
+          const newQuantity = updatedProduct[`SoLuong${memoryIndex}`] || 0;
+
+          setSelectedMemory({
+            memory: updatedProduct[memoryKey] || selectedMemory.memory,
+            price: updatedProduct[`GiaSP${memoryIndex}`] || selectedMemory.price,
+            quantity: newQuantity,
+          });
+
+          if (newQuantity <= 0) {
+            message.warning(`Bộ nhớ ${selectedMemory.memory} đã hết hàng!`);
+          }
+        }
+
+        if (updatedProduct.HinhAnh1) {
+          setSelectedImage(updatedProduct.HinhAnh1);
+        }
+      }
+    });
+
+    return () => {
+      Socket.off("productUpdated");
+    };
+  }, [id, selectedMemory.memory]);
 
   useEffect(() => {
     setLoading(true);
     getProducts(id)
       .then((response) => {
         const productData = response.data.data;
-        setProduct(productData);
+        let updatedProduct = { ...productData };
+        setProduct(updatedProduct);
+        if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
 
-        if (productData.BoNhoTrong1) {
-          setSelectedMemory({
-            memory: productData.BoNhoTrong1,
-            price: productData.GiaSP1,
-            quantity: productData.SoLuong1,
-          });
-        }
-        if (productData.Mau1) {
-          setSelectedColor(productData.Mau1);
-        }
-        if (productData.HinhAnh1) {
-          setSelectedImage(productData.HinhAnh1);
+        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+        const allMemoriesNone = [
+          updatedProduct.BoNhoTrong1,
+          updatedProduct.BoNhoTrong2,
+          updatedProduct.BoNhoTrong3,
+          updatedProduct.BoNhoTrong4,
+          updatedProduct.BoNhoTrong5,
+          updatedProduct.BoNhoTrong6,
+        ].every((memory) => memory === "Không có");
+
+        if (allMemoriesNone) {
+          setSelectedMemory({ memory: "", price: 0, quantity: 0 });
+        } else {
+          if (
+            updatedProduct.BoNhoTrong1 &&
+            updatedProduct.BoNhoTrong1 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong1,
+                price: updatedProduct.GiaSP1,
+                quantity: updatedProduct.SoLuong1,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong2 &&
+            updatedProduct.BoNhoTrong2 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong2,
+                price: updatedProduct.GiaSP2,
+                quantity: updatedProduct.SoLuong2,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong3 &&
+            updatedProduct.BoNhoTrong3 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong3,
+                price: updatedProduct.GiaSP3,
+                quantity: updatedProduct.SoLuong3,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong4 &&
+            updatedProduct.BoNhoTrong4 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong4,
+                price: updatedProduct.GiaSP4,
+                quantity: updatedProduct.SoLuong4,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong5 &&
+            updatedProduct.BoNhoTrong5 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong5,
+                price: updatedProduct.GiaSP5,
+                quantity: updatedProduct.SoLuong5,
+              });
+            }, 200);
+          } else if (
+            updatedProduct.BoNhoTrong6 &&
+            updatedProduct.BoNhoTrong6 !== "Không có"
+          ) {
+            timeoutRef.current = setTimeout(() => {
+              setSelectedMemory({
+                memory: updatedProduct.BoNhoTrong6,
+                price: updatedProduct.GiaSP6,
+                quantity: updatedProduct.SoLuong6,
+              });
+            }, 200);
+          }
         }
 
         setLoading(false);
+
+        fetchProducts().then((response) => {
+          const allProducts = response.data.data || [];
+          setAllProducts(allProducts);
+
+          const normalizedProductName = normalizeProductName(productData.TenSP);
+
+          const related = allProducts
+            .filter((p) => {
+              const normalizedRelatedName = normalizeProductName(p.TenSP);
+              return (
+                normalizedRelatedName === normalizedProductName &&
+                p._id !== productData._id
+              );
+            })
+            .slice(0, 4);
+          setRelatedProducts(related);
+        });
       })
       .catch(() => {
         setError("Không thể tải chi tiết sản phẩm.");
         setLoading(false);
       });
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [id]);
 
-  // Hàm lấy danh sách bình luận của sản phẩm
   useEffect(() => {
     const fetchProductComments = async () => {
       try {
         const response = await fetchComments();
-        const productComments = response.data.filter(
-          (comment) => comment.MaSP === id
-        );
+        const productComments = response.data
+          .filter((comment) => comment.MaSP === id && comment.isApproved)
+          .sort((a, b) => new Date(b.NgayBL) - new Date(a.NgayBL));
         setComments(productComments);
       } catch (error) {
         console.error("Lỗi khi tải bình luận:", error);
       }
     };
-
     fetchProductComments();
+
+    const handleCommentUpdate = () => fetchProductComments();
+    window.addEventListener("commentUpdated", handleCommentUpdate);
+    return () =>
+      window.removeEventListener("commentUpdated", handleCommentUpdate);
   }, [id]);
 
-  // Hàm gửi bình luận
-  const onFinish = async (values) => {
-    const containsForbiddenWords = checkvar.some((word) => {
-      const regex = new RegExp(`\\b${word}\\b`, "i");
-      return regex.test(values.NoiDung);
+  const openCompareModal = () => {
+    setCompareModalVisible(true);
+    const availableProducts = allProducts.filter((p) => p._id !== id);
+    setCompareProducts(availableProducts);
+    setFilteredCompareProducts(availableProducts);
+    setSearchTerm("");
+  };
+
+  const toggleCompareProduct = (productId) => {
+    setSelectedCompareProducts((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    const filtered = compareProducts.filter((product) =>
+      product.TenSP.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredCompareProducts(filtered);
+  };
+
+  const handleCompare = () => {
+    if (selectedCompareProducts.length === 0) {
+      message.warning("Vui lòng chọn ít nhất 1 sản phẩm để so sánh");
+      return;
+    }
+
+    const updatedProduct = {
+      ...product,
+      BoNhoTrong1: selectedMemory.memory || product.BoNhoTrong1,
+      GiaSP1: selectedMemory.price || product.GiaSP1,
+    };
+
+    const productsToCompare = [
+      updatedProduct,
+      ...compareProducts.filter((p) => selectedCompareProducts.includes(p._id)),
+    ];
+
+    Modal.info({
+      title: "Kết quả so sánh sản phẩm",
+      width: "90%",
+      content: (
+        <div className="compare-table-container">
+          <Table
+            dataSource={productsToCompare}
+            columns={[
+              {
+                title: "Sản phẩm",
+                dataIndex: "TenSP",
+                key: "name",
+                render: (text, record) => (
+                  <Space direction="vertical" align="center">
+                    <img
+                      src={record.HinhAnh1}
+                      alt={text}
+                      style={{ width: 100, height: 100, objectFit: "contain" }}
+                    />
+                    <Text strong>{text}</Text>
+                    <Text type="danger">{formatCurrency(record.GiaSP1)}</Text>
+                  </Space>
+                ),
+                fixed: "left",
+                width: 200,
+              },
+              {
+                title: "Hệ điều hành",
+                dataIndex: "HDH",
+                key: "os",
+                render: (text) => text || "--",
+              },
+              {
+                title: "Chip xử lý",
+                dataIndex: "CPU",
+                key: "cpu",
+                render: (text) => text || "--",
+              },
+              {
+                title: "Bộ nhớ trong",
+                key: "storage",
+                render: (text, record) => record.BoNhoTrong1 || "--",
+              },
+              {
+                title: "Camera sau",
+                dataIndex: "CamSau",
+                key: "rearCamera",
+                render: (text) => text || "--",
+              },
+              {
+                title: "Camera trước",
+                dataIndex: "CamTruoc",
+                key: "frontCamera",
+                render: (text) => text || "--",
+              },
+              {
+                title: "Cổng sạc",
+                dataIndex: "CapSac",
+                key: "charging",
+                render: (text) => text || "--",
+              },
+              {
+                title: "Mô tả",
+                dataIndex: "MoTa",
+                key: "description",
+                render: (text) => text || "--",
+              },
+            ]}
+            bordered
+            size="middle"
+            scroll={{ x: true }}
+            pagination={false}
+          />
+        </div>
+      ),
+      onOk() {},
     });
+
+    setCompareModalVisible(false);
+    setSelectedCompareProducts([]);
+  };
+
+  const onFinish = async (values) => {
+    const containsForbiddenWords = checkvar.some((word) =>
+      new RegExp(`\\b${word}\\b`, "i").test(values.NoiDung)
+    );
 
     if (containsForbiddenWords) {
       message.error("Bình luận của bạn có chứa từ ngữ không phù hợp!");
-      return; // Dừng việc gửi bình luận
+      return;
     }
     try {
       setLoading(true);
-      const commentData = {
-        ...values,
-        MaSP: id, // MaSP được lấy từ URL
-        Email: email, // Email được lấy từ thông tin người dùng
-      };
-      await createComment(commentData); // Gửi bình luận lên server
-      message.success("Bình luận đã được thêm thành công!");
-      form.resetFields(); // Reset form sau khi gửi thành công
+      const commentData = { ...values, MaSP: id, Email: email, DanhGia: 0 };
+      await createComment(commentData);
+      message.success("Bình luận đã được gửi, đang chờ duyệt!");
+      form.resetFields();
 
-      // Cập nhật lại danh sách bình luận
       const response = await fetchComments();
-      const productComments = response.data.filter(
-        (comment) => comment.MaSP === id
-      );
+      const productComments = response.data
+        .filter((comment) => comment.MaSP === id && comment.isApproved)
+        .sort((a, b) => new Date(b.NgayBL) - new Date(a.NgayBL));
       setComments(productComments);
     } catch (error) {
-      console.error(error);
       message.error(
-        "Thêm bình luận thất bại!Bạn vui lòng đăng nhập để sử dụng tính năng này."
+        "Thêm bình luận thất bại! Bạn vui lòng đăng nhập để sử dụng tính năng này."
       );
     } finally {
       setLoading(false);
@@ -125,94 +514,80 @@ const ProductDetail = () => {
   const handleMemorySelection = (memoryKey) => {
     const memory = product[memoryKey];
     const memoryIndex = memoryKey.slice(-1);
-
+    const newQuantity = product[`SoLuong${memoryIndex}`] || 0;
     setSelectedMemory({
-      memory: memory,
+      memory,
       price: product[`GiaSP${memoryIndex}`],
-      quantity: product[`SoLuong${memoryIndex}`],
+      quantity: newQuantity,
     });
-  };
-
-  const handleColorSelection = (color, image) => {
-    if (color === "Hết Hàng") {
-      setIsColorAvailable(false);
-      alert("Màu này đã hết hàng!");
-    } else {
-      setIsColorAvailable(true);
+    if (newQuantity <= 0) {
+      message.warning(`Bộ nhớ ${memory} đã hết hàng!`);
     }
-    setSelectedColor(color);
-    setSelectedImage(image || product.HinhAnh1);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
 
   const addToCart = () => {
     const authToken = localStorage.getItem("authToken");
-
     if (!authToken) {
-      alert("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
+      message.warning("Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.");
       navigate("/login");
       return;
     }
 
-    if (!product || !selectedMemory.memory || !selectedColor) {
-      alert("Vui lòng chọn bộ nhớ và màu sắc!");
+    if (!product || !selectedMemory.memory) {
+      message.warning("Vui lòng chọn bộ nhớ!");
+      return;
+    }
+
+    if (selectedMemory.quantity <= 0) {
+      message.warning("Sản phẩm đã hết hàng!");
       return;
     }
 
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
-
-    if (!userId) {
-      alert("Không tìm thấy thông tin người dùng.");
-      return;
-    }
-
     const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
     const existingItemIndex = cartItems.findIndex(
       (item) =>
         item.id === product._id &&
         item.memory === selectedMemory.memory &&
-        item.color === selectedColor
+        item.color === product.Mau1
     );
 
     if (existingItemIndex !== -1) {
       const newQuantity = cartItems[existingItemIndex].quantity + 1;
-      if (newQuantity > cartItems[existingItemIndex].totalQuantity) {
-        alert("Đã đạt đến giới hạn sản phẩm.");
+      if (newQuantity > selectedMemory.quantity) {
+        message.warning("Đã đạt giới hạn sản phẩm trong giỏ hàng!");
         return;
       }
       cartItems[existingItemIndex].quantity = newQuantity;
     } else {
-      if (1 > selectedMemory.quantity) {
-        alert("Sản phẩm đã hết.");
-        return;
-      }
       cartItems.push({
         id: product._id,
         name: product.TenSP,
         memory: selectedMemory.memory,
-        color: selectedColor,
+        color: product.Mau1,
         image: selectedImage,
         quantity: 1,
         price: selectedMemory.price,
         maxQuantity: selectedMemory.quantity,
-        totalQuantity: selectedMemory.quantity,
       });
     }
 
     localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
-    alert("Sản phẩm đã được thêm vào giỏ hàng!");
-
+    message.success("Sản phẩm đã được thêm vào giỏ hàng!");
     window.dispatchEvent(new Event("cartUpdated"));
-
     navigate("/cart");
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("vi-VN", {
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(value);
-  };
 
   const handleMouseMove = (e) => {
     const { left, top, width, height } = e.target.getBoundingClientRect();
@@ -224,254 +599,645 @@ const ProductDetail = () => {
     });
   };
 
-  const handleMouseLeave = () => {
-    setZoomStyle({});
-  };
+  const handleMouseLeave = () => setZoomStyle({});
 
   if (loading) return <div className="text-center mt-5">Đang tải...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!product)
     return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
 
+  // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
+  const allMemoriesNone = [
+    product.BoNhoTrong1,
+    product.BoNhoTrong2,
+    product.BoNhoTrong3,
+    product.BoNhoTrong4,
+    product.BoNhoTrong5,
+    product.BoNhoTrong6,
+  ].every((memory) => memory === "Không có");
+
   return (
     <div className="container mt-4">
-      <div className="row">
-        {/* Phần hình ảnh */}
-        <div className="col-md-6 text-center">
-          <div
-            style={{
-              width: "400px",
-              height: "400px",
-              overflow: "hidden",
-              borderRadius: "10px",
-              position: "relative",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            <img
-              src={selectedImage}
-              alt={product.TenSP}
-              className="img-fluid rounded shadow-sm"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                transition: "transform 0.2s ease-in-out",
-                ...zoomStyle,
-              }}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-            />
-          </div>
-          <div className="d-flex justify-content-center mt-3">
-            {[1, 2, 3].map((index) =>
-              product[`HinhAnh${index}`] ? (
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12}>
+          <Card
+            cover={
+              <div
+                style={{
+                  height: 400,
+                  overflow: "hidden",
+                  position: "relative",
+                }}
+              >
                 <img
-                  key={index}
-                  src={product[`HinhAnh${index}`]}
+                  src={selectedImage}
                   alt={product.TenSP}
-                  className={`img-thumbnail mx-2 ${
-                    selectedImage === product[`HinhAnh${index}`]
-                      ? "border border-primary"
-                      : ""
-                  }`}
-                  width={80}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => setSelectedImage(product[`HinhAnh${index}`])}
-                />
-              ) : null
-            )}
-          </div>
-        </div>
-
-        {/* Phần thông tin sản phẩm */}
-        <div className="col-md-6">
-          <h2>{product.TenSP}</h2>
-          <p className="text-muted">Mã sản phẩm: {product.MaSP}</p>
-          <h4 className="text-danger">
-            {formatCurrency(selectedMemory.price)}
-          </h4>
-          <p>Tổng Số lượng: {selectedMemory.quantity}</p>
-
-          <h5>Bộ Nhớ Trong:</h5>
-          <div className="d-flex gap-2">
-            {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map((key, index) =>
-              product[key] ? (
-                <button
-                  key={index}
-                  className={`btn ${
-                    selectedMemory.memory === product[key]
-                      ? "btn-primary"
-                      : "btn-outline-primary"
-                  }`}
-                  onClick={() => handleMemorySelection(key)}
-                >
-                  {product[key]}
-                </button>
-              ) : null
-            )}
-          </div>
-
-          <h5 className="mt-3">Màu sắc:</h5>
-          <div className="d-flex gap-2">
-            {[product.Mau1, product.Mau2, product.Mau3].map((color, index) =>
-              color ? (
-                <div
-                  key={index}
-                  className={`border p-2 rounded ${
-                    selectedColor === color
-                      ? "border border-primary border-3 shadow-lg"
-                      : "border-secondary"
-                  }`}
                   style={{
-                    width: selectedColor === color ? "50px" : "40px",
-                    height: selectedColor === color ? "50px" : "40px",
-                    backgroundColor: color === "Hết Hàng" ? "gray" : color,
-                    cursor: "pointer",
-                    transition: "all 0.3s ease-in-out",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    transition: "transform 0.2s ease-in-out",
+                    ...zoomStyle,
                   }}
-                  onClick={() => {
-                    handleColorSelection(
-                      color,
-                      product[`HinhAnh${index + 1}`] || product.HinhAnh1
-                    );
-                  }}
-                ></div>
-              ) : null
-            )}
-          </div>
-
-          <button
-            className="btn btn-success mt-3"
-            onClick={addToCart}
-            disabled={!isColorAvailable || selectedColor === "Hết Hàng"}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                />
+              </div>
+            }
           >
-            🛒 Thêm vào giỏ hàng
-          </button>
-        </div>
+            <Row gutter={[8, 8]} style={{ marginTop: 16 }}>
+              {[1, 2, 3, 4, 5, 6].map((index) =>
+                product[`HinhAnh${index}`] ? (
+                  <Col key={index} span={4}>
+                    <img
+                      src={product[`HinhAnh${index}`]}
+                      alt={product.TenSP}
+                      style={{
+                        width: "100%",
+                        height: 80,
+                        objectFit: "contain",
+                        cursor: "pointer",
+                        border:
+                          selectedImage === product[`HinhAnh${index}`]
+                            ? "2px solid #1890ff"
+                            : "1px solid #e8e8e8",
+                        borderRadius: 4,
+                      }}
+                      onClick={() =>
+                        setSelectedImage(product[`HinhAnh${index}`])
+                      }
+                    />
+                  </Col>
+                ) : null
+              )}
+            </Row>
+          </Card>
 
-        {/* Phần thông tin chi tiết sản phẩm */}
-        <div className="col-12 mt-4">
-          <div className="card shadow-sm p-4 bg-light">
-            <h3 className="mb-4">
-              <FaInfoCircle className="me-2" />
-              THÔNG TIN SẢN PHẨM
-            </h3>
-            <div className="row">
-              <div className="col-md-6">
-                <div className="d-flex align-items-center mb-3">
-                  <FaMobileAlt className="me-3" />
-                  <div>
-                    <strong>Hệ Điều Hành:</strong> {product.HDH}
+          <Card
+            title={<Title level={4}>Mô tả sản phẩm</Title>}
+            style={{ marginTop: 24 }}
+          >
+            <Paragraph style={{ whiteSpace: "pre-line", textAlign: "justify" }}>
+              {product.MoTa || "Không có thông tin"}
+            </Paragraph>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <Card style={{ padding: 16 }}>
+            <Flex vertical>
+              <Title level={2}>{product.TenSP}</Title>
+              <Text type="secondary">Mã sản phẩm: {product.MaSP}</Text>
+              <Text type="secondary">Thương hiệu: {product.TenTH}</Text>
+              {allMemoriesNone ? (
+                <>
+                  <Title level={4}>Sản phẩm ngừng kinh doanh</Title>
+                  <Badge status="error" text="Hết hàng" />
+                </>
+              ) : selectedMemory.memory ? (
+                <>
+                  <Title level={3} type="danger">
+                    {formatCurrency(selectedMemory.price)}
+                  </Title>
+                  <Badge
+                    status={selectedMemory.quantity > 0 ? "success" : "error"}
+                    text={selectedMemory.quantity > 0 ? "Còn hàng" : "Hết hàng"}
+                  />
+                </>
+              ) : (
+                <Title level={4}>Vui lòng chọn bộ nhớ để xem giá</Title>
+              )}
+
+              <Space align="center">
+                <Divider orientation="left" plain style={{ margin: 0 }}>
+                  Màu sắc
+                </Divider>
+                {product.Mau1 && (
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      backgroundColor:
+                        product.Mau1 !== "Hết Hàng" ? product.Mau1 : "gray",
+                      border: "2px solid #1890ff",
+                    }}
+                  />
+                )}
+              </Space>
+
+              {!allMemoriesNone && (
+                <>
+                  <Divider orientation="left">Bộ nhớ trong</Divider>
+                  <Space wrap justify="center">
+                    {[
+                      "BoNhoTrong1",
+                      "BoNhoTrong2",
+                      "BoNhoTrong3",
+                      "BoNhoTrong4",
+                      "BoNhoTrong5",
+                      "BoNhoTrong6",
+                    ].map((memoryKey, index) =>
+                      product[memoryKey] && product[memoryKey] !== "Không có" ? (
+                        <div
+                          key={index}
+                          style={{ position: "relative", textAlign: "center" }}
+                        >
+                          <Button
+                            type={
+                              selectedMemory.memory === product[memoryKey]
+                                ? "primary"
+                                : "default"
+                            }
+                            onClick={() => handleMemorySelection(memoryKey)}
+                          >
+                            {product[memoryKey]}
+                            {selectedMemory.memory === product[memoryKey] && (
+                              <span>
+                                {" "}
+                                ({product[`SoLuong${memoryKey.slice(-1)}`]})
+                              </span>
+                            )}
+                          </Button>
+                          {product[`SoLuong${memoryKey.slice(-1)}`] <= 0 && (
+                            <Text
+                              type="danger"
+                              style={{
+                                display: "block",
+                                fontSize: 12,
+                                marginTop: 4,
+                              }}
+                            >
+                              Hết hàng
+                            </Text>
+                          )}
+                        </div>
+                      ) : null
+                    )}
+                  </Space>
+                </>
+              )}
+
+              <Space style={{ marginTop: 16 }} size="large">
+                <Button
+                  type="primary"
+                  icon={<FaShoppingCart />}
+                  onClick={addToCart}
+                  disabled={
+                    allMemoriesNone ||
+                    !selectedMemory.memory ||
+                    selectedMemory.quantity <= 0 ||
+                    product.Mau1 === "Hết Hàng"
+                  }
+                >
+                  Thêm vào giỏ hàng
+                </Button>
+                <Button icon={<FaExchangeAlt />} onClick={openCompareModal}>
+                  So sánh sản phẩm
+                </Button>
+              </Space>
+
+              {relatedProducts.length > 0 && (
+                <>
+                  <Divider orientation="left">Phiên bản khác</Divider>
+                  <div style={{ position: "relative", width: "100%" }}>
+                    {showRelatedLeftArrow && (
+                      <Button
+                        shape="circle"
+                        icon={<FaChevronLeft />}
+                        onClick={() => scrollRelatedProducts("left")}
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: "50%",
+                          transform: "translate(-100%, -50%)",
+                          zIndex: 2,
+                        }}
+                      />
+                    )}
+
+                    <div
+                      ref={relatedProductsRef}
+                      style={{
+                        display: "flex",
+                        gap: "16px",
+                        overflowX: "auto",
+                        scrollBehavior: "smooth",
+                        padding: "0 40px 16px",
+                      }}
+                      className="scrollbar-hidden"
+                    >
+                      {relatedProducts.map((relatedProduct) => (
+                        <Card
+                          key={relatedProduct._id}
+                          hoverable
+                          style={{
+                            minWidth: 200,
+                            width: 200,
+                            borderRadius: 8,
+                            flexShrink: 0,
+                            transition:
+                              "transform 0.3s ease, box-shadow 0.3s ease",
+                          }}
+                          cover={
+                            <div
+                              style={{
+                                height: 150,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor: "#f5f5f5",
+                              }}
+                            >
+                              <img
+                                alt={relatedProduct.TenSP}
+                                src={relatedProduct.HinhAnh1}
+                                style={{
+                                  maxHeight: "100%",
+                                  maxWidth: "100%",
+                                  objectFit: "contain",
+                                }}
+                              />
+                            </div>
+                          }
+                          onClick={() =>
+                            navigate(
+                              `/products/product_detail/${relatedProduct._id}`
+                            )
+                          }
+                        >
+                          <Card.Meta
+                            title={
+                              <Text
+                                strong
+                                style={{
+                                  fontSize: "14px",
+                                  whiteSpace: "normal",
+                                  lineHeight: "1.4",
+                                }}
+                              >
+                                {relatedProduct.TenSP}
+                              </Text>
+                            }
+                            description={
+                              <Space direction="vertical" size={4}>
+                                <Text type="danger" strong>
+                                  {formatCurrency(relatedProduct.GiaSP1)}
+                                </Text>
+                                <Text style={{ fontSize: "12px" }}>
+                                  {relatedProduct.BoNhoTrong1}
+                                </Text>
+                                <Badge
+                                  status={
+                                    relatedProduct.SoLuong1 > 0
+                                      ? "success"
+                                      : "error"
+                                  }
+                                  text={
+                                    relatedProduct.SoLuong1 > 0
+                                      ? "Còn hàng"
+                                      : "Hết hàng"
+                                  }
+                                  style={{ fontSize: "12px" }}
+                                />
+                              </Space>
+                            }
+                          />
+                        </Card>
+                      ))}
+                    </div>
+
+                    {showRelatedRightArrow && (
+                      <Button
+                        shape="circle"
+                        icon={<FaChevronRight />}
+                        onClick={() => scrollRelatedProducts("right")}
+                        style={{
+                          position: "absolute",
+                          right: 0,
+                          top: "50%",
+                          transform: "translate(100%, -50%)",
+                          zIndex: 2,
+                        }}
+                      />
+                    )}
                   </div>
-                </div>
-                <div className="d-flex align-items-center mb-3">
-                  <FaCamera className="me-3" />
-                  <div>
-                    <strong>Camera Sau:</strong> {product.CamSau}
-                  </div>
-                </div>
-                <div className="d-flex align-items-center mb-3">
-                  <FaCamera className="me-3" />
-                  <div>
-                    <strong>Camera Trước:</strong> {product.CamTruoc}
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <div className="d-flex align-items-center mb-3">
-                  <FaMicrochip className="me-3" />
-                  <div>
-                    <strong>CPU:</strong> {product.CPU}
-                  </div>
-                </div>
-                <div className="d-flex align-items-center mb-3">
-                  <FaPlug className="me-3" />
-                  <div>
-                    <strong>Cáp sạc:</strong> {product.CapSac}
-                  </div>
-                </div>
-                <div className="d-flex align-items-center mb-3">
-                  <FaBatteryFull className="me-3" />
-                  <div>
-                    <strong>Trạng Thái:</strong> {product.TrangThai}
-                  </div>
-                </div>
-              </div>
-            </div>
+                </>
+              )}
+            </Flex>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+        <Col span={24}>
+          <Card title={<Title level={4}>Thông tin chi tiết sản phẩm</Title>}>
+            <Descriptions
+              bordered
+              column={{ xs: 1, sm: 2, md: 3, lg: 4 }}
+              labelStyle={{
+                width: "220px",
+                whiteSpace: "nowrap",
+                padding: "8px",
+                textAlign: "left",
+              }}
+              contentStyle={{
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+                padding: "8px",
+              }}
+            >
+              <Descriptions.Item label="Hệ điều hành">
+                {product.HDH || "Không có thông tin"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Chip xử lý">
+                {product.CPU || "Không có thông tin"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Camera sau">
+                {product.CamSau || "Không có thông tin"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Camera trước">
+                {product.CamTruoc || "Không có thông tin"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Màn hình">
+                {product.ManHinh || "Không có thông tin"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Cổng sạc">
+                {product.CapSac || "Không có thông tin"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Loại pin">
+                {product.LoaiPin || "Không có thông tin"}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
+      </Row>
+
+      <Modal
+        title="Chọn sản phẩm để so sánh"
+        visible={compareModalVisible}
+        onOk={handleCompare}
+        onCancel={() => setCompareModalVisible(false)}
+        okText="So sánh"
+        cancelText="Hủy"
+        width={800}
+      >
+        {selectedCompareProducts.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <Text strong>Sản phẩm đã chọn: </Text>
+            <Space wrap>
+              {selectedCompareProducts.map((productId) => {
+                const selectedProduct = compareProducts.find(
+                  (p) => p._id === productId
+                );
+                return (
+                  <Tag
+                    key={productId}
+                    closable
+                    onClose={() => toggleCompareProduct(productId)}
+                    color="blue"
+                  >
+                    {selectedProduct?.TenSP}
+                  </Tag>
+                );
+              })}
+            </Space>
           </div>
-        </div>
-        <div className="col-12 mt-4">
+        )}
+
+        <Input
+          placeholder="Tìm kiếm sản phẩm theo tên"
+          value={searchTerm}
+          onChange={handleSearch}
+          style={{ marginBottom: 16 }}
+        />
+        <Row gutter={[16, 16]}>
+          {filteredCompareProducts.length > 0 ? (
+            filteredCompareProducts.map((product) => (
+              <Col key={product._id} xs={12} sm={8}>
+                <Card
+                  hoverable
+                  onClick={() => toggleCompareProduct(product._id)}
+                  style={{
+                    border: selectedCompareProducts.includes(product._id)
+                      ? "2px solid #1890ff"
+                      : "1px solid #e8e8e8",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                  cover={
+                    <div
+                      style={{
+                        height: 150,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        alt={product.TenSP}
+                        src={product.HinhAnh1}
+                        style={{
+                          maxHeight: "100%",
+                          maxWidth: "100%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </div>
+                  }
+                >
+                  <Card.Meta
+                    title={product.TenSP}
+                    description={
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text type="danger">
+                          {formatCurrency(product.GiaSP1)}
+                        </Text>
+                        <Text>{product.BoNhoTrong1}</Text>
+                      </div>
+                    }
+                  />
+                </Card>
+              </Col>
+            ))
+          ) : (
+            <Col span={24}>
+              <Text type="secondary">Không tìm thấy sản phẩm nào.</Text>
+            </Col>
+          )}
+        </Row>
+      </Modal>
+
+      {allProducts.length > 0 && (
+        <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+          <Col span={24}>
+            <Card title={<Title level={4}>Tất cả sản phẩm</Title>}>
+              <div style={{ position: "relative" }}>
+                {showLeftArrow && (
+                  <Button
+                    shape="circle"
+                    icon={<FaChevronLeft />}
+                    onClick={() => scrollProducts("left")}
+                    style={{ position: "absolute", left: -20, top: "50%" }}
+                  />
+                )}
+                <div
+                  ref={productListRef}
+                  style={{
+                    display: "flex",
+                    overflowX: "auto",
+                    scrollBehavior: "smooth",
+                    paddingBottom: 16,
+                  }}
+                  className="scrollbar-hidden"
+                >
+                  {allProducts.map((product) => (
+                    <Card
+                      key={product._id}
+                      hoverable
+                      style={{ minWidth: 250, marginRight: 16 }}
+                      cover={<img alt={product.TenSP} src={product.HinhAnh1} />}
+                      onClick={() =>
+                        navigate(`/products/product_detail/${product._id}`)
+                      }
+                    >
+                      <Card.Meta
+                        title={product.TenSP}
+                        description={
+                          <>
+                            <Text type="danger">
+                              {formatCurrency(product.GiaSP1)}
+                            </Text>
+                            <br />
+                            <Text>{product.BoNhoTrong1}</Text>
+                          </>
+                        }
+                      />
+                    </Card>
+                  ))}
+                </div>
+                {showRightArrow && (
+                  <Button
+                    shape="circle"
+                    icon={<FaChevronRight />}
+                    onClick={() => scrollProducts("right")}
+                    style={{ position: "absolute", right: -20, top: "50%" }}
+                  />
+                )}
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+        <Col span={24}>
           <LatestProducts />
-        </div>
-        <div className="col-12 mt-4">
+        </Col>
+        <Col span={24}>
           <SellerProducts />
-        </div>
-        <div className="col-12 mt-4">
-          <div className="card shadow-sm p-4 bg-light">
-            <h3 className="mb-4">
-              <FaInfoCircle className="me-2" />
-              BÌNH LUẬN SẢN PHẨM
-            </h3>
+        </Col>
+        <Col span={24}>
+          <Card title={<Title level={4}>Bình Luận</Title>}>
             <Form form={form} onFinish={onFinish} layout="vertical">
               <Form.Item
                 name="NoiDung"
-                label="Nội Dung"
-                rules={[{ required: true, message: "Vui lòng nhập nội dung" }]}
+                label="Nội dung bình luận"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng nhập nội dung bình luận",
+                  },
+                ]}
               >
-                <Input.TextArea
-                  placeholder="Nhập nội dung bình luận"
-                  rows={4}
-                />
+                <Input.TextArea rows={4} placeholder="Viết nội dung" />
               </Form.Item>
-
-              <Form.Item
-                name="DanhGia"
-                label="Đánh Giá"
-                rules={[{ required: true, message: "Vui lòng chọn đánh giá" }]}
-              >
-                <Rate />
-              </Form.Item>
-
               <Form.Item>
                 <Button type="primary" htmlType="submit" loading={loading}>
-                  Gửi Bình Luận
+                  Gửi bình luận
                 </Button>
               </Form.Item>
             </Form>
-          </div>
-        </div>
-
-        {/* Hiển thị danh sách bình luận */}
-        <div className="col-12 mt-4">
-          <div className="card shadow-sm p-4 bg-light">
-            <h3 className="mb-4">
-              <FaInfoCircle className="me-2" />
-              BÌNH LUẬN ĐÃ CÓ
-            </h3>
+          </Card>
+        </Col>
+        <Col span={24}>
+          <Card title={<Title level={4}>Đánh giá từ khách hàng</Title>}>
             {comments.length > 0 ? (
-              comments.map((comment, index) => (
-                <div key={index} className="mb-3">
-                  <p>
-                    <strong>{comment.Email}</strong> -{" "}
-                    <Rate disabled defaultValue={parseInt(comment.DanhGia)} />
-                  </p>
-                  <p>{comment.NoiDung}</p>
-                  <p className="text-muted">
-                    {new Date(comment.NgayBL).toLocaleDateString()}
-                  </p>
+              comments.slice(0, displayedComments).map((comment, index) => (
+                <div key={index} style={{ marginBottom: 16 }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Space>
+                      <Text strong>{comment.Email}</Text>
+                      <Text type="secondary">
+                        {new Date(comment.NgayBL).toLocaleDateString("vi-VN")}
+                      </Text>
+                    </Space>
+                    <Paragraph>{comment.NoiDung}</Paragraph>
+                    {comment.Reply && (
+                      <div
+                        style={{
+                          backgroundColor: "#f5f5f5",
+                          padding: "8px",
+                          borderRadius: "4px",
+                          marginTop: "8px",
+                        }}
+                      >
+                        <Space direction="vertical">
+                          <Space>
+                            <Text strong style={{ color: "#1890ff" }}>
+                              {comment.Reply.AdminEmail} (Admin)
+                            </Text>
+                            <Text type="secondary">
+                              {new Date(comment.Reply.Date).toLocaleDateString(
+                                "vi-VN"
+                              )}
+                            </Text>
+                          </Space>
+                          <Paragraph>{comment.Reply.Content}</Paragraph>
+                        </Space>
+                      </div>
+                    )}
+                  </Space>
+                  <Divider />
                 </div>
               ))
             ) : (
-              <p>Chưa có bình luận nào.</p>
+              <Text type="secondary">Chưa có đánh giá nào được duyệt.</Text>
             )}
-          </div>
-        </div>
-      </div>
-
-      <br />
+            {comments.length > displayedComments && (
+              <Button type="link" onClick={handleShowMore}>
+                Xem thêm đánh giá
+              </Button>
+            )}
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };
+
+const style = document.createElement("style");
+style.innerHTML = `
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .ant-card-hoverable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+`;
+document.head.appendChild(style);
 
 export default ProductDetail;

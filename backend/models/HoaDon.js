@@ -1,3 +1,4 @@
+// HoaDon.js
 import mongoose from 'mongoose';
 
 const HoaDonSchema = new mongoose.Schema({
@@ -27,6 +28,37 @@ const HoaDonSchema = new mongoose.Schema({
     type: String,
     enum: ['Chờ xử lý', 'Đã Xác Nhận','Đang Giao', 'Hoàn thành','Huỷ Đơn'],
     default: 'Chờ xử lý'
+  },
+  checkPayment: {
+    type: String,
+    enum: ['Chưa Thanh Toán','Đã Thanh Toán','Yêu Cầu Hoàn Tiền','Đang Hoàn Tiền','Đã Hoàn Tiền'], 
+    default: 'Chưa Thanh Toán'
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['COD', 'VNPay'],
+    default: 'COD'
+  },
+  vnp_TransactionNo: String,
+  vnp_ResponseCode: String,
+  FeedBack: { 
+    type: String,
+    default: ''
+  },
+  cancelledBy: {  
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    role: {
+      type: String,
+      enum: ['Admin', 'Nhân Viên Kiểm Đơn', 'User'],
+      default: 'User'
+    },
+    name: String
+  },
+  cancellationDate: { 
+    type: Date
   },
   createdAt: {
     type: Date,

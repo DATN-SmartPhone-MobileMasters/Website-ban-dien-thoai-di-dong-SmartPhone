@@ -93,19 +93,17 @@ const UserList = () => {
                   <th>Email</th>
                   <th>Giới Tính</th>
                   <th>Vai Trò</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
                   <tr key={user._id}>
                     <td>{user.MaND}</td>
-                    <td>{user.HoVaTen}</td>
                     <td>{user.TaiKhoan}</td>
                     <td>{user.Email}</td>
                     <td>{user.GioiTinh}</td>
                     <td>
-                      {user.MaQuyen === 1 ? "Admin" : user.MaQuyen === 2 ? "Editor" : "User"}
+                    {user.MaQuyen === 1 ? "Admin" : user.MaQuyen === 2 ? "Nhân Viên Kiểm Đơn" : "User"}
                     </td>
                     <td className="space-x-2">
                     <Link to={`/admin/accounts-details/${user._id}`} className="text-blue-500 hover:underline">

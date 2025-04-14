@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
 
-import { fetchOrdersByUserId } from '../../../service/api'; 
-
+import { fetchOrdersByUserId } from "../../../service/api";
 
 const ProfileReceiptDetails = () => {
   const [orders, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState({ Email: '', id: '' });
-  const { id: orderId } = useParams(); 
-  
+  const [userData, setUserData] = useState({ Email: "", id: "" });
+  const { id: orderId } = useParams();
+
   useEffect(() => {
-    const storedUserData = localStorage.getItem('userData');
+    const storedUserData = localStorage.getItem("userData");
     if (storedUserData) {
       const parsedUserData = JSON.parse(storedUserData);
       setUserData(parsedUserData);
@@ -27,8 +26,8 @@ const ProfileReceiptDetails = () => {
           const orders = response.data.data; // Array of orders
 
           // 2. Find the specific orders by orderId (from URL)
-          const foundOrder = orders.find(orders => orders._id === orderId);
-          
+          const foundOrder = orders.find((orders) => orders._id === orderId);
+
           if (foundOrder) {
             setOrder(foundOrder);
           } else {
@@ -36,7 +35,7 @@ const ProfileReceiptDetails = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error("Error fetching orders:", error);
       } finally {
         setLoading(false);
       }
@@ -64,25 +63,37 @@ const ProfileReceiptDetails = () => {
             </div>
             <ul className="space-y-2">
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/account-details/${userData.id}`} className="flex items-center gap-2">
+                <Link
+                  to={`/account-details/${userData.id}`}
+                  className="flex items-center gap-2"
+                >
                   <i className="fa fa-user mr-2"></i>
                   <span>Thông tin tài khoản</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/account/${userData.id}`} className="flex items-center gap-2">
+                <Link
+                  to={`/account/${userData.id}`}
+                  className="flex items-center gap-2"
+                >
                   <i className="fa fa-edit mr-2"></i>
                   <span>Update tài khoản</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/profile-receipt/${userData.id}`} className="flex items-center gap-2">
+                <Link
+                  to={`/profile-receipt/${userData.id}`}
+                  className="flex items-center gap-2"
+                >
                   <i className="fas fa-money-check mr-2"></i>
                   <span>Thông tin đơn hàng</span>
                 </Link>
               </li>
               <li className="flex items-center p-2 hover:bg-gray-200 rounded">
-                <Link to={`/profile-reset-password/${userData.id}`} className="flex items-center gap-2">
+                <Link
+                  to={`/profile-reset-password/${userData.id}`}
+                  className="flex items-center gap-2"
+                >
                   <i className="fas fa-lock mr-2"></i>
                   <span>Thay đổi mật khẩu</span>
                 </Link>
@@ -102,7 +113,9 @@ const ProfileReceiptDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Ngày đặt hàng:</p>
-                  <p className="font-medium">{new Date(orders.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium">
+                    {new Date(orders.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tình trạng:</p>
@@ -112,7 +125,9 @@ const ProfileReceiptDetails = () => {
             </div>
 
             <div className="mb-6">
-              <h4 className="text-lg font-semibold mb-2">Thông tin nhận hàng</h4>
+              <h4 className="text-lg font-semibold mb-2">
+                Thông tin nhận hàng
+              </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Tên khách hàng:</p>
@@ -138,15 +153,15 @@ const ProfileReceiptDetails = () => {
                       <tr key={index}>
                         <td className="py-2 px-4 border">
                           <div className="flex items-center">
-                            <img 
-                              src={product.image} 
-                              alt={product.name} 
-                              className="w-16 h-16 mr-4" 
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-16 h-16 mr-4"
                             />
                             <div>
-                              <p className="font-medium">{product.name }</p>
+                              <p className="font-medium">{product.name}</p>
                               <p className="text-sm text-gray-600">
-                                {product.memory} - {product.color }
+                                {product.memory} - {product.color}
                               </p>
                             </div>
                           </div>
@@ -163,7 +178,21 @@ const ProfileReceiptDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Tổng tiền:</p>
-                  <p className="font-medium">{orders.total.toLocaleString()}đ</p>
+                  <p className="font-medium">
+                    {orders.total.toLocaleString()}đ
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Phương thức thanh toán:
+                  </p>
+                  <p className="font-medium">{orders.paymentMethod}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Trạng thái thanh toán:
+                  </p>
+                  <p className="font-medium">{orders.checkPayment}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Phí vận chuyển:</p>
@@ -171,13 +200,47 @@ const ProfileReceiptDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tổng thanh toán:</p>
-                  <p className="font-medium">{(orders.total + 20000).toLocaleString()}đ</p>
+                  <p className="font-medium">
+                    {(orders.total + 20000).toLocaleString()}đ
+                  </p>
                 </div>
               </div>
             </div>
-
-            <Link to={`/profile-receipt/${userData.id}`} className="text-blue-500 hover:underline">
-              <i className="fas fa-long-arrow-alt-left mr-2"></i> Quay lại danh sách đơn hàng
+            {orders.paymentStatus === "Huỷ Đơn" && (
+              <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-100">
+                <h2 className="text-xl font-semibold mb-2 text-red-700">
+                  Thông tin hủy đơn
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-red-600">Huỷ Bởi:</p>
+                    <p className="font-medium text-red-800">
+                      {orders.cancelledBy?.name}-{orders.cancelledBy?.role}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-red-600">Thời gian hủy:</p>
+                    <p className="font-medium text-red-800">
+                      {orders.cancellationDate
+                        ? new Date(orders.cancellationDate).toLocaleString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-red-600">Lý do:</p>
+                    <p className="font-medium text-red-800">
+                      {orders.FeedBack}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <Link
+              to={`/profile-receipt/${userData.id}`}
+              className="text-blue-500 hover:underline"
+            >
+              <i className="fas fa-long-arrow-alt-left mr-2"></i> Quay lại danh
+              sách đơn hàng
             </Link>
           </div>
         </div>

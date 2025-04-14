@@ -1,153 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Tag, Button, message } from 'antd';
-import { fetchOrdersByUserId, updateOrder } from '../../../service/api';
+import { Table, Tag, Button, message, Modal, Select, DatePicker, Form, Input } from 'antd';
+import { fetchOrdersByUserId, updateOrder, createVNPayPayment } from '../../../service/api';
+import moment from 'moment';
 import axios from 'axios';
+import io from 'socket.io-client';
+
+const { Option } = Select;
 
 const ProfileReceipt = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({
     Email: '',
     id: '',
   });
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [sortTotal, setSortTotal] = useState('');
+  const [form] = Form.useForm();
+
+  // Khởi tạo kết nối Socket.IO
+  const socket = io('http://localhost:5000', {
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    transports: ['websocket', 'polling'],
+  });
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
     if (storedUserData) {
-      const parsedUserData = JSON.parse(storedUserData);
-      setUserData(parsedUserData);
+      setUserData(JSON.parse(storedUserData));
     }
   }, []);
-
-  const columns = [
-    {
-      title: 'Mã đơn hàng',
-      dataIndex: '_id',
-      key: '_id',
-      width: 200,
-      render: (text) => <span className="font-medium">{text}</span>
-    },
-    {
-      title: 'Tên khách hàng',
-      dataIndex: ['shippingInfo', 'name'],
-      key: 'name'
-    },
-    {
-      title: 'Ngày đặt hàng',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date) => new Date(date).toLocaleDateString()
-    },
-    {
-      title: 'Chi tiết đơn hàng',
-      key: 'details',
-      render: (_, record) => (
-        <Link to={`/profile-receipt-details/${record._id}`}>
-          <Button type="primary" ghost>
-            Xem chi tiết
-          </Button>
-        </Link>
-      )
-    },
-    {
-      title: 'Tình trạng đơn hàng',
-      dataIndex: 'paymentStatus',
-      key: 'status',
-      render: (status) => {
-        let color = '';
-        switch (status) {
-          case 'Đã Xác Nhận':
-            color = 'green';
-            break;
-          case 'Chờ xử lý':
-            color = 'orange';
-            break;
-          case 'Huỷ Đơn':
-            color = 'red';
-            break;
-          default:
-            color = 'gray';
-        }
-        return <Tag color={color}>{status}</Tag>;
-      }
-    },
-    {
-      title: 'Thao tác',
-      key: 'action',
-      render: (_, record) => (
-        (record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
-          <Button 
-            danger 
-            onClick={() => handleCancelOrder(record._id, record.products)}
-          >
-            Huỷ đơn
-          </Button>
-        )
-      )
-    }
-  ];
-
-    const updateProductQuantities = async (products, action) => {
-    for (const product of products) {
-      try {
-        // Lấy thông tin sản phẩm hiện tại
-        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
-
-        // Xác định phiên bản sản phẩm dựa trên bộ nhớ được chọn
-        let updatedQuantity1 = data.data.SoLuong1;
-        let updatedQuantity2 = data.data.SoLuong2;
-        let updatedQuantity3 = data.data.SoLuong3;
-
-        if (product.memory === data.data.BoNhoTrong1) {
-          updatedQuantity1 =
-            action === "subtract"
-              ? data.data.SoLuong1 - product.quantity
-              : data.data.SoLuong1 + product.quantity;
-        } else if (product.memory === data.data.BoNhoTrong2) {
-          updatedQuantity2 =
-            action === "subtract"
-              ? data.data.SoLuong2 - product.quantity
-              : data.data.SoLuong2 + product.quantity;
-        } else if (product.memory === data.data.BoNhoTrong3) {
-          updatedQuantity3 =
-            action === "subtract"
-              ? data.data.SoLuong3 - product.quantity
-              : data.data.SoLuong3 + product.quantity;
-        }
-
-        // Cập nhật số lượng sản phẩm
-        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
-          SoLuong1: updatedQuantity1,
-          SoLuong2: updatedQuantity2,
-          SoLuong3: updatedQuantity3,
-        });
-      } catch (error) {
-        console.error("Lỗi khi cập nhật số lượng sản phẩm:", error);
-      }
-    }
-  };
-
-  const handleCancelOrder = async (orderId, products) => {
-    try {
-      await updateOrder(orderId, { paymentStatus: 'Huỷ Đơn' });
-      await updateProductQuantities(products, "add");
-      
-      const response = await fetchOrdersByUserId(userData.id);
-      setOrders(response.data.data);
-      
-      message.success('Huỷ đơn hàng thành công');
-    } catch (error) {
-      message.error('Huỷ đơn hàng thất bại');
-    }
-  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (userData.id) {
           const response = await fetchOrdersByUserId(userData.id);
-          setOrders(response.data.data);
+          const sortedOrders = response.data.data.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setOrders(sortedOrders);
+          setFilteredOrders(sortedOrders);
         }
       } catch (error) {
         message.error('Lỗi tải danh sách đơn hàng');
@@ -158,11 +56,318 @@ const ProfileReceipt = () => {
     fetchData();
   }, [userData.id]);
 
+  // Lắng nghe sự kiện Socket.IO
+  useEffect(() => {
+    socket.on('orderStatusUpdated', (data) => {
+      console.log('Socket Update:', data); // Debug Socket data
+      if (data.userId === userData.id) {
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === data.orderId
+              ? {
+                  ...order,
+                  paymentStatus: data.paymentStatus,
+                  cancelledBy: data.cancelledBy,
+                  cancellationDate: data.cancellationDate,
+                  FeedBack: data.FeedBack,
+                }
+              : order
+          )
+        );
+      }
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to socket server');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    return () => {
+      socket.off('orderStatusUpdated');
+      socket.off('connect');
+      socket.off('connect_error');
+      socket.disconnect();
+    };
+  }, [socket, userData.id]);
+
+  useEffect(() => {
+    let filtered = [...orders];
+
+    // Chuẩn hóa và lọc theo trạng thái
+    if (statusFilter) {
+      filtered = filtered.filter((order) =>
+        order.paymentStatus.trim().toLowerCase() === statusFilter.trim().toLowerCase()
+      );
+      console.log('After status filter:', filtered); // Debug
+    }
+
+    // Lọc theo ngày
+    if (dateFilter) {
+      filtered = filtered.filter((order) => {
+        const createdAt = moment(order.createdAt).format('DD/MM/YYYY');
+        return createdAt === dateFilter;
+      });
+      console.log('After date filter:', filtered); // Debug
+    }
+
+    // Sắp xếp theo tổng tiền
+    if (sortTotal === 'high-to-low') {
+      filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
+    } else if (sortTotal === 'low-to-high') {
+      filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
+    } else {
+      filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    setFilteredOrders(filtered);
+    console.log('Final filtered orders:', filtered); // Debug
+  }, [statusFilter, dateFilter, sortTotal, orders]);
+
+  const updateProductQuantities = async (products, action) => {
+    const API_URL = 'http://localhost:3000';
+    for (const product of products) {
+      try {
+        const { data } = await axios.get(`${API_URL}/sanphams/${product.productId}`);
+        let updatedQuantity1 = data.data.SoLuong1;
+        let updatedQuantity2 = data.data.SoLuong2;
+        let updatedQuantity3 = data.data.SoLuong3;
+
+        if (product.memory === data.data.BoNhoTrong1) {
+          updatedQuantity1 =
+            action === 'subtract'
+              ? data.data.SoLuong1 - product.quantity
+              : data.data.SoLuong1 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong2) {
+          updatedQuantity2 =
+            action === 'subtract'
+              ? data.data.SoLuong2 - product.quantity
+              : data.data.SoLuong2 + product.quantity;
+        } else if (product.memory === data.data.BoNhoTrong3) {
+          updatedQuantity3 =
+            action === 'subtract'
+              ? data.data.SoLuong3 - product.quantity
+              : data.data.SoLuong3 + product.quantity;
+        }
+
+        await axios.put(`${API_URL}/sanphams/${product.productId}`, {
+          SoLuong1: updatedQuantity1,
+          SoLuong2: updatedQuantity2,
+          SoLuong3: updatedQuantity3,
+        });
+      } catch (error) {
+        console.error('Lỗi khi cập nhật số lượng sản phẩm:', error);
+      }
+    }
+  };
+
+  const handleCancelOrder = async (orderId, products) => {
+    let cancellationReason = '';
+
+    Modal.confirm({
+      title: 'Xác nhận huỷ đơn hàng',
+      content: (
+        <Form form={form}>
+          <Form.Item
+            name="reason"
+            label="Lý Do Huỷ Đơn"
+            rules={[{ required: true, message: 'Vui lòng nhập lý do huỷ đơn' }]}
+          >
+            <Input.TextArea
+              placeholder="Nhập lý do huỷ đơn hàng..."
+              rows={4}
+              onChange={(e) => (cancellationReason = e.target.value)}
+            />
+          </Form.Item>
+        </Form>
+      ),
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await form.validateFields();
+          const userData = JSON.parse(localStorage.getItem('userData'));
+          let role = 'User';
+          const order = orders.find((order) => order._id === orderId);
+          if (order && order.paymentStatus === 'Đã Xác Nhận') {
+            await updateProductQuantities(products, 'add');
+          }
+          if (
+            order.paymentMethod === 'COD' ||
+            (order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán')
+          ) {
+            await updateOrder(orderId, {
+              paymentStatus: 'Huỷ Đơn',
+              FeedBack: cancellationReason,
+              cancelledBy: {
+                userId: userData.id,
+                role: role,
+                name: userData.Email,
+              },
+              cancellationDate: new Date(),
+              ...(order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán'
+                ? { checkPayment: 'Yêu Cầu Hoàn Tiền' }
+                : {}),
+            });
+          } else if (order.paymentMethod === 'VNPay' && order.checkPayment !== 'Đã Thanh Toán') {
+            await updateOrder(orderId, {
+              paymentStatus: 'Huỷ Đơn',
+              FeedBack: cancellationReason,
+              cancelledBy: {
+                userId: userData.id,
+                role: role,
+                name: userData.Email,
+              },
+              cancellationDate: new Date(),
+            });
+          }
+          message.success('Huỷ đơn hàng thành công');
+        } catch (error) {
+          if (error.errorFields) {
+            return Promise.reject();
+          }
+          message.error('Huỷ đơn hàng thất bại');
+          console.error(error);
+        }
+      },
+    });
+  };
+
+  const handleRepayment = async (orderId, totalAmount) => {
+    try {
+      const vnpayData = {
+        amount: totalAmount,
+        orderId: orderId,
+        orderInfo: `Thanh toán lại đơn hàng ${orderId}`,
+        returnUrl: `${window.location.origin}/order-return`,
+      };
+
+      const response = await createVNPayPayment(vnpayData);
+      if (response.data.paymentUrl) {
+        window.location.href = response.data.paymentUrl;
+      }
+    } catch (error) {
+      console.error('Lỗi khi tạo thanh toán VNPay:', error);
+      message.error('Có lỗi xảy ra khi tạo thanh toán VNPay!');
+    }
+  };
+
+  const columns = [
+    {
+      title: 'Mã đơn hàng',
+      dataIndex: '_id',
+      key: '_id',
+      width: 200,
+      render: (text) => <span className="font-medium">{text}</span>,
+    },
+    {
+      title: 'Tên khách hàng',
+      dataIndex: ['shippingInfo', 'name'],
+      key: 'name',
+    },
+    {
+      title: 'Ngày đặt hàng',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => moment(date).format('DD/MM/YYYY'),
+    },
+    {
+      title: 'Tổng tiền',
+      dataIndex: 'total',
+      key: 'total',
+      render: (total) => (total ? `${total.toLocaleString()} VND` : 'Không có'),
+    },
+    {
+      title: 'Chi tiết đơn hàng',
+      key: 'details',
+      render: (_, record) => (
+        <Link to={`/profile-receipt-details/${record._id}`}>
+          <Button type="primary" ghost>
+            Xem chi tiết
+          </Button>
+        </Link>
+      ),
+    },
+    {
+      title: 'Tình trạng đơn hàng',
+      dataIndex: 'paymentStatus',
+      key: 'status',
+      render: (status) => {
+        let color = '';
+        switch (status.trim().toLowerCase()) {
+          case 'đã xác nhận':
+            color = 'green';
+            break;
+          case 'chờ xử lý':
+            color = 'orange';
+            break;
+          case 'đang giao':
+            color = 'purple';
+            break;
+          case 'huỷ đơn':
+            color = 'red';
+            break;
+          case 'hoàn thành':
+            color = 'blue';
+            break;
+          default:
+            color = 'gray';
+        }
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      render: (_, record) => {
+        const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
+        const isReviewed = reviewedOrders[record._id];
+        const showRepayment =
+          record.paymentMethod === 'VNPay' && record.checkPayment === 'Chưa Thanh Toán';
+
+        return (
+          <>
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+              <Button danger onClick={() => handleCancelOrder(record._id, record.products)}>
+                Huỷ đơn
+              </Button>
+            )}
+
+            {showRepayment && (
+              <Button
+                type="primary"
+                onClick={() => handleRepayment(record._id, record.total)}
+                style={{ marginLeft: 8 }}
+              >
+                Thanh toán lại
+              </Button>
+            )}
+
+            {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
+              <Link to={`/adddanhgiauser/${record._id}`}>
+                <Button type="primary" style={{ marginLeft: 8 }}>
+                  Đánh giá
+                </Button>
+              </Link>
+            )}
+
+            {record.paymentStatus === 'Hoàn thành' && isReviewed && (
+              <Button type="primary" disabled style={{ marginLeft: 8 }}>
+                Đã đánh giá
+              </Button>
+            )}
+          </>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto py-8">
         <div className="flex">
-            {/* Left Sidebar */}
           <div className="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
             <div className="flex items-center mb-4">
               <span className="text-black font-semibold">{userData.Email}</span>
@@ -194,19 +399,71 @@ const ProfileReceipt = () => {
               </li>
             </ul>
           </div>
-              {/* Right Content */}
+
           <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
+            <div className="mb-6 flex items-center gap-6">
+              <div>
+                <label htmlFor="statusFilter" className="mr-2">
+                  Lọc theo trạng thái:
+                </label>
+                <Select
+                  id="statusFilter"
+                  value={statusFilter}
+                  onChange={(value) => setStatusFilter(value)}
+                  style={{ width: 200 }}
+                  placeholder="Chọn trạng thái"
+                  allowClear
+                >
+                  <Option value="">Tất cả</Option>
+                  <Option value="chờ xử lý">Chờ xử lý</Option>
+                  <Option value="đã xác nhận">Đã Xác Nhận</Option>
+                  <Option value="đang giao">Đang giao</Option>
+                  <Option value="huỷ đơn">Huỷ Đơn</Option>
+                  <Option value="hoàn thành">Hoàn thành</Option>
+                </Select>
+              </div>
+              <div>
+                <label htmlFor="dateFilter" className="mr-2">
+                  Tìm theo ngày:
+                </label>
+                <DatePicker
+                  id="dateFilter"
+                  format="DD/MM/YYYY"
+                  onChange={(date, dateString) => setDateFilter(dateString)}
+                  style={{ width: 200 }}
+                  placeholder="Chọn ngày"
+                  allowClear
+                />
+              </div>
+              <div>
+                <label htmlFor="sortTotal" className="mr-2">
+                  Sắp xếp tổng tiền:
+                </label>
+                <Select
+                  id="sortTotal"
+                  value={sortTotal}
+                  onChange={(value) => setSortTotal(value)}
+                  style={{ width: 200 }}
+                  placeholder="Chọn sắp xếp"
+                  allowClear
+                >
+                  <Option value="">Mặc định</Option>
+                  <Option value="low-to-high">Thấp đến cao</Option>
+                  <Option value="high-to-low">Cao đến thấp</Option>
+                </Select>
+              </div>
+            </div>
             <Table
               columns={columns}
-              dataSource={orders}
+              dataSource={filteredOrders}
               rowKey="_id"
               loading={loading}
               scroll={{ x: 1000 }}
               pagination={{
                 pageSize: 5,
                 showSizeChanger: false,
-                hideOnSinglePage: true
+                hideOnSinglePage: true,
               }}
             />
           </div>

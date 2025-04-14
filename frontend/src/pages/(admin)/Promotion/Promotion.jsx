@@ -1,31 +1,60 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { deletePromotion, fetchPromotion } from "../../../service/api";
+
+const statusMap = {
+  0: "🔵 Đang diễn ra",
+  1: "🔴 Đã sử dụng",
+  2: "🟡 Chưa bắt đầu",
+};
+
+// Hàm định dạng ngày theo DD/MM/YYYY
+const formatDate = (dateString) => {
+  if (!dateString) return "Không xác định";
+  return new Intl.DateTimeFormat("vi-VN").format(new Date(dateString));
+};
 
 const Promotion = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const getPromotions = async () => {
+  const getPromotions = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetchPromotion();
-      setPromotions(response.data.data);
+      setPromotions(response.data?.data || []);
     } catch (error) {
       setError("Có lỗi khi lấy dữ liệu.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     getPromotions();
-  }, []);
+  }, [getPromotions]);
 
-  const handleDelete = (id) => {
+  const promotionsList = useMemo(() => {
+    return promotions.map((promotion) => ({
+      ...promotion,
+      TrangThaiText: statusMap[promotion.TrangThai] || "⚪ Không xác định",
+      NgayBDText: formatDate(promotion.NgayBD),
+      NgayKTText: formatDate(promotion.NgayKT),
+      LoaiKMText:
+        promotion.LoaiKM === "percentage"
+          ? "Giảm theo %"
+          : "Giảm số tiền cố định",
+      GiaTriKMText:
+        promotion.LoaiKM === "percentage"
+          ? `${promotion.GiaTriKM}%`
+          : `${promotion.GiaTriKM} VND`,
+    }));
+  }, [promotions]);
+
+  const handleDelete = useCallback((id) => {
     confirmAlert({
       title: "Xác nhận xóa",
       message: "Bạn có chắc chắn muốn xóa khuyến mãi này?",
@@ -46,28 +75,19 @@ const Promotion = () => {
         { label: "Không" },
       ],
     });
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 0:
-        return "🔵 Đang diễn ra";
-      case 1:
-        return "🔴 Đã sử dụng";
-      case 2:
-        return "🟡 Chưa bắt đầu";
-      default:
-        return "⚪ Không xác định";
-    }
-  };
+  }, []);
 
   return (
     <div className="container-fluid">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 text-gray-800">Danh Sách Khuyến Mãi</h1>
         <div>
-          <button className="btn btn-secondary me-2" onClick={getPromotions}>
-            🔄 Làm mới
+          <button
+            className="btn btn-secondary me-2"
+            onClick={getPromotions}
+            disabled={loading}
+          >
+            {loading ? "⏳ Đang tải..." : "🔄 Làm mới"}
           </button>
           <Link className="btn btn-primary" to="/admin/vouchers/add">
             ➕ Thêm Khuyến Mãi
@@ -111,48 +131,41 @@ const Promotion = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {promotions.length > 0 ? (
-                    promotions.map((promotion) => (
-                      <tr key={promotion._id}>
-                        <td>{promotion.MaKM}</td>
-                        <td>{promotion.TenKM}</td>
-                        <td>
-                          {promotion.LoaiKM === "percentage"
-                            ? "Giảm theo %"
-                            : "Giảm số tiền cố định"}
-                        </td>
-                        <td>
-                          {promotion.LoaiKM === "percentage"
-                            ? `${promotion.GiaTriKM}%`
-                            : `${promotion.GiaTriKM} VND`}
-                        </td>
-                        <td>
-                          {new Date(promotion.NgayBD).toLocaleDateString()}
-                        </td>
-                        <td>
-                          {new Date(promotion.NgayKT).toLocaleDateString()}
-                        </td>
-                        <td>
-                          <span className="badge bg-info">
-                            {getStatusLabel(promotion.TrangThai)}
-                          </span>
-                        </td>
-                        <td className="d-flex justify-content-center gap-3">
-                          <Link
+                  {promotionsList.length > 0 ? (
+                    promotionsList
+                      .slice()
+                      .sort(
+                        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+                      )
+                      .map((promotion) => (
+                        <tr key={promotion._id}>
+                          <td>{promotion.MaKM}</td>
+                          <td>{promotion.TenKM}</td>
+                          <td>{promotion.LoaiKMText}</td>
+                          <td>{promotion.GiaTriKMText}</td>
+                          <td>{promotion.NgayBDText}</td>
+                          <td>{promotion.NgayKTText}</td>
+                          <td>
+                            <span className="badge bg-info">
+                              {promotion.TrangThaiText}
+                            </span>
+                          </td>
+                          <td className="d-flex justify-content-center gap-3">
+                            {/* <Link
                             to={`/admin/vouchers/edit/${promotion._id}`}
                             className="btn btn-warning btn-sm"
                           >
                             <i className="fas fa-edit"></i> Chỉnh Sửa
-                          </Link>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleDelete(promotion._id)}
-                          >
-                            <i className="fas fa-trash"></i> Xóa
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                          </Link> */}
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDelete(promotion._id)}
+                            >
+                              <i className="fas fa-trash"></i> Xóa
+                            </button>
+                          </td>
+                        </tr>
+                      ))
                   ) : (
                     <tr>
                       <td colSpan={8} className="text-center">

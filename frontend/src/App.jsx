@@ -10,9 +10,6 @@ import ProductsAdd from "./pages/(admin)/products/ProductsAdd";
 import ProductsList from "./pages/(admin)/products/ProductsList";
 import ProductsDetail from "./pages/(admin)/products/ProductsDetail";
 import ProductsEdit from "./pages/(admin)/products/ProductsEdit";
-import CategoryList from "./pages/(admin)/categorys/CategoryList";
-import CategoryAdd from "./pages/(admin)/categorys/CategoryAdd";
-import CategoryUpdate from "./pages/(admin)/categorys/CategoryUpdate";
 import BrandList from "./pages/(admin)/brands/BrandList";
 import BrandAdd from "./pages/(admin)/brands/BrandAdd";
 import BrandEdit from "./pages/(admin)/brands/BrandEdit";
@@ -48,10 +45,14 @@ import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
 import AddDanhgia from "./pages/(admin)/danhgia/AddDanhgia";
-import ListDanhgia from "./pages/(website)/danhgia/ListDanhgia";
 import ListContact from "./pages/(website)/contact/ListContact";
 import { getUserById } from "./service/api";
 import AddComment from "./pages/(admin)/comments/AddComment";
+import OrderReturn from "./pages/(website)/Cart/OrderReturn";
+import AddDanhGiaUser from "./pages/(website)/danhgia/AddDanhGiaUser";
+import ListDanhGiaUser from "./pages/(website)/danhgia/ListDanhGiaUser";
+import SpDaMua from "./pages/(website)/sanphamdamua/SpDaMua";
+import Socket from "./pages/(website)/socket/Socket";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -60,27 +61,27 @@ function App() {
     },
     {
       element: <LayoutAdmin />,
-      // loader: async () => {
-      //   const token = localStorage.getItem("authToken");
-      //   if (!token) {
-      //     return redirect("/admin/login");
-      //   }
-      //   const userData = localStorage.getItem("userData");
-      //   if (!userData) {
-      //     return redirect("/admin/login");
-      //   }
-      //   try {
-      //     const user = JSON.parse(userData);
-      //     const response = await getUserById(user.id);
-      //     const userDetails = response.data;
-      //     if (userDetails.MaQuyen === 0) {
-      //       return redirect("/admin/login");
-      //     }
-      //     return null;
-      //   } catch (error) {
-      //     return redirect("/admin/login");
-      //   }
-      // },
+      loader: async () => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          return redirect("/admin/login");
+        }
+        const userData = localStorage.getItem("userData");
+        if (!userData) {
+          return redirect("/admin/login");
+        }
+        try {
+          const user = JSON.parse(userData);
+          const response = await getUserById(user.id);
+          const userDetails = response.data;
+          if (userDetails.MaQuyen === 0) {
+            return redirect("/admin/login");
+          }
+          return null;
+        } catch (error) {
+          return redirect("/admin/login");
+        }
+      },
       children: [
         {
           path: "/adddanhgia",
@@ -93,18 +94,6 @@ function App() {
         {
           path: "/admin/dashboard",
           element: <DashBoard />,
-        },
-        {
-          path: "/admin/categorys",
-          element: <CategoryList />,
-        },
-        {
-          path: "/admin/categorys/addcategory",
-          element: <CategoryAdd />,
-        },
-        {
-          path: "/admin/categorys/update/:id",
-          element: <CategoryUpdate />,
         },
         {
           path: "/admin/products/add",
@@ -184,8 +173,16 @@ function App() {
       element: <LayoutWebsite />,
       children: [
         {
-          path: "/listdanhgia",
-          element: <ListDanhgia />,
+          path: "/sanphamdamua",
+          element: <SpDaMua />,
+        },
+        {
+          path: "/listdanhgiauser",
+          element: <ListDanhGiaUser />,
+        },
+        {
+          path: "/adddanhgiauser/:id",
+          element: <AddDanhGiaUser />,
         },
         {
           path: "/checkcart",
@@ -242,6 +239,10 @@ function App() {
         {
           path: "/cart",
           element: <Cart />,
+        },
+        {
+          path: "/order-return",
+          element: <OrderReturn />,
         },
         {
           path: "/about",

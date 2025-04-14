@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getProducts } from "../../../service/api";
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Spin,
+  Alert,
+  Typography,
+  Space,
+  Tag,
+  Image,
+} from "antd";
+import {
+  LeftOutlined,
+  EditOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
+
+const { Title, Text, Paragraph } = Typography;
 
 const ProductsDetail = () => {
   const { id } = useParams();
@@ -13,10 +32,8 @@ const ProductsDetail = () => {
     quantity: 0,
   });
 
-  // Trong ProductsDetail.js
   useEffect(() => {
     setLoading(true);
-
     getProducts(id)
       .then((response) => {
         const productData = response.data.data;
@@ -58,222 +75,237 @@ const ProductsDetail = () => {
 
   if (loading) {
     return (
-      <div className="text-center mt-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Đang tải...</span>
-        </div>
-        <p className="mt-2">Đang tải dữ liệu...</p>
+      <div style={{ textAlign: "center", marginTop: 50 }}>
+        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+        <Text style={{ marginTop: 16, display: "block" }}>Đang tải dữ liệu...</Text>
       </div>
     );
   }
 
   if (error) {
-    return <div className="alert alert-danger text-center">{error}</div>;
+    return (
+      <Alert
+        message="Lỗi"
+        description={error}
+        type="error"
+        showIcon
+        style={{ margin: "20px auto", maxWidth: 600 }}
+      />
+    );
   }
 
   if (!product) {
     return (
-      <div className="alert alert-warning text-center">
-        Không tìm thấy sản phẩm.
-      </div>
+      <Alert
+        message="Cảnh báo"
+        description="Không tìm thấy sản phẩm."
+        type="warning"
+        showIcon
+        style={{ margin: "20px auto", maxWidth: 600 }}
+      />
     );
   }
 
   return (
-    <div className="container py-4">
+    <div style={{ padding: "24px", background: "#f0f2f5" }}>
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Chi Tiết Sản Phẩm</h1>
-        <div>
-          <Link to="/admin/products">
-            <button className="btn btn-secondary me-2">Quay lại</button>
-          </Link>
-          <Link to={`/admin/products/edit/${id}`}>
-            <button className="btn btn-warning">Chỉnh sửa</button>
-          </Link>
-        </div>
-      </div>
+      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+        <Col>
+          <Title level={3} style={{ margin: 0 }}>
+            Chi Tiết Sản Phẩm
+          </Title>
+        </Col>
+        <Col>
+          <Space>
+            <Link to="/admin/products">
+              <Button type="default" icon={<LeftOutlined />}>
+                Quay lại
+              </Button>
+            </Link>
+            <Link to={`/admin/products/edit/${id}`}>
+              <Button type="primary" icon={<EditOutlined />}>
+                Chỉnh sửa
+              </Button>
+            </Link>
+          </Space>
+        </Col>
+      </Row>
 
-      {/* Thông Tin Cơ Bản */}
-      <div className="card shadow mb-4">
-        <div className="card-header py-3 bg-primary text-white">
-          <h6 className="m-0 font-weight-bold">Thông Tin Cơ Bản</h6>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6">
-              <p>
-                <strong>Mã Sản Phẩm:</strong> {product.MaSP}
-              </p>
-              <p>
-                <strong>Tên Sản Phẩm:</strong> {product.TenSP}
-              </p>
-              <p>
-                <strong>Tên Thương Hiệu:</strong> {product.TenTH}
-              </p>
-              <p>
-                <strong>Màn Hình:</strong> {product.ManHinh}
-              </p>
-              <p>
-                <strong>Pin:</strong> {product.LoaiPin}
-              </p>
-            </div>
-            <div className="col-md-6">
-              <p>
-                <strong>Hệ Điều Hành:</strong> {product.HDH}
-              </p>
-              <p>
-                <strong>Camera Sau:</strong> {product.CamSau}
-              </p>
-              <p>
-                <strong>Camera Trước:</strong> {product.CamTruoc}
-              </p>
-              <p>
-                <strong>CPU:</strong> {product.CPU}
-              </p>
-              <p>
-                <strong>Trạng Thái:</strong> {product.TrangThai}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Thông Tin Cơ Bản và Phiên Bản Sản Phẩm nằm ngang */}
+      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+        {/* Thông Tin Cơ Bản */}
+        <Col xs={24} lg={12}>
+          <Card
+            title={<Text strong>Thông Tin Cơ Bản</Text>}
+            headStyle={{ background: "#1890ff", color: "#fff" }}
+          >
+            <Row gutter={[16, 16]}>
+              <Col xs={24} md={12}>
+                <Text strong>Mã Sản Phẩm: </Text>
+                <Text>{product.MaSP}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Tên Sản Phẩm: </Text>
+                <Text>{product.TenSP}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Tên Thương Hiệu: </Text>
+                <Text>{product.TenTH}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Màn Hình: </Text>
+                <Text>{product.ManHinh}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Pin: </Text>
+                <Text>{product.LoaiPin}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Hệ Điều Hành: </Text>
+                <Text>{product.HDH}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Camera Sau: </Text>
+                <Text>{product.CamSau}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Camera Trước: </Text>
+                <Text>{product.CamTruoc}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>CPU: </Text>
+                <Text>{product.CPU}</Text>
+              </Col>
+              <Col xs={24} md={12}>
+                <Text strong>Trạng Thái: </Text>
+                <Tag color={product.TrangThai === "Còn hàng" ? "green" : "red"}>
+                  {product.TrangThai}
+                </Tag>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
 
-      {/* Phiên Bản Sản Phẩm */}
-      <div className="card shadow mb-4">
-        <div className="card-header py-3 bg-info text-white">
-          <h6 className="m-0 font-weight-bold">Phiên Bản Sản Phẩm</h6>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            {/* Bộ Nhớ Trong */}
-            <div className="col-md-6">
-              <p>
-                <strong>Bộ Nhớ Trong:</strong>
-              </p>
-              <div className="d-flex gap-2 mb-3">
-                {["BoNhoTrong1", "BoNhoTrong2", "BoNhoTrong3"].map(
-                  (key, index) => {
-                    if (!product[key]) return null;
+        {/* Phiên Bản Sản Phẩm */}
+        <Col xs={24} lg={12}>
+          <Card
+            title={<Text strong>Phiên Bản Sản Phẩm</Text>}
+            headStyle={{ background: "#13c2c2", color: "#fff" }}
+          >
+            <Row gutter={[16, 16]}>
+              {/* Bộ Nhớ Trong */}
+              <Col xs={24} md={12}>
+                <Text strong>Bộ Nhớ Trong:</Text>
+                <div style={{ marginTop: 8 }}>
+                  <Space wrap>
+                    {[
+                      "BoNhoTrong1",
+                      "BoNhoTrong2",
+                      "BoNhoTrong3",
+                      "BoNhoTrong4",
+                      "BoNhoTrong5",
+                      "BoNhoTrong6",
+                    ].map((key, index) =>
+                      product[key] && product[key] !== "Không có" ? (
+                        <Button
+                          key={index}
+                          type={
+                            selectedMemory.memory === product[key]
+                              ? "primary"
+                              : "default"
+                          }
+                          onClick={() => handleMemorySelection(key)}
+                        >
+                          {product[key]}
+                        </Button>
+                      ) : null
+                    )}
+                  </Space>
+                </div>
+                <div style={{ marginTop: 16 }}>
+                  <Text strong>Số Lượng: </Text>
+                  <Text>{selectedMemory.quantity}</Text>
+                </div>
+                <div>
+                  <Text strong>Giá: </Text>
+                  <Text type="danger">{formatCurrency(selectedMemory.price)}</Text>
+                </div>
+              </Col>
 
-                    return (
-                      <button
-                        key={index}
-                        className={`btn ${
-                          selectedMemory.memory === product[key]
-                            ? "btn-primary"
-                            : "btn-outline-primary"
-                        }`}
-                        onClick={() => handleMemorySelection(key)}
-                        style={{ height: "38px" }}
-                      >
-                        {product[key]}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-
-              <p>
-                <strong>Số Lượng:</strong> {selectedMemory.quantity}
-              </p>
-              <p>
-                <strong>Giá:</strong>
-                <span className="text-danger ms-2">
-                  {formatCurrency(selectedMemory.price)}
-                </span>
-              </p>
-            </div>
-
-            {/* Màu Sắc */}
-            <div className="col-md-6">
-              <p>
-                <strong>Màu Sắc:</strong>
-              </p>
-              <div className="d-flex flex-column gap-2">
-                {[product.Mau1, product.Mau2, product.Mau3].map(
-                  (color, index) =>
-                    color && (
-                      <div
-                        key={index}
-                        className="d-flex align-items-center gap-2"
-                        style={{ height: "38px" }}
-                      >
-                        <div
-                          className="color-box shadow-sm"
-                          style={{
-                            width: "30px",
-                            height: "30px",
-                            backgroundColor: color,
-                            borderRadius: "5px",
-                            border: "1px solid #ccc",
-                            cursor: "pointer",
-                            transition: "transform 0.2s, box-shadow 0.2s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.transform = "scale(1.1)";
-                            e.target.style.boxShadow =
-                              "0 4px 8px rgba(0, 0, 0, 0.2)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.transform = "scale(1)";
-                            e.target.style.boxShadow =
-                              "0 2px 4px rgba(0, 0, 0, 0.1)";
-                          }}
-                        />
-                      </div>
-                    )
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              {/* Màu Sắc */}
+              <Col xs={24} md={12}>
+                <Text strong>Màu Sắc:</Text>
+                <div style={{ marginTop: 8 }}>
+                  <Space direction="vertical">
+                    {[product.Mau1, product.Mau2, product.Mau3].map(
+                      (color, index) =>
+                        color && (
+                          <div key={index} style={{ display: "flex", alignItems: "center" }}>
+                            <div
+                              style={{
+                                width: 30,
+                                height: 30,
+                                backgroundColor: color,
+                                borderRadius: 5,
+                                border: "1px solid #d9d9d9",
+                                marginRight: 8,
+                                transition: "all 0.3s",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.transform = "scale(1.1)")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.transform = "scale(1)")
+                              }
+                            />
+                            <Text>{color}</Text>
+                          </div>
+                        )
+                    )}
+                  </Space>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+      </Row>
 
       {/* Hình Ảnh Sản Phẩm */}
-      <div className="card shadow mb-4">
-        <div className="card-header py-3 bg-success text-white">
-          <h6 className="m-0 font-weight-bold">Hình Ảnh Sản Phẩm</h6>
-        </div>
-        <div className="card-body">
-          <div className="d-flex gap-3">
-            {[1, 2, 3].map(
-              (index) =>
-                product[`HinhAnh${index}`] && (
-                  <img
-                    key={index}
-                    src={product[`HinhAnh${index}`]}
-                    alt={product.TenSP}
-                    className="img-fluid rounded shadow-sm"
-                    style={{
-                      maxWidth: "150px",
-                      transition: "transform 0.2s, box-shadow 0.2s",
-                      cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = "scale(1.05)";
-                      e.target.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = "scale(1)";
-                      e.target.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
-                    }}
-                  />
-                )
-            )}
-          </div>
-        </div>
-      </div>
+      <Card
+        title={<Text strong>Hình Ảnh Sản Phẩm</Text>}
+        style={{ marginBottom: 24 }}
+        headStyle={{ background: "#52c41a", color: "#fff" }}
+      >
+        <Space wrap>
+          {[1, 2, 3, 4, 5, 6].map(
+            (index) =>
+              product[`HinhAnh${index}`] && (
+                <Image
+                  key={index}
+                  src={product[`HinhAnh${index}`]}
+                  alt={product.TenSP}
+                  width={150}
+                  height={150}
+                  style={{
+                    objectFit: "cover",
+                    borderRadius: 8,
+                    transition: "all 0.3s",
+                  }}
+                  preview
+                />
+              )
+          )}
+        </Space>
+      </Card>
 
       {/* Mô Tả Sản Phẩm */}
-      <div className="card shadow mb-4">
-        <div className="card-header py-3 bg-warning text-white">
-          <h6 className="m-0 font-weight-bold">Mô Tả Sản Phẩm</h6>
-        </div>
-        <div className="card-body">
-          <p>{product.MoTa}</p>
-        </div>
-      </div>
+      <Card
+        title={<Text strong>Mô Tả Sản Phẩm</Text>}
+        style={{ marginBottom: 24 }}
+        headStyle={{ background: "#faad14", color: "#fff" }}
+      >
+        <Paragraph>{product.MoTa}</Paragraph>
+      </Card>
     </div>
   );
 };

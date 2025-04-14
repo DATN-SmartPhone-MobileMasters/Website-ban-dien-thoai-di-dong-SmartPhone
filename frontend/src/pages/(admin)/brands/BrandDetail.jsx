@@ -50,16 +50,6 @@ const BrandDetail = () => {
           <p>
             <strong>Mô tả:</strong> {brand.Mota}
           </p>
-          <p>
-            <strong>Danh mục:</strong>{" "}
-            {brand.MaDM && brand.MaDM.length > 0
-              ? brand.MaDM.map((dm) => (
-                  <span key={dm._id} className="badge badge-info mx-1">
-                    {dm.TenDM}
-                  </span>
-                ))
-              : "Không có danh mục"}
-          </p>
           <Link to="/admin/brands" className="btn btn-primary mt-3">
             Quay lại danh sách
           </Link>
