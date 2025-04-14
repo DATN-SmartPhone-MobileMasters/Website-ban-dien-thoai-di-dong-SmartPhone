@@ -121,7 +121,7 @@ const AdminListComment = () => {
       const replyData = {
         Content: replyContent[commentId],
         Date: new Date().toISOString(),
-        AdminEmail: "admin@example.com",
+        AdminEmail: "admin@vip.pro",
       };
       const response = await replyComment(commentId, replyData);
       message.success("Đã gửi câu trả lời thành công!");
