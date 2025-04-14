@@ -94,7 +94,7 @@ const ThongKeDanhGia = () => {
       }}
     >
       <Title level={3} style={{ textAlign: 'center', marginBottom: '24px', color: '#1890ff' }}>
-        Thống Kê Đánh Giá Theo Ngày
+        Thống Kê Đánh Giá 
       </Title>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px' }}>
