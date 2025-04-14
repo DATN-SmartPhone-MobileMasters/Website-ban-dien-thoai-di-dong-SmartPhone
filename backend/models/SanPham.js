@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const SanPhamSchema = new mongoose.Schema({
   MaSP: { type: String, unique: true, required: true },
   MaKM: { type: String },
-  TenTH: {type: String},
-  MoTa: {type: String},
-  CapSac: {type: String},
+  TenTH: { type: String },
+  MoTa: { type: String },
+  CapSac: { type: String },
   TenSP: { type: String, required: true },
   GiaSP1: { type: Number, required: true },
   GiaSP2: { type: Number, required: true },
@@ -32,13 +32,11 @@ const SanPhamSchema = new mongoose.Schema({
   BoNhoTrong5: { type: String },
   BoNhoTrong6: { type: String },
   Mau1: { type: String },
-  Mau2: { type: String },
-  Mau3: { type: String },
-  ManHinh: { type: String },
+  ManHinh: { type: String, default: '' }, // Thêm default
   HDH: { type: String },
   CamSau: { type: String },
   CamTruoc: { type: String },
-  CPU: { type: String },
+  CPU: { type: String, default: '' }, // Thêm default
   LoaiPin: { type: String },
   TrangThai: { type: String },
   created_at: { type: Date, default: Date.now },
