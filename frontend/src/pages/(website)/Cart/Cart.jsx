@@ -50,6 +50,7 @@ const Cart = () => {
     }).format(value);
   };
 
+  // Lấy danh sách mã giảm giá khi component khởi tạo
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
@@ -57,6 +58,7 @@ const Cart = () => {
         setPromotions(response.data);
       } catch (error) {
         console.error("Lỗi khi lấy mã giảm giá:", error);
+        message.error("Không thể tải mã giảm giá.");
       }
     };
 
@@ -64,13 +66,15 @@ const Cart = () => {
   }, []);
 
   const getMemoryKey = (memory, availableMemories) => {
-    if (memory === availableMemories.BoNhoTrong1) return "BoNhoTrong1";
-    if (memory === availableMemories.BoNhoTrong2) return "BoNhoTrong2";
-    if (memory === availableMemories.BoNhoTrong3) return "BoNhoTrong3";
-    if (memory === availableMemories.BoNhoTrong4) return "BoNhoTrong4";
-    if (memory === availableMemories.BoNhoTrong5) return "BoNhoTrong5";
-    if (memory === availableMemories.BoNhoTrong6) return "BoNhoTrong6";
-    return "BoNhoTrong1";
+    const keys = [
+      "BoNhoTrong1",
+      "BoNhoTrong2",
+      "BoNhoTrong3",
+      "BoNhoTrong4",
+      "BoNhoTrong5",
+      "BoNhoTrong6",
+    ];
+    return keys.find((key) => availableMemories[key] === memory) || "BoNhoTrong1";
   };
 
   const updateCart = async () => {
@@ -98,32 +102,24 @@ const Cart = () => {
 
             let newPrice = item.price;
             let newMaxQuantity = item.maxQuantity;
+            let isDiscontinued = productData.TrangThai === "Ngừng kinh doanh";
 
-            if (productData.BoNhoTrong1 === item.memory) {
-              newPrice = productData.GiaSP1;
-              newMaxQuantity = productData.SoLuong1;
-            } else if (productData.BoNhoTrong2 === item.memory) {
-              newPrice = productData.GiaSP2;
-              newMaxQuantity = productData.SoLuong2;
-            } else if (productData.BoNhoTrong3 === item.memory) {
-              newPrice = productData.GiaSP3;
-              newMaxQuantity = productData.SoLuong3;
-            } else if (productData.BoNhoTrong4 === item.memory) {
-              newPrice = productData.GiaSP4;
-              newMaxQuantity = productData.SoLuong4;
-            } else if (productData.BoNhoTrong5 === item.memory) {
-              newPrice = productData.GiaSP5;
-              newMaxQuantity = productData.SoLuong5;
-            } else if (productData.BoNhoTrong6 === item.memory) {
-              newPrice = productData.GiaSP6;
-              newMaxQuantity = productData.SoLuong6;
+            const memoryKey = getMemoryKey(item.memory, productData);
+            const memoryIndex = memoryKey.slice(-1);
+
+            if (isDiscontinued) {
+              newPrice = 0; // Giá bằng 0 nếu ngừng kinh doanh
+              newMaxQuantity = 0;
+            } else {
+              newPrice = productData[`GiaSP${memoryIndex}`];
+              newMaxQuantity = productData[`SoLuong${memoryIndex}`];
             }
 
             let newQuantity = item.quantity;
-            if (newMaxQuantity <= 0) {
+            if (newMaxQuantity <= 0 || isDiscontinued) {
               newQuantity = 0;
             } else if (newQuantity === 0) {
-              newQuantity = 1; // Đặt số lượng mặc định là 1 nếu còn hàng
+              newQuantity = 1;
             } else if (newQuantity > newMaxQuantity) {
               newQuantity = newMaxQuantity;
             }
@@ -134,6 +130,7 @@ const Cart = () => {
               name: productData.TenSP,
               maxQuantity: newMaxQuantity,
               quantity: newQuantity,
+              isDiscontinued: isDiscontinued,
               availableMemories: {
                 BoNhoTrong1: productData.BoNhoTrong1,
                 BoNhoTrong2: productData.BoNhoTrong2,
@@ -157,7 +154,7 @@ const Cart = () => {
             };
           } catch (error) {
             console.error("Lỗi khi lấy thông tin sản phẩm:", error);
-            return item;
+            return { ...item, maxQuantity: 0, quantity: 0, price: 0 };
           }
         })
       );
@@ -166,7 +163,7 @@ const Cart = () => {
       localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
 
       const initialSelection = updatedCart.reduce((acc, _, index) => {
-        acc[index] = updatedCart[index].maxQuantity > 0;
+        acc[index] = updatedCart[index].maxQuantity > 0 && !updatedCart[index].isDiscontinued;
         return acc;
       }, {});
       setSelectedItems(initialSelection);
@@ -200,7 +197,7 @@ const Cart = () => {
 
         const newSelectedItems = {};
         newStoredCart.forEach((_, index) => {
-          newSelectedItems[index] = newStoredCart[index].maxQuantity > 0;
+          newSelectedItems[index] = newStoredCart[index].maxQuantity > 0 && !newStoredCart[index].isDiscontinued;
         });
         setSelectedItems(newSelectedItems);
 
@@ -233,32 +230,24 @@ const Cart = () => {
           if (item.id === updatedProduct._id) {
             let newPrice = item.price;
             let newMaxQuantity = item.maxQuantity;
+            let isDiscontinued = updatedProduct.TrangThai === "Ngừng kinh doanh";
 
-            if (updatedProduct.BoNhoTrong1 === item.memory) {
-              newPrice = updatedProduct.GiaSP1;
-              newMaxQuantity = updatedProduct.SoLuong1;
-            } else if (updatedProduct.BoNhoTrong2 === item.memory) {
-              newPrice = updatedProduct.GiaSP2;
-              newMaxQuantity = updatedProduct.SoLuong2;
-            } else if (updatedProduct.BoNhoTrong3 === item.memory) {
-              newPrice = updatedProduct.GiaSP3;
-              newMaxQuantity = updatedProduct.SoLuong3;
-            } else if (updatedProduct.BoNhoTrong4 === item.memory) {
-              newPrice = updatedProduct.GiaSP4;
-              newMaxQuantity = updatedProduct.SoLuong4;
-            } else if (updatedProduct.BoNhoTrong5 === item.memory) {
-              newPrice = updatedProduct.GiaSP5;
-              newMaxQuantity = updatedProduct.SoLuong5;
-            } else if (updatedProduct.BoNhoTrong6 === item.memory) {
-              newPrice = updatedProduct.GiaSP6;
-              newMaxQuantity = updatedProduct.SoLuong6;
+            const memoryKey = getMemoryKey(item.memory, updatedProduct);
+            const memoryIndex = memoryKey.slice(-1);
+
+            if (isDiscontinued) {
+              newPrice = 0;
+              newMaxQuantity = 0;
+            } else {
+              newPrice = updatedProduct[`GiaSP${memoryIndex}`];
+              newMaxQuantity = updatedProduct[`SoLuong${memoryIndex}`];
             }
 
             let newQuantity = item.quantity;
-            if (newMaxQuantity <= 0) {
+            if (newMaxQuantity <= 0 || isDiscontinued) {
               newQuantity = 0;
             } else if (newQuantity === 0) {
-              newQuantity = 1; // Đặt số lượng mặc định là 1 nếu còn hàng
+              newQuantity = 1;
             } else if (newQuantity > newMaxQuantity) {
               newQuantity = newMaxQuantity;
             }
@@ -269,6 +258,7 @@ const Cart = () => {
               name: updatedProduct.TenSP,
               maxQuantity: newMaxQuantity,
               quantity: newQuantity,
+              isDiscontinued: isDiscontinued,
               availableMemories: {
                 BoNhoTrong1: updatedProduct.BoNhoTrong1,
                 BoNhoTrong2: updatedProduct.BoNhoTrong2,
@@ -299,7 +289,7 @@ const Cart = () => {
 
         const newSelectedItems = {};
         updatedCart.forEach((_, index) => {
-          newSelectedItems[index] = updatedCart[index].maxQuantity > 0;
+          newSelectedItems[index] = updatedCart[index].maxQuantity > 0 && !updatedCart[index].isDiscontinued;
         });
         setSelectedItems(newSelectedItems);
 
@@ -355,7 +345,7 @@ const Cart = () => {
     } else {
       const currentQuantity = newCart[index].quantity;
       const newQuantity =
-        newMaxQuantity === 0
+        newMaxQuantity === 0 || newCart[index].isDiscontinued
           ? 0
           : currentQuantity === 0
           ? 1
@@ -379,7 +369,7 @@ const Cart = () => {
 
     const newSelectedItems = {};
     newCart.forEach((_, i) => {
-      newSelectedItems[i] = newCart[i].maxQuantity > 0;
+      newSelectedItems[i] = newCart[i].maxQuantity > 0 && !newCart[i].isDiscontinued;
     });
     setSelectedItems(newSelectedItems);
 
@@ -394,6 +384,11 @@ const Cart = () => {
 
   const increaseQuantity = (index) => {
     const newCart = [...cart];
+    if (newCart[index].isDiscontinued) {
+      message.warning("Sản phẩm đã ngừng kinh doanh.");
+      return;
+    }
+
     const newQuantity = newCart[index].quantity + 1;
 
     if (newQuantity > newCart[index].maxQuantity) {
@@ -451,7 +446,7 @@ const Cart = () => {
 
     const newSelectedItems = {};
     newCart.forEach((_, i) => {
-      newSelectedItems[i] = newCart[i].maxQuantity > 0;
+      newSelectedItems[i] = newCart[i].maxQuantity > 0 && !newCart[i].isDiscontinued;
     });
     setSelectedItems(newSelectedItems);
 
@@ -461,7 +456,7 @@ const Cart = () => {
 
   const calculateTotal = () => {
     return cart.reduce((total, item, index) => {
-      if (selectedItems[index]) {
+      if (selectedItems[index] && !item.isDiscontinued) {
         return total + item.price * item.quantity;
       }
       return total;
@@ -516,7 +511,7 @@ const Cart = () => {
     const maxDiscount = 2000000;
     if (discountAmount > maxDiscount) {
       discountAmount = maxDiscount;
-      message.warning("Mã giảm giá chỉ áp dụng tối đa 2000,000 VND.");
+      message.warning("Mã giảm giá chỉ áp dụng tối đa 2,000,000 VND.");
     }
 
     setDiscount(discountAmount);
@@ -534,6 +529,10 @@ const Cart = () => {
   };
 
   const handleSelectItem = (index) => {
+    if (cart[index].isDiscontinued) {
+      message.warning("Sản phẩm đã ngừng kinh doanh, không thể chọn.");
+      return;
+    }
     setSelectedItems((prev) => ({
       ...prev,
       [index]: !prev[index],
@@ -547,7 +546,7 @@ const Cart = () => {
 
   const calculateOriginalTotal = () => {
     return cart.reduce((total, item, index) => {
-      if (selectedItems[index]) {
+      if (selectedItems[index] && !item.isDiscontinued) {
         return total + item.price * item.quantity;
       }
       return total;
@@ -564,7 +563,7 @@ const Cart = () => {
   const handleCheckout = () => {
     navigate("/checkcart", {
       state: {
-        cart: cart.filter((_, index) => selectedItems[index]),
+        cart: cart.filter((_, index) => selectedItems[index] && !cart[index].isDiscontinued),
         total: calculateOriginalTotal(),
         finalTotal: calculateFinalTotal(),
         discount: discount,
@@ -606,9 +605,9 @@ const Cart = () => {
     }
   };
 
-  // Kiểm tra nếu có bất kỳ sản phẩm nào được chọn và còn hàng
   const hasSelectedInStockItems = Object.entries(selectedItems).some(
-    ([index, isSelected]) => isSelected && cart[index]?.maxQuantity > 0
+    ([index, isSelected]) =>
+      isSelected && cart[index]?.maxQuantity > 0 && !cart[index]?.isDiscontinued
   );
 
   const columns = [
@@ -623,7 +622,7 @@ const Cart = () => {
             const newSelectedItems = {};
             cart.forEach((_, index) => {
               newSelectedItems[index] =
-                e.target.checked && cart[index].maxQuantity > 0;
+                e.target.checked && cart[index].maxQuantity > 0 && !cart[index].isDiscontinued;
             });
             setSelectedItems(newSelectedItems);
           }}
@@ -635,7 +634,7 @@ const Cart = () => {
         <Checkbox
           checked={selectedItems[index] || false}
           onChange={() => handleSelectItem(index)}
-          disabled={record.maxQuantity === 0}
+          disabled={record.maxQuantity === 0 || record.isDiscontinued}
         />
       ),
       width: 50,
@@ -662,56 +661,63 @@ const Cart = () => {
             </Text>
             <div>
               <Text type="secondary">
-                Bộ nhớ: {record.memory}
-                <div className="d-flex gap-2 mt-2">
-                  {[
-                    "BoNhoTrong1",
-                    "BoNhoTrong2",
-                    "BoNhoTrong3",
-                    "BoNhoTrong4",
-                    "BoNhoTrong5",
-                    "BoNhoTrong6",
-                  ].map(
-                    (memoryKey) =>
-                      record.availableMemories[memoryKey] &&
-                      record.availableMemories[memoryKey] !== "Không có" ? (
-                        <div
-                          key={memoryKey}
-                          style={{ position: "relative", textAlign: "center" }}
-                        >
-                          <Button
-                            type={
-                              record.memory ===
-                              record.availableMemories[memoryKey]
-                                ? "primary"
-                                : "default"
-                            }
-                            size="small"
-                            onClick={() => handleMemoryChange(index, memoryKey)}
-                          >
-                            {record.availableMemories[memoryKey]}
-                          </Button>
-                          {record.memory ===
-                            record.availableMemories[memoryKey] &&
-                            record.availableMemories[
-                              `SoLuong${memoryKey.slice(-1)}`
-                            ] === 0 && (
-                              <Text
-                                type="danger"
-                                style={{
-                                  display: "block",
-                                  fontSize: 12,
-                                  marginTop: 4,
-                                  whiteSpace: "nowrap",
-                                }}
+                {record.isDiscontinued ? (
+                  <Text type="danger">Ngừng kinh doanh</Text>
+                ) : (
+                  <>
+                    Bộ nhớ: {record.memory}
+                    <div className="d-flex gap-2 mt-2">
+                      {[
+                        "BoNhoTrong1",
+                        "BoNhoTrong2",
+                        "BoNhoTrong3",
+                        "BoNhoTrong4",
+                        "BoNhoTrong5",
+                        "BoNhoTrong6",
+                      ].map(
+                        (memoryKey) =>
+                          record.availableMemories[memoryKey] &&
+                          record.availableMemories[memoryKey] !== "Không có" ? (
+                            <div
+                              key={memoryKey}
+                              style={{ position: "relative", textAlign: "center" }}
+                            >
+                              <Button
+                                type={
+                                  record.memory ===
+                                  record.availableMemories[memoryKey]
+                                    ? "primary"
+                                    : "default"
+                                }
+                                size="small"
+                                onClick={() => handleMemoryChange(index, memoryKey)}
+                                disabled={record.maxQuantity === 0}
                               >
-                                Hết hàng
-                              </Text>
-                            )}
-                        </div>
-                      ) : null
-                  )}
-                </div>
+                                {record.availableMemories[memoryKey]}
+                              </Button>
+                              {record.memory ===
+                                record.availableMemories[memoryKey] &&
+                                record.availableMemories[
+                                  `SoLuong${memoryKey.slice(-1)}`
+                                ] === 0 && (
+                                  <Text
+                                    type="danger"
+                                    style={{
+                                      display: "block",
+                                      fontSize: 12,
+                                      marginTop: 4,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    Hết hàng
+                                  </Text>
+                                )}
+                            </div>
+                          ) : null
+                      )}
+                    </div>
+                  </>
+                )}
               </Text>
             </div>
             <div>
@@ -739,7 +745,9 @@ const Cart = () => {
       title: "Giá",
       dataIndex: "price",
       key: "price",
-      render: (price) => <Text strong>{formatCurrency(price)}</Text>,
+      render: (price) => (
+        <Text strong>{price === 0 ? "Ngừng kinh doanh" : formatCurrency(price)}</Text>
+      ),
       align: "center",
     },
     {
@@ -752,18 +760,20 @@ const Cart = () => {
             <Button
               icon={<MinusOutlined />}
               onClick={() => decreaseQuantity(index)}
-              disabled={quantity <= 1 || record.maxQuantity === 0}
+              disabled={quantity <= 1 || record.maxQuantity === 0 || record.isDiscontinued}
             />
             <Text>{quantity}</Text>
             <Button
               icon={<PlusOutlined />}
               onClick={() => increaseQuantity(index)}
-              disabled={record.maxQuantity <= 0}
+              disabled={record.maxQuantity <= 0 || record.isDiscontinued}
             />
           </Space>
           <Text type="secondary">Còn lại: {record.maxQuantity}</Text>
-          {record.maxQuantity <= 0 && (
-            <Text type="danger">Sản phẩm đã hết hàng</Text>
+          {(record.maxQuantity <= 0 || record.isDiscontinued) && (
+            <Text type="danger">
+              {record.isDiscontinued ? "Sản phẩm đã ngừng kinh doanh" : "Sản phẩm đã hết hàng"}
+            </Text>
           )}
         </Space>
       ),
@@ -773,7 +783,11 @@ const Cart = () => {
       title: "Tổng",
       key: "total",
       render: (text, record) => (
-        <Text strong>{formatCurrency(record.price * record.quantity)}</Text>
+        <Text strong>
+          {record.isDiscontinued
+            ? "Ngừng kinh doanh"
+            : formatCurrency(record.price * record.quantity)}
+        </Text>
       ),
       align: "center",
     },
@@ -879,9 +893,9 @@ const Cart = () => {
                 </Text>
               )}
 
-              {cart.some((item) => item.maxQuantity === 0) && (
+              {cart.some((item) => item.maxQuantity === 0 || item.isDiscontinued) && (
                 <Alert
-                  message="Có sản phẩm đã hết hàng, vui lòng xóa hoặc chọn bộ nhớ khác."
+                  message="Có sản phẩm đã hết hàng hoặc ngừng kinh doanh, vui lòng xóa hoặc chọn bộ nhớ khác."
                   type="warning"
                   showIcon
                   style={{ marginTop: 16 }}
