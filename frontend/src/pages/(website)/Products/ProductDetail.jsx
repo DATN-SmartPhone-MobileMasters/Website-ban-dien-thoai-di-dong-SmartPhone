@@ -162,7 +162,6 @@ const ProductDetail = () => {
       if (updatedProduct._id === id) {
         setProduct(updatedProduct);
 
-        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
         const allMemoriesNone = [
           updatedProduct.BoNhoTrong1,
           updatedProduct.BoNhoTrong2,
@@ -213,6 +212,122 @@ const ProductDetail = () => {
     };
   }, [id, selectedMemory.memory]);
 
+  const autoSelectMemory = (productData) => {
+    const allMemoriesNone = [
+      productData.BoNhoTrong1,
+      productData.BoNhoTrong2,
+      productData.BoNhoTrong3,
+      productData.BoNhoTrong4,
+      productData.BoNhoTrong5,
+      productData.BoNhoTrong6,
+    ].every((memory) => memory === "Không có");
+
+    if (allMemoriesNone) {
+      setSelectedMemory({ memory: "", price: 0, quantity: 0 });
+      return;
+    }
+
+    const availableMemories = [
+      productData.BoNhoTrong1,
+      productData.BoNhoTrong2,
+      productData.BoNhoTrong3,
+      productData.BoNhoTrong4,
+      productData.BoNhoTrong5,
+      productData.BoNhoTrong6,
+    ].filter((memory) => memory !== "Không có");
+
+    if (availableMemories.length === 1) {
+      const memoryKey =
+        availableMemories[0] === productData.BoNhoTrong1
+          ? "BoNhoTrong1"
+          : availableMemories[0] === productData.BoNhoTrong2
+          ? "BoNhoTrong2"
+          : availableMemories[0] === productData.BoNhoTrong3
+          ? "BoNhoTrong3"
+          : availableMemories[0] === productData.BoNhoTrong4
+          ? "BoNhoTrong4"
+          : availableMemories[0] === productData.BoNhoTrong5
+          ? "BoNhoTrong5"
+          : "BoNhoTrong6";
+      const memoryIndex = memoryKey.slice(-1);
+      timeoutRef.current = setTimeout(() => {
+        setSelectedMemory({
+          memory: productData[memoryKey],
+          price: productData[`GiaSP${memoryIndex}`],
+          quantity: productData[`SoLuong${memoryIndex}`],
+        });
+      }, 200);
+    } else {
+      if (
+        productData.BoNhoTrong1 &&
+        productData.BoNhoTrong1 !== "Không có"
+      ) {
+        timeoutRef.current = setTimeout(() => {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong1,
+            price: productData.GiaSP1,
+            quantity: productData.SoLuong1,
+          });
+        }, 200);
+      } else if (
+        productData.BoNhoTrong2 &&
+        productData.BoNhoTrong2 !== "Không có"
+      ) {
+        timeoutRef.current = setTimeout(() => {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong2,
+            price: productData.GiaSP2,
+            quantity: productData.SoLuong2,
+          });
+        }, 200);
+      } else if (
+        productData.BoNhoTrong3 &&
+        productData.BoNhoTrong3 !== "Không có"
+      ) {
+        timeoutRef.current = setTimeout(() => {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong3,
+            price: productData.GiaSP3,
+            quantity: productData.SoLuong3,
+          });
+        }, 200);
+      } else if (
+        productData.BoNhoTrong4 &&
+        productData.BoNhoTrong4 !== "Không có"
+      ) {
+        timeoutRef.current = setTimeout(() => {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong4,
+            price: productData.GiaSP4,
+            quantity: productData.SoLuong4,
+          });
+        }, 200);
+      } else if (
+        productData.BoNhoTrong5 &&
+        productData.BoNhoTrong5 !== "Không có"
+      ) {
+        timeoutRef.current = setTimeout(() => {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong5,
+            price: productData.GiaSP5,
+            quantity: productData.SoLuong5,
+          });
+        }, 200);
+      } else if (
+        productData.BoNhoTrong6 &&
+        productData.BoNhoTrong6 !== "Không có"
+      ) {
+        timeoutRef.current = setTimeout(() => {
+          setSelectedMemory({
+            memory: productData.BoNhoTrong6,
+            price: productData.GiaSP6,
+            quantity: productData.SoLuong6,
+          });
+        }, 200);
+      }
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     getProducts(id)
@@ -222,121 +337,7 @@ const ProductDetail = () => {
         setProduct(updatedProduct);
         if (updatedProduct.HinhAnh1) setSelectedImage(updatedProduct.HinhAnh1);
 
-        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
-        const allMemoriesNone = [
-          updatedProduct.BoNhoTrong1,
-          updatedProduct.BoNhoTrong2,
-          updatedProduct.BoNhoTrong3,
-          updatedProduct.BoNhoTrong4,
-          updatedProduct.BoNhoTrong5,
-          updatedProduct.BoNhoTrong6,
-        ].every((memory) => memory === "Không có");
-
-        if (allMemoriesNone) {
-          setSelectedMemory({ memory: "", price: 0, quantity: 0 });
-        } else {
-          // Đếm số bộ nhớ khả dụng
-          const availableMemories = [
-            updatedProduct.BoNhoTrong1,
-            updatedProduct.BoNhoTrong2,
-            updatedProduct.BoNhoTrong3,
-            updatedProduct.BoNhoTrong4,
-            updatedProduct.BoNhoTrong5,
-            updatedProduct.BoNhoTrong6,
-          ].filter((memory) => memory !== "Không có");
-
-          // Nếu chỉ có 1 bộ nhớ khả dụng, tự động chọn sau 200ms
-          if (availableMemories.length === 1) {
-            const memoryKey = availableMemories[0] === updatedProduct.BoNhoTrong1
-              ? "BoNhoTrong1"
-              : availableMemories[0] === updatedProduct.BoNhoTrong2
-              ? "BoNhoTrong2"
-              : availableMemories[0] === updatedProduct.BoNhoTrong3
-              ? "BoNhoTrong3"
-              : availableMemories[0] === updatedProduct.BoNhoTrong4
-              ? "BoNhoTrong4"
-              : availableMemories[0] === updatedProduct.BoNhoTrong5
-              ? "BoNhoTrong5"
-              : "BoNhoTrong6";
-            const memoryIndex = memoryKey.slice(-1);
-            timeoutRef.current = setTimeout(() => {
-              setSelectedMemory({
-                memory: updatedProduct[memoryKey],
-                price: updatedProduct[`GiaSP${memoryIndex}`],
-                quantity: updatedProduct[`SoLuong${memoryIndex}`],
-              });
-            }, 200);
-          } else {
-            // Logic cũ: Chọn bộ nhớ đầu tiên khả dụng
-            if (
-              updatedProduct.BoNhoTrong1 &&
-              updatedProduct.BoNhoTrong1 !== "Không có"
-            ) {
-              timeoutRef.current = setTimeout(() => {
-                setSelectedMemory({
-                  memory: updatedProduct.BoNhoTrong1,
-                  price: updatedProduct.GiaSP1,
-                  quantity: updatedProduct.SoLuong1,
-                });
-              }, 200);
-            } else if (
-              updatedProduct.BoNhoTrong2 &&
-              updatedProduct.BoNhoTrong2 !== "Không có"
-            ) {
-              timeoutRef.current = setTimeout(() => {
-                setSelectedMemory({
-                  memory: updatedProduct.BoNhoTrong2,
-                  price: updatedProduct.GiaSP2,
-                  quantity: updatedProduct.SoLuong2,
-                });
-              }, 200);
-            } else if (
-              updatedProduct.BoNhoTrong3 &&
-              updatedProduct.BoNhoTrong3 !== "Không có"
-            ) {
-              timeoutRef.current = setTimeout(() => {
-                setSelectedMemory({
-                  memory: updatedProduct.BoNhoTrong3,
-                  price: updatedProduct.GiaSP3,
-                  quantity: updatedProduct.SoLuong3,
-                });
-              }, 200);
-            } else if (
-              updatedProduct.BoNhoTrong4 &&
-              updatedProduct.BoNhoTrong4 !== "Không có"
-            ) {
-              timeoutRef.current = setTimeout(() => {
-                setSelectedMemory({
-                  memory: updatedProduct.BoNhoTrong4,
-                  price: updatedProduct.GiaSP4,
-                  quantity: updatedProduct.SoLuong4,
-                });
-              }, 200);
-            } else if (
-              updatedProduct.BoNhoTrong5 &&
-              updatedProduct.BoNhoTrong5 !== "Không có"
-            ) {
-              timeoutRef.current = setTimeout(() => {
-                setSelectedMemory({
-                  memory: updatedProduct.BoNhoTrong5,
-                  price: updatedProduct.GiaSP5,
-                  quantity: updatedProduct.SoLuong5,
-                });
-              }, 200);
-            } else if (
-              updatedProduct.BoNhoTrong6 &&
-              updatedProduct.BoNhoTrong6 !== "Không có"
-            ) {
-              timeoutRef.current = setTimeout(() => {
-                setSelectedMemory({
-                  memory: updatedProduct.BoNhoTrong6,
-                  price: updatedProduct.GiaSP6,
-                  quantity: updatedProduct.SoLuong6,
-                });
-              }, 200);
-            }
-          }
-        }
+        autoSelectMemory(updatedProduct);
 
         setLoading(false);
 
@@ -634,12 +635,29 @@ const ProductDetail = () => {
 
   const handleMouseLeave = () => setZoomStyle({});
 
+  const handleProductClick = (productId) => {
+    setLoading(true);
+    getProducts(productId)
+      .then((response) => {
+        const productData = response.data.data;
+        setProduct(productData);
+        setSelectedMemory({ memory: "", price: 0, quantity: 0 });
+        if (productData.HinhAnh1) setSelectedImage(productData.HinhAnh1);
+        autoSelectMemory(productData);
+        setLoading(false);
+        navigate(`/products/product_detail/${productId}`);
+      })
+      .catch(() => {
+        setError("Không thể tải chi tiết sản phẩm.");
+        setLoading(false);
+      });
+  };
+
   if (loading) return <div className="text-center mt-5">Đang tải...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!product)
     return <div className="alert alert-warning">Không tìm thấy sản phẩm.</div>;
 
-  // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
   const allMemoriesNone = [
     product.BoNhoTrong1,
     product.BoNhoTrong2,
@@ -894,11 +912,7 @@ const ProductDetail = () => {
                               />
                             </div>
                           }
-                          onClick={() =>
-                            navigate(
-                              `/products/product_detail/${relatedProduct._id}`
-                            )
-                          }
+                          onClick={() => handleProductClick(relatedProduct._id)}
                         >
                           <Card.Meta
                             title={
@@ -943,7 +957,7 @@ const ProductDetail = () => {
 
                     {showRelatedRightArrow && (
                       <Button
-                        shape="circle"
+                        shape thí="circle"
                         icon={<FaChevronRight />}
                         onClick={() => scrollRelatedProducts("right")}
                         style={{
@@ -1139,9 +1153,7 @@ const ProductDetail = () => {
                       hoverable
                       style={{ minWidth: 250, marginRight: 16 }}
                       cover={<img alt={product.TenSP} src={product.HinhAnh1} />}
-                      onClick={() =>
-                        navigate(`/products/product_detail/${product._id}`)
-                      }
+                      onClick={() => handleProductClick(product._id)}
                     >
                       <Card.Meta
                         title={product.TenSP}
@@ -1174,10 +1186,10 @@ const ProductDetail = () => {
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col span={24}>
-          <LatestProducts />
+          <LatestProducts onProductClick={handleProductClick} />
         </Col>
         <Col span={24}>
-          <SellerProducts />
+          <SellerProducts onProductClick={handleProductClick} />
         </Col>
         <Col span={24}>
           <Card title={<Title level={4}>Bình Luận</Title>}>
