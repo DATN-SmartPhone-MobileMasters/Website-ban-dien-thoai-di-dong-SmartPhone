@@ -24,6 +24,10 @@ class SanPhamController {
     try {
       const id = req.params.id;
       const deletedSanPham = await SanPham.findByIdAndDelete(id);
+      
+      // Phát sự kiện socket khi xóa sản phẩm
+      io.emit("productDeleted", { id });
+      
       res.status(200).json({
         message: "Xóa sản phẩm thành công",
         data: deletedSanPham,
@@ -103,6 +107,38 @@ class SanPhamController {
     }
   }
 
+  // API cập nhật trạng thái sản phẩm
+  async apiUpdateStatus(req, res) {
+    try {
+      const id = req.params.id;
+      const { TrangThai } = req.body;
+
+      const updatedSanPham = await SanPham.findByIdAndUpdate(
+        id,
+        { TrangThai },
+        { new: true }
+      );
+
+      if (!updatedSanPham) {
+        return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+      }
+
+      // Phát sự kiện socket khi cập nhật trạng thái
+      io.emit("productStatusUpdated", updatedSanPham);
+
+      res.status(200).json({
+        message: "Cập nhật trạng thái thành công!",
+        data: updatedSanPham,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Lỗi khi cập nhật trạng thái sản phẩm",
+        error: error.message,
+      });
+    }
+  }
+
+  // API upload ảnh
   async apiUpload(req, res) {
     try {
       if (!req.files || Object.keys(req.files).length === 0) {

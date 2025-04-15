@@ -103,6 +103,12 @@ class HoaDonController {
           quantityField = "SoLuong2";
         } else if (memory === sanPham.BoNhoTrong3) {
           quantityField = "SoLuong3";
+        } else if (memory === sanPham.BoNhoTrong4) {
+          quantityField = "SoLuong4";
+        } else if (memory === sanPham.BoNhoTrong5) {
+          quantityField = "SoLuong5";
+        } else if (memory === sanPham.BoNhoTrong6) {
+          quantityField = "SoLuong6";
         } else {
           return res.status(400).json({
             message: `Biến thể bộ nhớ ${memory} không hợp lệ cho sản phẩm ${sanPham.TenSP}`,
@@ -129,6 +135,13 @@ class HoaDonController {
           { [update.quantityField]: update.newQuantity },
           { runValidators: true }
         );
+
+        // Phát sự kiện Socket.IO để cập nhật số lượng sản phẩm
+        io.emit("inventoryUpdated", {
+          productId: update.productId,
+          quantityField: update.quantityField,
+          newQuantity: update.newQuantity,
+        });
       }
 
       const newOrder = new hoadon(req.body);
@@ -187,6 +200,12 @@ class HoaDonController {
               quantityField = "SoLuong2";
             } else if (memory === sanPham.BoNhoTrong3) {
               quantityField = "SoLuong3";
+            } else if (memory === sanPham.BoNhoTrong4) {
+              quantityField = "SoLuong4";
+            } else if (memory === sanPham.BoNhoTrong5) {
+              quantityField = "SoLuong5";
+            } else if (memory === sanPham.BoNhoTrong6) {
+              quantityField = "SoLuong6";
             } else {
               console.log("Invalid memory variant:", memory, "for product:", sanPham.TenSP);
               return res.status(400).json({
@@ -195,6 +214,7 @@ class HoaDonController {
             }
 
             const currentQuantity = sanPham[quantityField];
+            const newQuantity = currentQuantity + quantity;
             console.log(
               "Updating product quantity:",
               productId,
@@ -202,13 +222,20 @@ class HoaDonController {
               "from",
               currentQuantity,
               "to",
-              currentQuantity + quantity
+              newQuantity
             );
             await SanPham.findByIdAndUpdate(
               productId,
-              { [quantityField]: currentQuantity + quantity },
+              { [quantityField]: newQuantity },
               { runValidators: true }
             );
+
+            // Phát sự kiện Socket.IO để cập nhật số lượng sản phẩm
+            io.emit("inventoryUpdated", {
+              productId,
+              quantityField,
+              newQuantity,
+            });
           }
         }
       }
@@ -268,101 +295,97 @@ class HoaDonController {
     }
   }
 
+  // Thống kê doanh thu
+  async thongKeDoanhThu(req, res) {
+    try {
+      const matchCompletedOrders = {
+        $match: {
+          $or: [
+            { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Hoàn thành" },
+            { paymentMethod: "vnpay", paymentStatus: "Đã hoàn thành" },
+          ],
+        },
+      };
 
-// Thống kê doanh thu
-async thongKeDoanhThu(req, res) {
-  try {
-    const matchCompletedOrders = {
-      $match: {
-        $or: [
-          { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Hoàn thành" },
-          { paymentMethod: "vnpay", paymentStatus: "Đã hoàn thành" }
-        ]
-      }
-    };
-
-    const doanhThuTheoNgay = await hoadon.aggregate([
-      matchCompletedOrders,
-      { $unwind: "$products" },
-      {
-        $group: {
-          _id: {
-            ngay: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-            gio: { $hour: "$createdAt" },
-          },
-          tongDoanhThu: { $sum: "$total" },
-          sanPhamDaBan: {
-            $push: {
-              TenSP: "$products.name",
-              memory: "$products.memory",
-              quantity: "$products.quantity",
-              image: "$products.image",
-              thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } },
+      const doanhThuTheoNgay = await hoadon.aggregate([
+        matchCompletedOrders,
+        { $unwind: "$products" },
+        {
+          $group: {
+            _id: {
+              ngay: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+              gio: { $hour: "$createdAt" },
+            },
+            tongDoanhThu: { $sum: "$total" },
+            sanPhamDaBan: {
+              $push: {
+                TenSP: "$products.name",
+                memory: "$products.memory",
+                quantity: "$products.quantity",
+                image: "$products.image",
+                thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } },
+              },
             },
           },
         },
-      },
-      { $sort: { "_id.ngay": 1, "_id.gio": 1 } },
-    ]);
+        { $sort: { "_id.ngay": 1, "_id.gio": 1 } },
+      ]);
 
-    const doanhThuTheoTuan = await hoadon.aggregate([
-      matchCompletedOrders,
-      {
-        $group: {
-          _id: { $week: "$createdAt" },
-          tongDoanhThu: { $sum: "$total" },
+      const doanhThuTheoTuan = await hoadon.aggregate([
+        matchCompletedOrders,
+        {
+          $group: {
+            _id: { $week: "$createdAt" },
+            tongDoanhThu: { $sum: "$total" },
+          },
         },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+        { $sort: { _id: 1 } },
+      ]);
 
-    const doanhThuTheoThang = await hoadon.aggregate([
-      matchCompletedOrders,
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-          tongDoanhThu: { $sum: "$total" },
+      const doanhThuTheoThang = await hoadon.aggregate([
+        matchCompletedOrders,
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+            tongDoanhThu: { $sum: "$total" },
+          },
         },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+        { $sort: { _id: 1 } },
+      ]);
 
-    const doanhThuTheoNam = await hoadon.aggregate([
-      matchCompletedOrders,
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y", date: "$createdAt" } },
-          tongDoanhThu: { $sum: "$total" },
+      const doanhThuTheoNam = await hoadon.aggregate([
+        matchCompletedOrders,
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y", date: "$createdAt" } },
+            tongDoanhThu: { $sum: "$total" },
+          },
         },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+        { $sort: { _id: 1 } },
+      ]);
 
-    const tongDoanhThuTheoNgay = doanhThuTheoNgay.reduce(
-      (acc, item) => acc + item.tongDoanhThu,
-      0
-    );
-    const tongDoanhThuTheoTuan = doanhThuTheoTuan.reduce(
-      (acc, item) => acc + item.tongDoanhThu,
-      0
-    );
+      const tongDoanhThuTheoNgay = doanhThuTheoNgay.reduce(
+        (acc, item) => acc + item.tongDoanhThu,
+        0
+      );
+      const tongDoanhThuTheoTuan = doanhThuTheoTuan.reduce(
+        (acc, item) => acc + item.tongDoanhThu,
+        0
+      );
 
-    res.status(200).json({
-      doanhThuTheoNgay,
-      doanhThuTheoTuan,
-      doanhThuTheoThang,
-      doanhThuTheoNam,
-      tongDoanhThuTheoNgay,
-      tongDoanhThuTheoTuan,
-    });
-  } catch (error) {
-    console.error("Error in thongKeDoanhThu:", error.message);
-    res.status(500).json({ message: error.message });
+      res.status(200).json({
+        doanhThuTheoNgay,
+        doanhThuTheoTuan,
+        doanhThuTheoThang,
+        doanhThuTheoNam,
+        tongDoanhThuTheoNgay,
+        tongDoanhThuTheoTuan,
+      });
+    } catch (error) {
+      console.error("Error in thongKeDoanhThu:", error.message);
+      res.status(500).json({ message: error.message });
+    }
   }
-}
-
-
-
 
   // Tạo thanh toán VNPay
   async apiCreateVNPayPayment(req, res) {
