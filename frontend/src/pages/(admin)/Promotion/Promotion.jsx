@@ -8,8 +8,8 @@ const { Option } = Select;
 
 const statusMap = {
   0: "🟡 Chưa bắt đầu",
-  1: "🔵 Đang diễn ra",
-  2: "🔴 Đã kết thúc",
+  1: "🔴 Đã sử dụng",
+  2: "🔵 Đang diễn ra",
 };
 
 const formatDate = (dateString) => {
@@ -168,8 +168,8 @@ const Promotion = forwardRef((props, ref) => {
               allowClear
             >
               <Option value={0}>🟡 Chưa bắt đầu</Option>
-              <Option value={1}>🔵 Đang diễn ra</Option>
-              <Option value={2}>🔴 Đã kết thúc</Option>
+              <Option value={1}>🔴 Đã sử dụng</Option>
+              <Option value={2}>🔵Đang diễn ra</Option>
             </Select>
           </div>
           <div>
