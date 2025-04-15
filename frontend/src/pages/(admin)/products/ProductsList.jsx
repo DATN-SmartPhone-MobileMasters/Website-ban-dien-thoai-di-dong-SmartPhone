@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchProducts, deleteProducts } from "../../../service/api";
+import { fetchProducts, deleteProducts, updateProductStatus } from "../../../service/api";
 import {
   message,
   Table,
@@ -20,6 +20,7 @@ import {
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import queryString from "query-string";
 import { PlusOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import Socket from "../../(website)/socket/Socket";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -31,6 +32,7 @@ const ProductsList = () => {
   const [loading, setLoading] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [reloadTimer, setReloadTimer] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,13 +44,82 @@ const ProductsList = () => {
     brand = "",
   } = queryString.parse(location.search);
 
+  const setupReloadTimer = () => {
+    if (reloadTimer) {
+      clearTimeout(reloadTimer);
+    }
+    const timer = setTimeout(() => {
+      window.location.reload();
+    }, 200); // 200 giây
+    setReloadTimer(timer);
+  };
+
   useEffect(() => {
     getProducts();
+
+    Socket.on("inventoryUpdated", ({ productId, quantityField, newQuantity }) => {
+      setProducts((prevProducts) => {
+        const updatedProducts = prevProducts.map((product) =>
+          product._id === productId
+            ? { ...product, [quantityField]: newQuantity }
+            : product
+        );
+        
+        setupReloadTimer();
+        return updatedProducts.map(product => checkAndUpdateProductStatus(product));
+      });
+    });
+
+    return () => {
+      Socket.off("inventoryUpdated");
+      if (reloadTimer) {
+        clearTimeout(reloadTimer);
+      }
+    };
   }, []);
 
   useEffect(() => {
     filterProducts(search, memory, status, brand);
   }, [search, memory, status, brand, products]);
+
+  const checkAndUpdateProductStatus = async (product) => {
+    const totalQuantity = 
+      (product.SoLuong1 || 0) + 
+      (product.SoLuong2 || 0) + 
+      (product.SoLuong3 || 0) + 
+      (product.SoLuong4 || 0) + 
+      (product.SoLuong5 || 0) + 
+      (product.SoLuong6 || 0);
+    
+    let newStatus = product.TrangThai;
+    
+    if (totalQuantity === 0 && product.TrangThai !== "Hết hàng") {
+      newStatus = "Hết hàng";
+      try {
+        await updateProductStatus(product._id, { TrangThai: newStatus });
+      } catch (error) {
+        console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
+        return product;
+      }
+      
+      if (product.TrangThai === "Còn hàng" && newStatus === "Hết hàng") {
+        setupReloadTimer();
+      }
+      
+      return { ...product, TrangThai: newStatus };
+    } else if (totalQuantity > 0 && product.TrangThai === "Hết hàng") {
+      newStatus = "Còn hàng";
+      try {
+        await updateProductStatus(product._id, { TrangThai: newStatus });
+      } catch (error) {
+        console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
+        return product;
+      }
+      return { ...product, TrangThai: newStatus };
+    }
+    
+    return product;
+  };
 
   const getProducts = async () => {
     setLoading(true);
@@ -57,7 +128,12 @@ const ProductsList = () => {
       const data = Array.isArray(response.data)
         ? response.data
         : response.data.data || [];
-      const reversedData = [...data].reverse();
+      
+      const updatedProducts = await Promise.all(data.map(async product => {
+        return await checkAndUpdateProductStatus(product);
+      }));
+      
+      const reversedData = [...updatedProducts].reverse();
       setProducts(reversedData);
       setFilteredProducts(reversedData);
 
@@ -76,10 +152,9 @@ const ProductsList = () => {
     try {
       await deleteProducts(id);
       message.success("Xóa sản phẩm thành công!");
-
-      // Phát sự kiện cartUpdated kèm theo ID sản phẩm vừa xóa
-      window.dispatchEvent(new CustomEvent("cartUpdated", { detail: { deletedProductId: id } }));
-
+      window.dispatchEvent(
+        new CustomEvent("cartUpdated", { detail: { deletedProductId: id } })
+      );
       getProducts();
     } catch (error) {
       message.error("Lỗi khi xóa sản phẩm!");
@@ -194,94 +269,24 @@ const ProductsList = () => {
       sorter: (a, b) => a.TenSP.localeCompare(b.TenSP),
     },
     {
-      title: "Bộ Nhớ 1",
-      dataIndex: "BoNhoTrong1",
-      key: "BoNhoTrong1",
-      width: 100,
-      render: (text) => (
-        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
-          {text || "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Bộ Nhớ 2",
-      dataIndex: "BoNhoTrong2",
-      key: "BoNhoTrong2",
-      width: 100,
-      render: (text) => (
-        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
-          {text || "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Bộ Nhớ 3",
-      dataIndex: "BoNhoTrong3",
-      key: "BoNhoTrong3",
-      width: 100,
-      render: (text) => (
-        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
-          {text || "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Bộ Nhớ 4",
-      dataIndex: "BoNhoTrong4",
-      key: "BoNhoTrong4",
-      width: 100,
-      render: (text) => (
-        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
-          {text || "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Bộ Nhớ 5",
-      dataIndex: "BoNhoTrong5",
-      key: "BoNhoTrong5",
-      width: 100,
-      render: (text) => (
-        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
-          {text || "-"}
-        </span>
-      ),
-    },
-    {
-      title: "Bộ Nhớ 6",
-      dataIndex: "BoNhoTrong6",
-      key: "BoNhoTrong6",
-      width: 100,
-      render: (text) => (
-        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
-          {text || "-"}
-        </span>
-      ),
-    },
-    {
       title: "Trạng Thái",
       dataIndex: "TrangThai",
       key: "TrangThai",
       render: (status) => (
-        <span style={{ color: status === "Còn hàng" ? "#52c41a" : status === "Hết hàng" ? "#ff4d4f" : "#faad14" }}>
+        <span
+          style={{
+            color:
+              status === "Còn hàng"
+                ? "#52c41a"
+                : status === "Hết hàng"
+                ? "#ff4d4f"
+                : "#faad14",
+          }}
+        >
           {status}
         </span>
       ),
       width: 120,
-    },
-    {
-      title: "Hình Ảnh",
-      dataIndex: "HinhAnh1",
-      key: "HinhAnh1",
-      render: (text) => (
-        <img
-          src={text}
-          alt="Hình ảnh sản phẩm"
-          style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
-        />
-      ),
-      width: 80,
     },
     {
       title: "Màu Sắc",
@@ -299,6 +304,132 @@ const ProductsList = () => {
         />
       ),
       width: 80,
+    },
+    {
+      title: "Hình Ảnh",
+      dataIndex: "HinhAnh1",
+      key: "HinhAnh1",
+      render: (text) => (
+        <img
+          src={text}
+          alt="Hình ảnh sản phẩm"
+          style={{
+            width: 50,
+            height: 50,
+            objectFit: "cover",
+            borderRadius: 4,
+          }}
+        />
+      ),
+      width: 80,
+    },
+    {
+      title: "Bộ Nhớ 1 / Số Lượng",
+      key: "BoNhoTrong1_SoLuong1",
+      width: 150,
+      render: (_, record) => (
+        <span
+          style={
+            record.BoNhoTrong1 === memory
+              ? { fontWeight: "bold", color: "#1890ff" }
+              : {}
+          }
+        >
+          {record.BoNhoTrong1
+            ? `${record.BoNhoTrong1}/${record.SoLuong1 || 0}`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 2 / Số Lượng",
+      key: "BoNhoTrong2_SoLuong2",
+      width: 150,
+      render: (_, record) => (
+        <span
+          style={
+            record.BoNhoTrong2 === memory
+              ? { fontWeight: "bold", color: "#1890ff" }
+              : {}
+          }
+        >
+          {record.BoNhoTrong2
+            ? `${record.BoNhoTrong2}/${record.SoLuong2 || 0}`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 3 / Số Lượng",
+      key: "BoNhoTrong3_SoLuong3",
+      width: 150,
+      render: (_, record) => (
+        <span
+          style={
+            record.BoNhoTrong3 === memory
+              ? { fontWeight: "bold", color: "#1890ff" }
+              : {}
+          }
+        >
+          {record.BoNhoTrong3
+            ? `${record.BoNhoTrong3}/${record.SoLuong3 || 0}`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 4 / Số Lượng",
+      key: "BoNhoTrong4_SoLuong4",
+      width: 150,
+      render: (_, record) => (
+        <span
+          style={
+            record.BoNhoTrong4 === memory
+              ? { fontWeight: "bold", color: "#1890ff" }
+              : {}
+          }
+        >
+          {record.BoNhoTrong4
+            ? `${record.BoNhoTrong4}/${record.SoLuong4 || 0}`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 5 / Số Lượng",
+      key: "BoNhoTrong5_SoLuong5",
+      width: 150,
+      render: (_, record) => (
+        <span
+          style={
+            record.BoNhoTrong5 === memory
+              ? { fontWeight: "bold", color: "#1890ff" }
+              : {}
+          }
+        >
+          {record.BoNhoTrong5
+            ? `${record.BoNhoTrong5}/${record.SoLuong5 || 0}`
+            : "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 6 / Số Lượng",
+      key: "BoNhoTrong6_SoLuong6",
+      width: 150,
+      render: (_, record) => (
+        <span
+          style={
+            record.BoNhoTrong6 === memory
+              ? { fontWeight: "bold", color: "#1890ff" }
+              : {}
+          }
+        >
+          {record.BoNhoTrong6
+            ? `${record.BoNhoTrong6}/${record.SoLuong6 || 0}`
+            : "-"}
+        </span>
+      ),
     },
     {
       title: "Hành Động",
@@ -341,57 +472,69 @@ const ProductsList = () => {
     { title: "Hệ Điều Hành", dataIndex: "HDH", key: "HDH" },
     { title: "Màn Hình", dataIndex: "ManHinh", key: "ManHinh" },
     {
-      title: "Bộ Nhớ 1 / Giá",
-      key: "BoNhoTrong1_GiaSP1",
+      title: "Bộ Nhớ 1 / Giá / Số Lượng",
+      key: "BoNhoTrong1_GiaSP1_SoLuong1",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong1 || "-"} / ${
-          record.GiaSP1 ? record.GiaSP1 + "đ" : "-"
-        }`}</span>
+        <span>
+          {`${record.BoNhoTrong1 || "-"} / ${
+            record.GiaSP1 ? record.GiaSP1 + "đ" : "-"
+          } / ${record.SoLuong1 || 0}`}
+        </span>
       ),
     },
     {
-      title: "Bộ Nhớ 2 / Giá",
-      key: "BoNhoTrong2_GiaSP2",
+      title: "Bộ Nhớ 2 / Giá / Số Lượng",
+      key: "BoNhoTrong2_GiaSP2_SoLuong2",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong2 || "-"} / ${
-          record.GiaSP2 ? record.GiaSP2 + "đ" : "-"
-        }`}</span>
+        <span>
+          {`${record.BoNhoTrong2 || "-"} / ${
+            record.GiaSP2 ? record.GiaSP2 + "đ" : "-"
+          } / ${record.SoLuong2 || 0}`}
+        </span>
       ),
     },
     {
-      title: "Bộ Nhớ 3 / Giá",
-      key: "BoNhoTrong3_GiaSP3",
+      title: "Bộ Nhớ 3 / Giá / Số Lượng",
+      key: "BoNhoTrong3_GiaSP3_SoLuong3",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong3 || "-"} / ${
-          record.GiaSP3 ? record.GiaSP3 + "đ" : "-"
-        }`}</span>
+        <span>
+          {`${record.BoNhoTrong3 || "-"} / ${
+            record.GiaSP3 ? record.GiaSP3 + "đ" : "-"
+          } / ${record.SoLuong3 || 0}`}
+        </span>
       ),
     },
     {
-      title: "Bộ Nhớ 4 / Giá",
-      key: "BoNhoTrong4_GiaSP4",
+      title: "Bộ Nhớ 4 / Giá / Số Lượng",
+      key: "BoNhoTrong4_GiaSP4_SoLuong4",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong4 || "-"} / ${
-          record.GiaSP4 ? record.GiaSP4 + "đ" : "-"
-        }`}</span>
+        <span>
+          {`${record.BoNhoTrong4 || "-"} / ${
+            record.GiaSP4 ? record.GiaSP4 + "đ" : "-"
+          } / ${record.SoLuong4 || 0}`}
+        </span>
       ),
     },
     {
-      title: "Bộ Nhớ 5 / Giá",
-      key: "BoNhoTrong5_GiaSP5",
+      title: "Bộ Nhớ 5 / Giá / Số Lượng",
+      key: "BoNhoTrong5_GiaSP5_SoLuong5",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong5 || "-"} / ${
-          record.GiaSP5 ? record.GiaSP5 + "đ" : "-"
-        }`}</span>
+        <span>
+          {`${record.BoNhoTrong5 || "-"} / ${
+            record.GiaSP5 ? record.GiaSP5 + "đ" : "-"
+          } / ${record.SoLuong5 || 0}`}
+        </span>
       ),
     },
     {
-      title: "Bộ Nhớ 6 / Giá",
-      key: "BoNhoTrong6_GiaSP6",
+      title: "Bộ Nhớ 6 / Giá / Số Lượng",
+      key: "BoNhoTrong6_GiaSP6_SoLuong6",
       render: (_, record) => (
-        <span>{`${record.BoNhoTrong6 || "-"} / ${
-          record.GiaSP6 ? record.GiaSP6 + "đ" : "-"
-        }`}</span>
+        <span>
+          {`${record.BoNhoTrong6 || "-"} / ${
+            record.GiaSP6 ? record.GiaSP6 + "đ" : "-"
+          } / ${record.SoLuong6 || 0}`}
+        </span>
       ),
     },
   ];
@@ -493,7 +636,7 @@ const ProductsList = () => {
         }}
         bordered
         pagination={{ pageSize: 10 }}
-        scroll={{ x: 1600 }}
+        scroll={{ x: 2000 }}
       />
 
       <Modal

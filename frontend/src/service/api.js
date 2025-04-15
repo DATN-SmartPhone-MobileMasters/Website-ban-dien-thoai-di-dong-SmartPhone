@@ -92,6 +92,8 @@ export const updateProducts = async (id, data) =>
 export const deleteProducts = async (id) =>
   axios.delete(`${API_URL}/sanphams/${id}`);
 export const getProducts = async (id) => axios.get(`${API_URL}/sanphams/${id}`);
+export const updateProductStatus = async (id, statusData) =>
+  axios.put(`${API_URL}/sanphams/${id}/status`, statusData);
 
 // promotions
 export const fetchPromotion = async () => axios.get(`${API_URL}/promotions`);

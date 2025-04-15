@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { fetchOrdersByUserId } from "../../../service/api";
 
 const ProfileReceiptDetails = () => {
-  const [orders, setOrder] = useState(null);
+  const [order, setOrder] = useState(null); // Changed 'orders' to 'order' for clarity
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState({ Email: "", id: "" });
   const { id: orderId } = useParams();
@@ -21,12 +21,10 @@ const ProfileReceiptDetails = () => {
     const fetchData = async () => {
       try {
         if (userData.id) {
-          // 1. Fetch ALL orders for this user
           const response = await fetchOrdersByUserId(userData.id);
           const orders = response.data.data; // Array of orders
 
-          // 2. Find the specific orders by orderId (from URL)
-          const foundOrder = orders.find((orders) => orders._id === orderId);
+          const foundOrder = orders.find((order) => order._id === orderId);
 
           if (foundOrder) {
             setOrder(foundOrder);
@@ -42,13 +40,13 @@ const ProfileReceiptDetails = () => {
     };
 
     fetchData();
-  }, [userData.id, orderId]); // Depend on orderId
+  }, [userData.id, orderId]);
 
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
 
-  if (!orders) {
+  if (!order) {
     return <div className="text-center py-8">Order not found</div>;
   }
 
@@ -109,17 +107,17 @@ const ProfileReceiptDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Mã đơn hàng:</p>
-                  <p className="font-medium">{orders._id}</p>
+                  <p className="font-medium">{order._id}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Ngày đặt hàng:</p>
                   <p className="font-medium">
-                    {new Date(orders.createdAt).toLocaleDateString()}
+                    {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tình trạng:</p>
-                  <p className="font-medium">{orders.paymentStatus}</p>
+                  <p className="font-medium">{order.paymentStatus}</p>
                 </div>
               </div>
             </div>
@@ -131,15 +129,15 @@ const ProfileReceiptDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Tên khách hàng:</p>
-                  <p className="font-medium">{orders.shippingInfo.name}</p>
+                  <p className="font-medium">{order.shippingInfo.name}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Số điện thoại:</p>
-                  <p className="font-medium">{orders.shippingInfo.phone}</p>
+                  <p className="font-medium">{order.shippingInfo.phone}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Địa chỉ:</p>
-                  <p className="font-medium">{orders.shippingInfo.address}</p>
+                  <p className="font-medium">{order.shippingInfo.address}</p>
                 </div>
               </div>
             </div>
@@ -148,8 +146,14 @@ const ProfileReceiptDetails = () => {
               <h4 className="text-lg font-semibold mb-2">Sản phẩm</h4>
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white">
+                  <thead>
+                    <tr>
+                      <th className="py-2 px-4 border text-left">Sản phẩm</th>
+                      <th className="py-2 px-4 border text-left">Số lượng</th>
+                    </tr>
+                  </thead>
                   <tbody>
-                    {orders.products?.map((product, index) => (
+                    {order.products?.map((product, index) => (
                       <tr key={index}>
                         <td className="py-2 px-4 border">
                           <div className="flex items-center">
@@ -166,6 +170,9 @@ const ProfileReceiptDetails = () => {
                             </div>
                           </div>
                         </td>
+                        <td className="py-2 px-4 border">
+                          {product.quantity || 1}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -179,20 +186,20 @@ const ProfileReceiptDetails = () => {
                 <div>
                   <p className="text-sm text-gray-600">Tổng tiền:</p>
                   <p className="font-medium">
-                    {orders.total.toLocaleString()}đ
+                    {order.total.toLocaleString()}đ
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
                     Phương thức thanh toán:
                   </p>
-                  <p className="font-medium">{orders.paymentMethod}</p>
+                  <p className="font-medium">{order.paymentMethod}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
                     Trạng thái thanh toán:
                   </p>
-                  <p className="font-medium">{orders.checkPayment}</p>
+                  <p className="font-medium">{order.checkPayment}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Phí vận chuyển:</p>
@@ -200,25 +207,29 @@ const ProfileReceiptDetails = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
-                  Ngày hoàn thành giao hàng
+                    Ngày hoàn thành giao hàng:
                   </p>
-                  <p className="font-medium">{orders.deliveryDate || "Chưa có"}</p>
+                  <p className="font-medium">
+                    {order.deliveryDate || "Chưa có"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
-                  Ngày hoàn thành thanh toán
+                    Ngày hoàn thành thanh toán:
                   </p>
-                  <p className="font-medium">{orders.transactionDate || "Chưa có"}</p>
+                  <p className="font-medium">
+                    {order.transactionDate || "Chưa có"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tổng thanh toán:</p>
                   <p className="font-medium">
-                    {(orders.total + 20000).toLocaleString()}đ
+                    {(order.total + 20000).toLocaleString()}đ
                   </p>
                 </div>
               </div>
             </div>
-            {orders.paymentStatus === "Huỷ Đơn" && (
+            {order.paymentStatus === "Huỷ Đơn" && (
               <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-100">
                 <h2 className="text-xl font-semibold mb-2 text-red-700">
                   Thông tin hủy đơn
@@ -227,21 +238,21 @@ const ProfileReceiptDetails = () => {
                   <div>
                     <p className="text-sm text-red-600">Huỷ Bởi:</p>
                     <p className="font-medium text-red-800">
-                      {orders.cancelledBy?.name}-{orders.cancelledBy?.role}
+                      {order.cancelledBy?.name}-{order.cancelledBy?.role}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-red-600">Thời gian hủy:</p>
                     <p className="font-medium text-red-800">
-                      {orders.cancellationDate
-                        ? new Date(orders.cancellationDate).toLocaleString()
+                      {order.cancellationDate
+                        ? new Date(order.cancellationDate).toLocaleString()
                         : "N/A"}
                     </p>
                   </div>
                   <div className="md:col-span-2">
                     <p className="text-sm text-red-600">Lý do:</p>
                     <p className="font-medium text-red-800">
-                      {orders.FeedBack}
+                      {order.FeedBack || "Không có lý do cụ thể"}
                     </p>
                   </div>
                 </div>
