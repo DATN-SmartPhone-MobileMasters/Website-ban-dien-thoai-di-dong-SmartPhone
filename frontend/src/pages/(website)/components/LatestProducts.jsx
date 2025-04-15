@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchProducts } from "../../../service/api";
 import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
@@ -13,10 +13,9 @@ import "swiper/css/pagination";
 const { Title, Text } = Typography;
 const { Meta } = Card;
 
-const LatestProducts = () => {
+const LatestProducts = ({ onProductClick }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const getLatestProducts = async () => {
     setLoading(true);
@@ -92,7 +91,9 @@ const LatestProducts = () => {
           updatedProduct.SoLuong5 === 0 &&
           updatedProduct.SoLuong6 === 0
         );
-        const productIndex = updatedProducts.findIndex((p) => p._id === updatedProduct._id);
+        const productIndex = updatedProducts.findIndex(
+          (p) => p._id === updatedProduct._id
+        );
 
         if (productIndex !== -1) {
           if (isIphone && isInStock) {
@@ -159,7 +160,7 @@ const LatestProducts = () => {
       <div className="max-w-7xl mx-auto px-4">
         <Title level={2} className="text-center mb-8 text-blue-600">
           <FireOutlined className="text-red-500 mr-2" />
-          Sản phẩm iPhone mới nhất
+          Sản phẩm iPhone mớiที่สุด
           <FireOutlined className="text-red-500 ml-2" />
         </Title>
 
@@ -173,7 +174,7 @@ const LatestProducts = () => {
               const { memory, price } = getFirstValidMemoryAndPrice(product);
               return (
                 <SwiperSlide key={product._id}>
-                  <Link to={`/products/product_detail/${product._id}`} className="block h-full">
+                  {onProductClick ? (
                     <Card
                       hoverable
                       cover={
@@ -186,6 +187,7 @@ const LatestProducts = () => {
                         </div>
                       }
                       className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                      onClick={() => onProductClick(product._id)}
                     >
                       <Meta
                         title={
@@ -217,7 +219,59 @@ const LatestProducts = () => {
                         }
                       />
                     </Card>
-                  </Link>
+                  ) : (
+                    <Link
+                      to={`/products/product_detail/${product._id}`}
+                      className="block h-full"
+                    >
+                      <Card
+                        hoverable
+                        cover={
+                          <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
+                            <img
+                              alt={product.TenSP}
+                              src={product.HinhAnh1}
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                        }
+                        className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                      >
+                        <Meta
+                          title={
+                            <div className="text-center">
+                              <Text
+                                ellipsis={{ tooltip: product.TenSP }}
+                                className="font-semibold text-blue-600"
+                              >
+                                {product.TenSP}
+                              </Text>
+                            </div>
+                          }
+                          description={
+                            <div className="text-center">
+                              <div className="mb-2">
+                                <Text
+                                  type="secondary"
+                                  className="text-gray-600"
+                                >
+                                  {memory}
+                                </Text>
+                              </div>
+                              <Text strong className="text-blue-600 text-lg">
+                                {price
+                                  ? new Intl.NumberFormat("vi-VN", {
+                                      style: "currency",
+                                      currency: "VND",
+                                    }).format(price)
+                                  : "Liên hệ"}
+                              </Text>
+                            </div>
+                          }
+                        />
+                      </Card>
+                    </Link>
+                  )}
                 </SwiperSlide>
               );
             })}
