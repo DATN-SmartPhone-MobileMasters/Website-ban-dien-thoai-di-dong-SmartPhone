@@ -117,7 +117,15 @@ const ProductsList = () => {
     }
 
     if (memory) {
-      filtered = filtered.filter((p) => p.BoNhoTrong1 === memory);
+      filtered = filtered.filter(
+        (p) =>
+          p.BoNhoTrong1 === memory ||
+          p.BoNhoTrong2 === memory ||
+          p.BoNhoTrong3 === memory ||
+          p.BoNhoTrong4 === memory ||
+          p.BoNhoTrong5 === memory ||
+          p.BoNhoTrong6 === memory
+      );
     }
 
     if (status) {
@@ -186,17 +194,77 @@ const ProductsList = () => {
       sorter: (a, b) => a.TenSP.localeCompare(b.TenSP),
     },
     {
-      title: "Bộ Nhớ",
+      title: "Bộ Nhớ 1",
       dataIndex: "BoNhoTrong1",
       key: "BoNhoTrong1",
       width: 100,
+      render: (text) => (
+        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
+          {text || "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 2",
+      dataIndex: "BoNhoTrong2",
+      key: "BoNhoTrong2",
+      width: 100,
+      render: (text) => (
+        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
+          {text || "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 3",
+      dataIndex: "BoNhoTrong3",
+      key: "BoNhoTrong3",
+      width: 100,
+      render: (text) => (
+        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
+          {text || "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 4",
+      dataIndex: "BoNhoTrong4",
+      key: "BoNhoTrong4",
+      width: 100,
+      render: (text) => (
+        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
+          {text || "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 5",
+      dataIndex: "BoNhoTrong5",
+      key: "BoNhoTrong5",
+      width: 100,
+      render: (text) => (
+        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
+          {text || "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 6",
+      dataIndex: "BoNhoTrong6",
+      key: "BoNhoTrong6",
+      width: 100,
+      render: (text) => (
+        <span style={text === memory ? { fontWeight: "bold", color: "#1890ff" } : {}}>
+          {text || "-"}
+        </span>
+      ),
     },
     {
       title: "Trạng Thái",
       dataIndex: "TrangThai",
       key: "TrangThai",
       render: (status) => (
-        <span style={{ color: status === "Còn hàng" ? "#52c41a" : "#ff4d4f" }}>
+        <span style={{ color: status === "Còn hàng" ? "#52c41a" : status === "Hết hàng" ? "#ff4d4f" : "#faad14" }}>
           {status}
         </span>
       ),
@@ -299,6 +367,33 @@ const ProductsList = () => {
         }`}</span>
       ),
     },
+    {
+      title: "Bộ Nhớ 4 / Giá",
+      key: "BoNhoTrong4_GiaSP4",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong4 || "-"} / ${
+          record.GiaSP4 ? record.GiaSP4 + "đ" : "-"
+        }`}</span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 5 / Giá",
+      key: "BoNhoTrong5_GiaSP5",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong5 || "-"} / ${
+          record.GiaSP5 ? record.GiaSP5 + "đ" : "-"
+        }`}</span>
+      ),
+    },
+    {
+      title: "Bộ Nhớ 6 / Giá",
+      key: "BoNhoTrong6_GiaSP6",
+      render: (_, record) => (
+        <span>{`${record.BoNhoTrong6 || "-"} / ${
+          record.GiaSP6 ? record.GiaSP6 + "đ" : "-"
+        }`}</span>
+      ),
+    },
   ];
 
   const compareData = selectedProducts.map((id) =>
@@ -364,6 +459,7 @@ const ProductsList = () => {
               allowClear
               style={{ width: "100%" }}
             >
+              <Option value="32GB">32GB</Option>
               <Option value="64GB">64GB</Option>
               <Option value="128GB">128GB</Option>
               <Option value="256GB">256GB</Option>
@@ -381,6 +477,7 @@ const ProductsList = () => {
             >
               <Option value="Còn hàng">Còn hàng</Option>
               <Option value="Hết hàng">Hết hàng</Option>
+              <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
             </Select>
           </Col>
         </Row>
@@ -396,7 +493,7 @@ const ProductsList = () => {
         }}
         bordered
         pagination={{ pageSize: 10 }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1600 }}
       />
 
       <Modal
@@ -404,7 +501,7 @@ const ProductsList = () => {
         visible={isModalVisible}
         onCancel={handleModalClose}
         footer={null}
-        width={1000}
+        width={1200}
       >
         <Table
           dataSource={compareData}
@@ -412,7 +509,7 @@ const ProductsList = () => {
           rowKey="_id"
           pagination={false}
           bordered
-          scroll={{ x: 800 }}
+          scroll={{ x: 1000 }}
         />
       </Modal>
     </div>

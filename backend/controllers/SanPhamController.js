@@ -1,7 +1,7 @@
 import SanPham from "../models/SanPham.js";
 import { v2 as cloudinary } from 'cloudinary';
 import { io } from "../server.js";
-// Khởi tạo class
+
 class SanPhamController {
   // API lấy danh sách sản phẩm
   async apiList(req, res) {
@@ -62,6 +62,8 @@ class SanPhamController {
   async apiCreate(req, res) {
     try {
       const newSanPham = await SanPham.create(req.body);
+      // Phát sự kiện socket tới tất cả client khi sản phẩm được tạo
+      io.emit("productCreated", newSanPham);
       res.status(201).json({
         message: "Thêm sản phẩm thành công!",
         data: newSanPham,
@@ -100,23 +102,23 @@ class SanPhamController {
       });
     }
   }
-  
+
   async apiUpload(req, res) {
     try {
       if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).json({ success: false, message: 'No files uploaded' });
       }
-  
-      console.log('Received file:', req.files.image); 
-  
+
+      console.log('Received file:', req.files.image);
+
       const { image } = req.files;
       const result = await cloudinary.uploader.upload(image.tempFilePath, {
         folder: 'phone_store',
         resource_type: 'auto'
       });
-  
-      console.log('Cloudinary upload result:', result); 
-  
+
+      console.log('Cloudinary upload result:', result);
+
       res.json({
         success: true,
         imageUrl: result.secure_url,

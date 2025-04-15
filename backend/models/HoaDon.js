@@ -60,6 +60,12 @@ const HoaDonSchema = new mongoose.Schema({
   cancellationDate: { 
     type: Date
   },
+  deliveryDate: { 
+    type: Date
+  },
+  transactionDate: { 
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

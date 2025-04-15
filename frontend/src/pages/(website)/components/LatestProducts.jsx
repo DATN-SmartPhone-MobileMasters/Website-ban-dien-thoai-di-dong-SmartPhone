@@ -5,7 +5,7 @@ import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
 import Socket from "../socket/Socket";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules"; // Import từ swiper/modules
+import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -29,7 +29,14 @@ const LatestProducts = () => {
       const filteredProducts = data.filter(
         (product) =>
           product.TenSP.toLowerCase().includes("iphone") &&
-          !(product.SoLuong1 === 0 && product.SoLuong2 === 0 && product.SoLuong3 === 0)
+          !(
+            product.SoLuong1 === 0 &&
+            product.SoLuong2 === 0 &&
+            product.SoLuong3 === 0 &&
+            product.SoLuong4 === 0 &&
+            product.SoLuong5 === 0 &&
+            product.SoLuong6 === 0
+          )
       );
 
       const sortedProducts = filteredProducts
@@ -48,6 +55,31 @@ const LatestProducts = () => {
   useEffect(() => {
     getLatestProducts();
 
+    // Lắng nghe sự kiện productCreated
+    Socket.on("productCreated", (newProduct) => {
+      setProducts((prevProducts) => {
+        const isIphone = newProduct.TenSP.toLowerCase().includes("iphone");
+        const isInStock = !(
+          newProduct.SoLuong1 === 0 &&
+          newProduct.SoLuong2 === 0 &&
+          newProduct.SoLuong3 === 0 &&
+          newProduct.SoLuong4 === 0 &&
+          newProduct.SoLuong5 === 0 &&
+          newProduct.SoLuong6 === 0
+        );
+
+        if (isIphone && isInStock) {
+          const updatedProducts = [newProduct, ...prevProducts];
+          return updatedProducts
+            .sort((a, b) => b._id.localeCompare(a._id))
+            .slice(0, 8);
+        }
+
+        return prevProducts;
+      });
+    });
+
+    // Lắng nghe sự kiện productUpdated
     Socket.on("productUpdated", (updatedProduct) => {
       setProducts((prevProducts) => {
         let updatedProducts = [...prevProducts];
@@ -55,7 +87,10 @@ const LatestProducts = () => {
         const isInStock = !(
           updatedProduct.SoLuong1 === 0 &&
           updatedProduct.SoLuong2 === 0 &&
-          updatedProduct.SoLuong3 === 0
+          updatedProduct.SoLuong3 === 0 &&
+          updatedProduct.SoLuong4 === 0 &&
+          updatedProduct.SoLuong5 === 0 &&
+          updatedProduct.SoLuong6 === 0
         );
         const productIndex = updatedProducts.findIndex((p) => p._id === updatedProduct._id);
 
@@ -75,7 +110,9 @@ const LatestProducts = () => {
       });
     });
 
+    // Dọn dẹp các sự kiện khi component unmount
     return () => {
+      Socket.off("productCreated");
       Socket.off("productUpdated");
     };
   }, []);
@@ -87,7 +124,34 @@ const LatestProducts = () => {
     navigation: true,
     pagination: { clickable: true },
     loop: products.length >= 5,
-    modules: [Navigation, Pagination], // Đăng ký modules
+    modules: [Navigation, Pagination],
+  };
+
+  // Hàm tìm bộ nhớ và giá hợp lệ đầu tiên
+  const getFirstValidMemoryAndPrice = (product) => {
+    const memories = [
+      product.BoNhoTrong1,
+      product.BoNhoTrong2,
+      product.BoNhoTrong3,
+      product.BoNhoTrong4,
+      product.BoNhoTrong5,
+      product.BoNhoTrong6,
+    ];
+    const prices = [
+      product.GiaSP1,
+      product.GiaSP2,
+      product.GiaSP3,
+      product.GiaSP4,
+      product.GiaSP5,
+      product.GiaSP6,
+    ];
+
+    for (let i = 0; i < memories.length; i++) {
+      if (memories[i] && memories[i].toLowerCase() !== "không có") {
+        return { memory: memories[i], price: prices[i] };
+      }
+    }
+    return { memory: null, price: null }; // Không xảy ra theo giả định
   };
 
   return (
@@ -105,55 +169,58 @@ const LatestProducts = () => {
           </div>
         ) : products.length > 0 ? (
           <Swiper {...swiperConfig}>
-            {products.map((product) => (
-              <SwiperSlide key={product._id}>
-                <Link to={`/products/product_detail/${product._id}`} className="block h-full">
-                  <Card
-                    hoverable
-                    cover={
-                      <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
-                        <img
-                          alt={product.TenSP}
-                          src={product.HinhAnh1}
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
-                    }
-                    className="h-full border border-gray-200 hover:border-blue-300 transition-all"
-                  >
-                    <Meta
-                      title={
-                        <div className="text-center">
-                          <Text
-                            ellipsis={{ tooltip: product.TenSP }}
-                            className="font-semibold text-blue-600"
-                          >
-                            {product.TenSP}
-                          </Text>
+            {products.map((product) => {
+              const { memory, price } = getFirstValidMemoryAndPrice(product);
+              return (
+                <SwiperSlide key={product._id}>
+                  <Link to={`/products/product_detail/${product._id}`} className="block h-full">
+                    <Card
+                      hoverable
+                      cover={
+                        <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
+                          <img
+                            alt={product.TenSP}
+                            src={product.HinhAnh1}
+                            className="max-h-full max-w-full object-contain"
+                          />
                         </div>
                       }
-                      description={
-                        <div className="text-center">
-                          <div className="mb-2">
-                            <Text type="secondary" className="text-gray-600">
-                              {product.BoNhoTrong1 || "Chưa có thông tin bộ nhớ"}
+                      className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                    >
+                      <Meta
+                        title={
+                          <div className="text-center">
+                            <Text
+                              ellipsis={{ tooltip: product.TenSP }}
+                              className="font-semibold text-blue-600"
+                            >
+                              {product.TenSP}
                             </Text>
                           </div>
-                          <Text strong className="text-blue-600 text-lg">
-                            {product.GiaSP1
-                              ? new Intl.NumberFormat("vi-VN", {
-                                  style: "currency",
-                                  currency: "VND",
-                                }).format(product.GiaSP1)
-                              : "Liên hệ"}
-                          </Text>
-                        </div>
-                      }
-                    />
-                  </Card>
-                </Link>
-              </SwiperSlide>
-            ))}
+                        }
+                        description={
+                          <div className="text-center">
+                            <div className="mb-2">
+                              <Text type="secondary" className="text-gray-600">
+                                {memory}
+                              </Text>
+                            </div>
+                            <Text strong className="text-blue-600 text-lg">
+                              {price
+                                ? new Intl.NumberFormat("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                  }).format(price)
+                                : "Liên hệ"}
+                            </Text>
+                          </div>
+                        }
+                      />
+                    </Card>
+                  </Link>
+                </SwiperSlide>
+              );
+            })}
           </Swiper>
         ) : (
           <div className="col-span-full py-8">

@@ -207,6 +207,26 @@ const Checkcart = () => {
             const userId = userData?.id;
 
             if (userId) {
+              // Lấy giỏ hàng từ localStorage
+              const storedCart =
+                JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+
+              // Lọc ra các sản phẩm không được chọn để thanh toán
+              const remainingCart = storedCart.filter((storedItem) => {
+                return !cart.some(
+                  (selectedItem) =>
+                    selectedItem.id === storedItem.id &&
+                    selectedItem.memory === storedItem.memory
+                );
+              });
+
+              // Cập nhật lại localStorage với các sản phẩm còn lại
+              localStorage.setItem(
+                `cart_${userId}`,
+                JSON.stringify(remainingCart)
+              );
+
+              // Xử lý voucher nếu có
               const storedVoucher = JSON.parse(
                 localStorage.getItem(`voucher_${userId}`)
               );
@@ -217,10 +237,9 @@ const Checkcart = () => {
                 );
                 if (promotion) {
                   await updateVoucherStatus(promotion._id, 1);
+                  localStorage.removeItem(`voucher_${userId}`);
                 }
               }
-              localStorage.removeItem(`cart_${userId}`);
-              localStorage.removeItem(`voucher_${userId}`);
             }
 
             window.dispatchEvent(new Event("cartUpdated"));
@@ -327,6 +346,26 @@ const Checkcart = () => {
           const userData = JSON.parse(localStorage.getItem("userData"));
           const userId = userData?.id;
           if (userId) {
+            // Lấy giỏ hàng từ localStorage
+            const storedCart =
+              JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+
+            // Lọc ra các sản phẩm không được chọn để thanh toán
+            const remainingCart = storedCart.filter((storedItem) => {
+              return !cart.some(
+                (selectedItem) =>
+                  selectedItem.id === storedItem.id &&
+                  selectedItem.memory === storedItem.memory
+              );
+            });
+
+            // Cập nhật lại localStorage với các sản phẩm còn lại
+            localStorage.setItem(
+              `cart_${userId}`,
+              JSON.stringify(remainingCart)
+            );
+
+            // Xử lý voucher nếu có
             const storedVoucher = JSON.parse(
               localStorage.getItem(`voucher_${userId}`)
             );
@@ -337,10 +376,9 @@ const Checkcart = () => {
               );
               if (promotion) {
                 await updateVoucherStatus(promotion._id, 1);
+                localStorage.removeItem(`voucher_${userId}`);
               }
             }
-            localStorage.removeItem(`cart_${userId}`);
-            localStorage.removeItem(`voucher_${userId}`);
           }
 
           window.dispatchEvent(new Event("cartUpdated"));

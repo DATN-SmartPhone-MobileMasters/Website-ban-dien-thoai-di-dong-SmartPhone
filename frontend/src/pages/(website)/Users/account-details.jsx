@@ -109,7 +109,7 @@ const AccountDetails = () => {
               <div>
                 <label className="block text-sm font-medium mb-1">Số điện thoại</label>
                 <p className="w-full p-2 border border-gray-300 rounded bg-gray-100">
-                  {userData.SDT}
+                  0{userData.SDT}
                 </p>
               </div>
               <div>

@@ -39,8 +39,9 @@ import ProfileReceipt from "./pages/(website)/Users/profile-receipt";
 import ProfileReceiptDetails from "./pages/(website)/Users/profile-receipt-detail";
 import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
-import Blogdefault from "./pages/(website)/Blog/blogdefault";
+import Blogdefault from "./pages/(website)/Blog/Blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
+
 import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
@@ -258,7 +259,7 @@ function App() {
           element: <Blogdefault />,
         },
         {
-          path: "/blog/sigle",
+          path: "/blog/:id",
           element: <Blogsingle />,
         },
         {

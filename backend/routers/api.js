@@ -83,5 +83,4 @@ apiRouter.post("/banners", BannerControl.bannerCreate); // Tạo banner
 apiRouter.put("/banners/:id", BannerControl.bannerUpdate); // Cập nhật banner
 apiRouter.delete("/banners/:id", BannerControl.bannerDelete); // Xóa banner
 
-
 export default apiRouter;

@@ -272,12 +272,18 @@ class HoaDonController {
 // Thống kê doanh thu
 async thongKeDoanhThu(req, res) {
   try {
-    const matchCompletedOrders = { $match: { paymentStatus: "Hoàn thành" } };
+    const matchCompletedOrders = {
+      $match: {
+        $or: [
+          { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Hoàn thành" },
+          { paymentMethod: "vnpay", paymentStatus: "Đã hoàn thành" }
+        ]
+      }
+    };
 
-    // Doanh thu theo ngày, giờ và sản phẩm
     const doanhThuTheoNgay = await hoadon.aggregate([
       matchCompletedOrders,
-      { $unwind: "$products" }, 
+      { $unwind: "$products" },
       {
         $group: {
           _id: {
@@ -291,14 +297,13 @@ async thongKeDoanhThu(req, res) {
               memory: "$products.memory",
               quantity: "$products.quantity",
               image: "$products.image",
-              thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } }, 
+              thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } },
             },
           },
         },
       },
       { $sort: { "_id.ngay": 1, "_id.gio": 1 } },
     ]);
-    
 
     const doanhThuTheoTuan = await hoadon.aggregate([
       matchCompletedOrders,
@@ -355,6 +360,7 @@ async thongKeDoanhThu(req, res) {
     res.status(500).json({ message: error.message });
   }
 }
+
 
 
 
@@ -449,6 +455,7 @@ async thongKeDoanhThu(req, res) {
         {
           paymentStatus: "Chờ xử lý",
           checkPayment: vnp_ResponseCode === "00" ? "Đã Thanh Toán" : "Chưa Thanh Toán",
+          transactionDate: vnp_ResponseCode === "00" ? new Date() : "Chưa có",
           vnp_TransactionNo,
           vnp_ResponseCode,
           updatedAt: new Date(),

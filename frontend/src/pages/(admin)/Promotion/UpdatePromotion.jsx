@@ -1,258 +1,210 @@
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import axios from "axios";
+import {
+  Form,
+  Input,
+  InputNumber,
+  DatePicker,
+  Select,
+  Button,
+  message,
+} from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { confirmAlert } from "react-confirm-alert";
-import "react-confirm-alert/src/react-confirm-alert.css";
-import { updatePromotion, getDetailPromotion } from "../../../service/api";
+import { getDetailPromotion, updatePromotion } from "../../../service/api";
+import dayjs from "dayjs";
 
-const UpdatePromotion = () => {
-  const {
-    register,
-    watch,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
+const { Option } = Select;
+
+const EditPromotion = () => {
+  const [form] = Form.useForm();
   const navigate = useNavigate();
   const { id } = useParams();
-  const ngayBatDau = watch("NgayBD");
-
-  // Lấy dữ liệu khuyến mãi hiện tại khi component được mount
 
   useEffect(() => {
-    const getPromotion = async () => {
+    const fetchPromotion = async () => {
       try {
         const { data } = await getDetailPromotion(id);
-        const promotionData = {
-          ...data.data,
-          NgayBD: data.data.NgayBD.split("T")[0], // Chuyển đổi định dạng ngày
-          NgayKT: data.data.NgayKT.split("T")[0], // Chuyển đổi định dạng ngày
-        };
-        reset(promotionData); // Điền dữ liệu khuyến mãi hiện tại vào form
+        const promotion = data.data;
+
+        form.setFieldsValue({
+          MaKM: promotion.MaKM,
+          TenKM: promotion.TenKM,
+          LoaiKM: promotion.LoaiKM,
+          GiaTriKM: promotion.GiaTriKM,
+          NgayBD: dayjs(promotion.NgayBD),
+          NgayKT: dayjs(promotion.NgayKT),
+          TrangThai: promotion.TrangThai,
+        });
       } catch (error) {
-        console.error("Có lỗi khi lấy dữ liệu khuyến mãi:", error);
+        message.error("Không thể tải dữ liệu khuyến mãi.");
       }
     };
-    getPromotion();
-  }, [id, reset]);
 
-  const onSubmit = async (data) => {
+    if (id) fetchPromotion();
+  }, [id, form]);
+
+  const onFinish = async (values) => {
     try {
-      await updatePromotion(id, data); // Dùng hàm updatePromotion
-      confirmAlert({
-        title: "Thành công!",
-        message: "Cập nhật khuyến mãi thành công!",
-        buttons: [
-          {
-            label: "OK",
-            onClick: () => navigate("/admin/vouchers"),
-          },
-        ],
-        closeOnEscape: true,
-        closeOnClickOutside: true,
-      });
+      const formattedData = {
+        ...values,
+        NgayBD: values.NgayBD.format("YYYY-MM-DD"),
+        NgayKT: values.NgayKT.format("YYYY-MM-DD"),
+      };
+
+      await updatePromotion(id, formattedData);
+      message.success("Cập nhật khuyến mãi thành công!");
+      navigate("/admin/vouchers");
     } catch (error) {
-      confirmAlert({
-        title: "Lỗi",
-        message:
-          error.response?.data?.message ||
-          "Có lỗi xảy ra khi cập nhật khuyến mãi.",
-        buttons: [
-          {
-            label: "OK",
-            onClick: () => {},
-          },
-        ],
-        closeOnEscape: true,
-        closeOnClickOutside: true,
-      });
+      message.error(
+        error.response?.data?.message || "Có lỗi khi cập nhật khuyến mãi."
+      );
+      console.error(
+        "Có lỗi khi cập nhật khuyến mãi:",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
   return (
-    <div className="container-fluid">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Thêm Khuyến Mãi</h1>
-        <button
-          className="btn btn-secondary"
-          onClick={() => navigate("/admin/vouchers")}
+    <div className="container">
+      <h1 className="h3 text-gray-800 mb-4">Chỉnh Sửa Khuyến Mãi</h1>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{
+          TrangThai: undefined,
+          LoaiKM: undefined,
+        }}
+      >
+        <Form.Item
+          label="Mã Khuyến Mãi"
+          name="MaKM"
+          rules={[
+            { required: true, message: "Mã khuyến mãi là trường bắt buộc" },
+            { min: 3, message: "Mã khuyến mãi phải có ít nhất 3 ký tự" },
+            { max: 20, message: "Mã khuyến mãi không được dài quá 20 ký tự" },
+          ]}
         >
-          Quay Lại
-        </button>
-      </div>
+          <Input placeholder="Nhập mã khuyến mãi" />
+        </Form.Item>
 
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">
-            Điền Thông Tin Khuyến Mãi
-          </h6>
-        </div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-3">
-              <label htmlFor="MaKM" className="form-label">
-                Mã Khuyến Mãi
-              </label>
-              <input
-                type="text"
-                className={`form-control ${errors.MaKM ? "is-invalid" : ""}`}
-                id="MaKM"
-                {...register("MaKM", {
-                  required: "Mã khuyến mãi là trường bắt buộc",
-                  minLength: {
-                    value: 3,
-                    message: "Mã khuyến mãi phải có ít nhất 3 ký tự",
-                  },
-                  maxLength: {
-                    value: 20,
-                    message: "Mã khuyến mãi không được dài quá 20 ký tự",
-                  },
-                })}
-              />
-              {errors.MaKM && (
-                <div className="invalid-feedback">{errors.MaKM.message}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label htmlFor="TenKM" className="form-label">
-                Tên Khuyến Mãi
-              </label>
-              <input
-                type="text"
-                className={`form-control ${errors.TenKM ? "is-invalid" : ""}`}
-                id="TenKM"
-                {...register("TenKM", {
-                  required: "Tên khuyến mãi là trường bắt buộc",
-                })}
-              />
-              {errors.TenKM && (
-                <div className="invalid-feedback">{errors.TenKM.message}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label htmlFor="LoaiKM" className="form-label">
-                Loại Khuyến Mãi
-              </label>
-              <select
-                className={`form-control ${errors.LoaiKM ? "is-invalid" : ""}`}
-                id="LoaiKM"
-                {...register("LoaiKM", {
-                  required: "Loại khuyến mãi là trường bắt buộc",
-                })}
-              >
-                <option value="">Chọn loại khuyến mãi</option>
-                <option value="fixed">Giảm số tiền cố định</option>
-                <option value="percentage">Giảm theo %</option>
-              </select>
-              {errors.LoaiKM && (
-                <div className="invalid-feedback">{errors.LoaiKM.message}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label htmlFor="GiaTriKM" className="form-label">
-                Giá Trị Khuyến Mãi
-              </label>
-              <input
-                type="number"
-                className={`form-control ${
-                  errors.GiaTriKM ? "is-invalid" : ""
-                }`}
-                id="GiaTriKM"
-                step={watch("LoaiKM") === "percentage" ? "1" : "any"}
-                {...register("GiaTriKM", {
-                  required: "Giá trị khuyến mãi là trường bắt buộc",
-                  min: { value: 0, message: "Giá trị không được là số âm" },
-                  max:
-                    watch("LoaiKM") === "percentage"
-                      ? { value: 100, message: "Không lớn hơn 100%" }
-                      : undefined,
-                  validate: (value) =>
-                    watch("LoaiKM") === "percentage" &&
-                    !Number.isInteger(Number(value))
-                      ? "Không được nhập số thập phân khi giảm theo kiểu %"
-                      : true,
-                })}
-              />
-              {errors.GiaTriKM && (
-                <div className="invalid-feedback">
-                  {errors.GiaTriKM.message}
-                </div>
-              )}
-            </div>
+        <Form.Item
+          label="Tên Khuyến Mãi"
+          name="TenKM"
+          rules={[
+            { required: true, message: "Tên khuyến mãi là trường bắt buộc" },
+          ]}
+        >
+          <Input placeholder="Nhập tên khuyến mãi" />
+        </Form.Item>
 
-            <div className="mb-3">
-              <label htmlFor="NgayBD" className="form-label">
-                Ngày Bắt Đầu
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.NgayBD ? "is-invalid" : ""}`}
-                id="NgayBD"
-                {...register("NgayBD", {
-                  required: "Ngày bắt đầu là trường bắt buộc",
-                })}
-              />
-              {errors.NgayBD && (
-                <div className="invalid-feedback">{errors.NgayBD.message}</div>
-              )}
-            </div>
+        <Form.Item
+          label="Loại Khuyến Mãi"
+          name="LoaiKM"
+          rules={[
+            { required: true, message: "Loại khuyến mãi là trường bắt buộc" },
+          ]}
+        >
+          <Select placeholder="Chọn loại khuyến mãi">
+            <Option value="fixed">Giảm số tiền cố định</Option>
+            <Option value="percentage">Giảm theo %</Option>
+          </Select>
+        </Form.Item>
 
-            <div className="mb-3">
-              <label htmlFor="NgayKT" className="form-label">
-                Ngày Kết Thúc
-              </label>
-              <input
-                type="date"
-                className={`form-control ${errors.NgayKT ? "is-invalid" : ""}`}
-                id="NgayKT"
-                {...register("NgayKT", {
-                  required: "Ngày kết thúc là trường bắt buộc",
-                  validate: (value) => {
-                    if (!ngayBatDau) return "Vui lòng chọn Ngày Bắt Đầu trước";
-                    if (new Date(value) < new Date(ngayBatDau))
-                      return "Ngày Kết Thúc phải lớn hơn hoặc bằng Ngày Bắt Đầu";
-                    return true;
-                  },
-                })}
-              />
-              {errors.NgayKT && (
-                <div className="invalid-feedback">{errors.NgayKT.message}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label htmlFor="TrangThai" className="form-label">
-                Trạng Thái
-              </label>
-              <select
-                className={`form-control ${
-                  errors.TrangThai ? "is-invalid" : ""
-                }`}
-                id="TrangThai"
-                {...register("TrangThai", {
-                  required: "Trạng thái là trường bắt buộc",
-                })}
-              >
-                <option value="">Chọn trạng thái</option>
-                <option value="0">Đang diễn ra</option>
-                <option value="1">Đã sử dụng</option>
-                <option value="2">Chưa bắt đầu</option>
-              </select>
-              {errors.TrangThai && (
-                <div className="invalid-feedback">
-                  {errors.TrangThai.message}
-                </div>
-              )}
-            </div>
+        <Form.Item
+          label="Giá Trị Khuyến Mãi"
+          name="GiaTriKM"
+          dependencies={["LoaiKM"]}
+          rules={[
+            {
+              required: true,
+              message: "Giá trị khuyến mãi là trường bắt buộc",
+            },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const loaiKM = getFieldValue("LoaiKM");
+                if (value === undefined)
+                  return Promise.reject("Vui lòng nhập giá trị");
+                if (value < 0)
+                  return Promise.reject("Giá trị không được là số âm");
+                if (loaiKM === "percentage") {
+                  if (!Number.isInteger(value))
+                    return Promise.reject(
+                      "Không được nhập số thập phân khi giảm theo kiểu %"
+                    );
+                  if (value > 100) return Promise.reject("Không lớn hơn 100%");
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+        >
+          <InputNumber
+            style={{ width: "100%" }}
+            placeholder="Nhập giá trị khuyến mãi"
+          />
+        </Form.Item>
 
-            <button type="submit" className="btn btn-primary">
-              Sửa khuyễn mãi
-            </button>
-          </form>
-        </div>
-      </div>
+        <Form.Item
+          label="Ngày Bắt Đầu"
+          name="NgayBD"
+          rules={[
+            { required: true, message: "Ngày bắt đầu là trường bắt buộc" },
+          ]}
+        >
+          <DatePicker style={{ width: "100%" }} />
+        </Form.Item>
+
+        <Form.Item
+          label="Ngày Kết Thúc"
+          name="NgayKT"
+          dependencies={["NgayBD"]}
+          rules={[
+            { required: true, message: "Ngày kết thúc là trường bắt buộc" },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const startDate = getFieldValue("NgayBD");
+                if (!startDate)
+                  return Promise.reject("Vui lòng chọn Ngày Bắt Đầu trước");
+                if (value && value.isBefore(startDate, "day")) {
+                  return Promise.reject(
+                    "Ngày Kết Thúc phải lớn hơn hoặc bằng Ngày Bắt Đầu"
+                  );
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+        >
+          <DatePicker style={{ width: "100%" }} />
+        </Form.Item>
+
+        <Form.Item
+          label="Trạng Thái"
+          name="TrangThai"
+          rules={[{ required: true, message: "Trạng thái là trường bắt buộc" }]}
+        >
+          <Select placeholder="Chọn trạng thái">
+            <Option value={0}>🟡 Chưa bắt đầu</Option>
+            <Option value={1}>🔴 Đã sử dụng</Option>
+            <Option value={2}>🔵Đang diễn ra</Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Lưu Thay Đổi
+          </Button>
+          <Button
+            style={{ marginLeft: "8px" }}
+            onClick={() => navigate("/admin/vouchers")}
+          >
+            Quay Lại
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
 };
 
-export default UpdatePromotion;
+export default EditPromotion;
