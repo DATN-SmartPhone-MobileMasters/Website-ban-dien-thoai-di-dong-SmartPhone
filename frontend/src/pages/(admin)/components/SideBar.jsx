@@ -115,6 +115,13 @@ const SideBar = () => {
                 <span>Quản lý voucher</span>
               </Link>
             </li>
+            <li className="nav-item">
+              <Link to="/listbanner" className="nav-link collapsed">
+                <i className="bi bi-ticket-perforated"></i>
+                <span>Quản lý Banner</span>
+              </Link>
+            </li>
+
 
             <li className="nav-item">
               <Link className="nav-link collapsed" to="/danhgia">

@@ -234,33 +234,34 @@ const OrderList = () => {
                       </td>
                       <td>{hoaDon.paymentStatus || "Không có"}</td>
                       <td>
-                        <Link
-                          to={`/admin/orders/${hoaDon._id}`}
-                          className="btn btn-info ml-2"
-                        >
-                          👁️ Xem chi tiết
-                        </Link>
-                        {!showHidden &&
-                          (hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Thanh Toán' ||
-                            hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Hoàn Tiền' ||
-                            hoaDon.paymentStatus === "Hoàn thành" && hoaDon.checkPayment === 'Đã Thanh Toán'
-                           ) && (
-                            <button
-                              onClick={() => handleHideOrder(hoaDon._id)}
-                              className="btn btn-warning ml-2"
-                            >
-                              🚫 Ẩn đơn hàng
-                            </button>
-                          )}
-                        {showHidden && (
-                          <button
-                            onClick={() => handleRestoreOrder(hoaDon._id)}
-                            className="btn btn-success ml-2"
-                          >
-                            ♻️ Khôi phục
-                          </button>
-                        )}
-                      </td>
+  <Link
+    to={`/admin/orders/${hoaDon._id}`}
+    className="btn btn-info ml-2"
+  >
+    👁️ Xem chi tiết
+  </Link>
+
+  {!showHidden &&
+    (["Huỷ Đơn", "Hoàn thành"].includes(hoaDon.paymentStatus) &&
+     ["Đã Thanh Toán", "Đã Hoàn Tiền"].includes(hoaDon.checkPayment)) && (
+      <button
+        onClick={() => handleHideOrder(hoaDon._id)}
+        className="btn btn-warning ml-2"
+      >
+        🚫 Ẩn đơn hàng
+      </button>
+  )}
+
+  {showHidden && (
+    <button
+      onClick={() => handleRestoreOrder(hoaDon._id)}
+      className="btn btn-success ml-2"
+    >
+      ♻️ Khôi phục
+    </button>
+  )}
+</td>
+
                     </tr>
                   ))
                 ) : (
