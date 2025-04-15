@@ -16,7 +16,7 @@ import {
   Upload,
   message,
 } from "antd";
-import { LeftOutlined, UploadOutlined } from "@ant-design/icons";
+import { LeftOutlined, UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import io from "socket.io-client";
 
 const { Title, Text } = Typography;
@@ -41,6 +41,12 @@ const ProductsEdit = () => {
   const [quantityErrors, setQuantityErrors] = useState({});
   const [priceErrors, setPriceErrors] = useState({});
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
+  const [initialQuantities, setInitialQuantities] = useState({});
+  const [initialStatus, setInitialStatus] = useState("");
+  const [initialMemories, setInitialMemories] = useState({});
+  const [initialPrices, setInitialPrices] = useState({});
+  const [visibleVersions, setVisibleVersions] = useState([1]); // Quản lý các phiên bản hiển thị
+  const [previousStatus, setPreviousStatus] = useState(""); // Lưu trạng thái trước đó
 
   // Validators
   const noWhitespace = (_, value) => {
@@ -75,16 +81,30 @@ const ProductsEdit = () => {
     Promise.all([getProducts(id), fetchBrands()])
       .then(([productRes, brandsRes]) => {
         const productData = productRes.data.data;
-        // Xử lý các bộ nhớ chưa có giá trị
         const updatedProductData = { ...productData };
+        const quantities = {};
+        const memories = {};
+        const prices = {};
+        const versions = [];
         for (let i = 1; i <= 6; i++) {
           if (!updatedProductData[`BoNhoTrong${i}`] || updatedProductData[`BoNhoTrong${i}`] === "") {
             updatedProductData[`BoNhoTrong${i}`] = "Không có";
             updatedProductData[`GiaSP${i}`] = 0;
             updatedProductData[`SoLuong${i}`] = 0;
+          } else if (updatedProductData[`BoNhoTrong${i}`] !== "Không có") {
+            versions.push(i); // Thêm phiên bản nếu bộ nhớ không phải "Không có"
           }
+          quantities[`SoLuong${i}`] = updatedProductData[`SoLuong${i}`] || 0;
+          memories[`BoNhoTrong${i}`] = updatedProductData[`BoNhoTrong${i}`];
+          prices[`GiaSP${i}`] = updatedProductData[`GiaSP${i}`] || 0;
         }
         setProduct(updatedProductData);
+        setInitialQuantities(quantities);
+        setInitialMemories(memories);
+        setInitialPrices(prices);
+        setInitialStatus(updatedProductData.TrangThai);
+        setPreviousStatus(updatedProductData.TrangThai); // Khởi tạo trạng thái trước đó
+        setVisibleVersions(versions.length > 0 ? versions : [1]); // Hiển thị ít nhất 1 phiên bản
         form.setFieldsValue(updatedProductData);
         setBrands(brandsRes.data.data);
         validateQuantities(updatedProductData);
@@ -116,15 +136,64 @@ const ProductsEdit = () => {
     try {
       let updatedValues = { ...values };
 
-      // Kiểm tra trạng thái
+      // Đặt các phiên bản không hiển thị về "Không có"
+      for (let i = 1; i <= 6; i++) {
+        if (!visibleVersions.includes(i)) {
+          updatedValues[`BoNhoTrong${i}`] = "Không có";
+          updatedValues[`SoLuong${i}`] = 0;
+          updatedValues[`GiaSP${i}`] = 0;
+        }
+      }
+
+      // Kiểm tra trạng thái và số lượng
+      if (updatedValues.TrangThai === "Còn hàng") {
+        // Kiểm tra xem tất cả số lượng của các bộ nhớ không phải "Không có" có bằng 0 không
+        const allQuantitiesZero = visibleVersions.every(
+          (version) =>
+            updatedValues[`BoNhoTrong${version}`] === "Không có" ||
+            Number(updatedValues[`SoLuong${version}`] || 0) === 0
+        );
+
+        if (allQuantitiesZero) {
+          // Chuyển trạng thái thành "Hết hàng", giữ nguyên giá
+          updatedValues.TrangThai = "Hết hàng";
+          for (let i = 1; i <= 6; i++) {
+            if (updatedValues[`BoNhoTrong${i}`] !== "Không có") {
+              updatedValues[`SoLuong${i}`] = 0; // Đặt số lượng về 0
+              // Giá giữ nguyên, không đặt về 0
+            }
+          }
+          form.setFieldsValue({ 
+            TrangThai: "Hết hàng",
+            ...Object.fromEntries(
+              Array.from({ length: 6 }, (_, i) => [
+                [`SoLuong${i + 1}`, updatedValues[`BoNhoTrong${i + 1}`] !== "Không có" ? 0 : updatedValues[`SoLuong${i + 1}`]],
+              ]).flat()
+            ),
+          });
+          setProduct((prev) => ({
+            ...prev,
+            TrangThai: "Hết hàng",
+            ...Object.fromEntries(
+              Array.from({ length: 6 }, (_, i) => [
+                [`SoLuong${i + 1}`, updatedValues[`BoNhoTrong${i + 1}`] !== "Không có" ? 0 : prev[`SoLuong${i + 1}`]],
+                [`GiaSP${i + 1}`, updatedValues[`GiaSP${i + 1}`]], // Giữ nguyên giá
+              ]).flat()
+            ),
+          }));
+          setQuantityErrors({});
+          setPriceErrors({});
+          setIsSubmitDisabled(false);
+        }
+      }
+
+      // Kiểm tra trạng thái "Ngừng kinh doanh"
       if (updatedValues.TrangThai === "Ngừng kinh doanh") {
-        // Nếu trạng thái là "Ngừng kinh doanh", đặt tất cả bộ nhớ thành "Không có"
         for (let i = 1; i <= 6; i++) {
           updatedValues[`BoNhoTrong${i}`] = "Không có";
           updatedValues[`SoLuong${i}`] = 0;
           updatedValues[`GiaSP${i}`] = 0;
         }
-        // Cập nhật form và product state
         form.setFieldsValue({
           TrangThai: "Ngừng kinh doanh",
           ...Object.fromEntries(
@@ -150,19 +219,16 @@ const ProductsEdit = () => {
         setPriceErrors({});
         setIsSubmitDisabled(false);
       } else {
-        // Kiểm tra xem tất cả bộ nhớ có phải là "Không có" hay không
-        const allMemoriesNone = Array.from({ length: 6 }, (_, i) => updatedValues[`BoNhoTrong${i + 1}`]).every(
-          (memory) => memory === "Không có"
+        const allMemoriesNone = visibleVersions.every(
+          (version) => updatedValues[`BoNhoTrong${version}`] === "Không có"
         );
 
-        if (allMemoriesNone) {
-          // Nếu tất cả là "Không có", đặt trạng thái thành "Hết hàng"
+        if (allMemoriesNone && updatedValues.TrangThai !== "Hết hàng") {
           updatedValues.TrangThai = "Hết hàng";
           for (let i = 1; i <= 6; i++) {
             updatedValues[`SoLuong${i}`] = 0;
             updatedValues[`GiaSP${i}`] = 0;
           }
-          // Cập nhật form và product state
           form.setFieldsValue({ TrangThai: "Hết hàng" });
           setProduct((prev) => ({
             ...prev,
@@ -183,6 +249,18 @@ const ProductsEdit = () => {
       const updatedProduct = await updateProducts(id, updatedValues);
       message.success("Cập nhật sản phẩm thành công!");
       socket.emit("productUpdated", updatedProduct.data.data);
+      setInitialStatus(updatedValues.TrangThai);
+      const newQuantities = {};
+      const newMemories = {};
+      const newPrices = {};
+      for (let i = 1; i <= 6; i++) {
+        newQuantities[`SoLuong${i}`] = updatedValues[`SoLuong${i}`] || 0;
+        newMemories[`BoNhoTrong${i}`] = updatedValues[`BoNhoTrong${i}`];
+        newPrices[`GiaSP${i}`] = updatedValues[`GiaSP${i}`] || 0;
+      }
+      setInitialQuantities(newQuantities);
+      setInitialMemories(newMemories);
+      setInitialPrices(newPrices);
       navigate("/admin/products");
     } catch (error) {
       setError("Có lỗi xảy ra khi cập nhật sản phẩm.");
@@ -192,8 +270,22 @@ const ProductsEdit = () => {
 
   const handleStatusChange = (value) => {
     const updatedFields = {};
+    
+    // Khi chuyển sang "Ngừng kinh doanh", lưu lại các giá trị hiện tại
     if (value === "Ngừng kinh doanh") {
-      // Nếu chọn "Ngừng kinh doanh", đặt tất cả bộ nhớ thành "Không có"
+      const currentQuantities = {};
+      const currentMemories = {};
+      const currentPrices = {};
+      for (let i = 1; i <= 6; i++) {
+        currentQuantities[`SoLuong${i}`] = product[`SoLuong${i}`] || 0;
+        currentMemories[`BoNhoTrong${i}`] = product[`BoNhoTrong${i}`] || "Không có";
+        currentPrices[`GiaSP${i}`] = product[`GiaSP${i}`] || 0;
+      }
+      setInitialQuantities(currentQuantities);
+      setInitialMemories(currentMemories);
+      setInitialPrices(currentPrices);
+
+      // Reset tất cả giá trị về "Không có" và 0
       for (let i = 1; i <= 6; i++) {
         updatedFields[`BoNhoTrong${i}`] = "Không có";
         updatedFields[`SoLuong${i}`] = 0;
@@ -203,20 +295,42 @@ const ProductsEdit = () => {
       setPriceErrors({});
       setIsSubmitDisabled(false);
     } else if (value === "Hết hàng") {
-      // Chỉ đặt số lượng về 0, giữ nguyên giá và bộ nhớ
-      for (let i = 1; i <= 6; i++) {
-        if (product[`BoNhoTrong${i}`] !== "Không có") {
-          updatedFields[`SoLuong${i}`] = 0;
+      if (product.TrangThai === "Ngừng kinh doanh") {
+        // Khôi phục các giá trị từ initial state
+        for (let i = 1; i <= 6; i++) {
+          updatedFields[`BoNhoTrong${i}`] = initialMemories[`BoNhoTrong${i}`];
+          updatedFields[`SoLuong${i}`] = 0; // Đặt số lượng về 0 khi trạng thái là "Hết hàng"
+          updatedFields[`GiaSP${i}`] = initialPrices[`GiaSP${i}`] || 0;
+        }
+      } else {
+        for (let i = 1; i <= 6; i++) {
+          if (product[`BoNhoTrong${i}`] !== "Không có") {
+            updatedFields[`SoLuong${i}`] = 0;
+          }
         }
       }
-    } else {
-      // Khi chuyển sang Còn hàng, đặt số lượng về 1 nếu đang là 0 và bộ nhớ không phải "Không có"
-      for (let i = 1; i <= 6; i++) {
-        if (product[`SoLuong${i}`] === 0 && product[`BoNhoTrong${i}`] !== "Không có") {
-          updatedFields[`SoLuong${i}`] = 1;
+    } else if (value === "Còn hàng") {
+      if (product.TrangThai === "Ngừng kinh doanh") {
+        // Khôi phục các giá trị từ initial state
+        for (let i = 1; i <= 6; i++) {
+          updatedFields[`BoNhoTrong${i}`] = initialMemories[`BoNhoTrong${i}`];
+          // Nếu trạng thái trước đó là "Hết hàng", đặt số lượng tối thiểu là 1 cho các bộ nhớ không phải "Không có"
+          if (previousStatus === "Hết hàng" && initialMemories[`BoNhoTrong${i}`] !== "Không có") {
+            updatedFields[`SoLuong${i}`] = 1;
+          } else {
+            updatedFields[`SoLuong${i}`] = initialQuantities[`SoLuong${i}`] || 0;
+          }
+          updatedFields[`GiaSP${i}`] = initialPrices[`GiaSP${i}`] || 0;
+        }
+      } else {
+        for (let i = 1; i <= 6; i++) {
+          if (product[`BoNhoTrong${i}`] !== "Không có") {
+            updatedFields[`SoLuong${i}`] = initialQuantities[`SoLuong${i}`] || 1;
+          }
         }
       }
     }
+
     form.setFieldsValue(updatedFields);
     setProduct((prev) => ({
       ...prev,
@@ -224,6 +338,7 @@ const ProductsEdit = () => {
       ...updatedFields,
     }));
     validateQuantities({ ...product, TrangThai: value, ...updatedFields });
+    setPreviousStatus(product.TrangThai); // Cập nhật trạng thái trước đó
   };
 
   const handleMemoryChange = (version, value) => {
@@ -250,43 +365,43 @@ const ProductsEdit = () => {
         [`GiaSP${version}`]: product[`GiaSP${version}`] || 0,
         [`SoLuong${version}`]: product[`SoLuong${version}`] || (product.TrangThai === "Còn hàng" ? 1 : 0),
       });
-      validateQuantity(version, product[`SoLuong${version}`] || (product.TrangThai === "Còn hàng" ? 1 : 0));
       validatePrice(version, product[`GiaSP${version}`] || 0);
     }
     setProduct(updatedProduct);
+    setInitialMemories((prev) => ({
+      ...prev,
+      [`BoNhoTrong${version}`]: value,
+    }));
+    setInitialQuantities((prev) => ({
+      ...prev,
+      [`SoLuong${version}`]: updatedProduct[`SoLuong${version}`],
+    }));
+    setInitialPrices((prev) => ({
+      ...prev,
+      [`GiaSP${version}`]: updatedProduct[`GiaSP${version}`],
+    }));
     validateQuantities(updatedProduct);
   };
 
   const handleQuantityChange = (version, value) => {
     const updatedProduct = { ...product, [`SoLuong${version}`]: value };
     setProduct(updatedProduct);
-    validateQuantity(version, value);
+    setInitialQuantities((prev) => ({
+      ...prev,
+      [`SoLuong${version}`]: value,
+    }));
     validateQuantities(updatedProduct);
   };
 
   const handlePriceChange = (version, value) => {
     const updatedProduct = { ...product, [`GiaSP${version}`]: value };
     setProduct(updatedProduct);
+    setInitialPrices((prev) => ({
+      ...prev,
+      [`GiaSP${version}`]: value,
+    }));
     validatePrice(version, value);
     validateQuantities(updatedProduct);
-  };
-
-  const validateQuantity = (version, value) => {
-    if (
-      product.TrangThai === "Còn hàng" &&
-      Number(value) === 0 &&
-      product[`BoNhoTrong${version}`] !== "Không có"
-    ) {
-      setQuantityErrors((prev) => ({
-        ...prev,
-        [`SoLuong${version}`]: "Số lượng không thể là 0 khi còn hàng!",
-      }));
-    } else {
-      setQuantityErrors((prev) => ({
-        ...prev,
-        [`SoLuong${version}`]: null,
-      }));
-    }
   };
 
   const validatePrice = (version, value) => {
@@ -308,14 +423,6 @@ const ProductsEdit = () => {
   };
 
   const validateQuantities = (currentProduct) => {
-    const quantities = [
-      currentProduct.SoLuong1 || 0,
-      currentProduct.SoLuong2 || 0,
-      currentProduct.SoLuong3 || 0,
-      currentProduct.SoLuong4 || 0,
-      currentProduct.SoLuong5 || 0,
-      currentProduct.SoLuong6 || 0,
-    ];
     const prices = [
       currentProduct.GiaSP1 || 0,
       currentProduct.GiaSP2 || 0,
@@ -329,21 +436,7 @@ const ProductsEdit = () => {
     if (currentProduct.TrangThai === "Còn hàng") {
       for (let i = 1; i <= 6; i++) {
         const memory = currentProduct[`BoNhoTrong${i}`];
-        const quantity = Number(quantities[i - 1]);
         const price = Number(prices[i - 1]);
-
-        if (memory !== "Không có" && quantity === 0) {
-          hasError = true;
-          setQuantityErrors((prev) => ({
-            ...prev,
-            [`SoLuong${i}`]: "Số lượng không thể là 0 khi còn hàng!",
-          }));
-        } else {
-          setQuantityErrors((prev) => ({
-            ...prev,
-            [`SoLuong${i}`]: null,
-          }));
-        }
 
         if (memory !== "Không có" && price === 0) {
           hasError = true;
@@ -378,6 +471,57 @@ const ProductsEdit = () => {
     return memories
       .map((memory, index) => (index + 1 !== currentVersion ? memory : null))
       .filter((memory) => memory && memory !== "Không có" && memory !== "");
+  };
+
+  const addVersion = () => {
+    if (visibleVersions.length < 6) {
+      // Tìm số nhỏ nhất chưa được sử dụng trong khoảng 1-6
+      const allVersions = [1, 2, 3, 4, 5, 6];
+      const unusedVersion = allVersions.find((v) => !visibleVersions.includes(v));
+      setVisibleVersions([...visibleVersions, unusedVersion].sort((a, b) => a - b)); // Sắp xếp để giữ thứ tự
+      form.setFieldsValue({
+        [`BoNhoTrong${unusedVersion}`]: "Không có",
+        [`SoLuong${unusedVersion}`]: 0,
+        [`GiaSP${unusedVersion}`]: 0,
+      });
+      setProduct((prev) => ({
+        ...prev,
+        [`BoNhoTrong${unusedVersion}`]: "Không có",
+        [`SoLuong${unusedVersion}`]: 0,
+        [`GiaSP${unusedVersion}`]: 0,
+      }));
+    }
+  };
+
+  const removeVersion = (version) => {
+    if (visibleVersions.length > 1) {
+      setVisibleVersions(visibleVersions.filter((v) => v !== version).sort((a, b) => a - b)); // Sắp xếp lại
+      form.setFieldsValue({
+        [`BoNhoTrong${version}`]: "Không có",
+        [`SoLuong${version}`]: 0,
+        [`GiaSP${version}`]: 0,
+      });
+      setProduct((prev) => ({
+        ...prev,
+        [`BoNhoTrong${version}`]: "Không có",
+        [`SoLuong${version}`]: 0,
+        [`GiaSP${version}`]: 0,
+      }));
+      setQuantityErrors((prev) => ({
+        ...prev,
+        [`SoLuong${version}`]: null,
+      }));
+      setPriceErrors((prev) => ({
+        ...prev,
+        [`GiaSP${version}`]: null,
+      }));
+      validateQuantities({
+        ...product,
+        [`BoNhoTrong${version}`]: "Không có",
+        [`SoLuong${version}`]: 0,
+        [`GiaSP${version}`]: 0,
+      });
+    }
   };
 
   if (loading) {
@@ -430,23 +574,23 @@ const ProductsEdit = () => {
         >
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12}>
-            <Form.Item
-              label="Tên Sản Phẩm"
-              name="TenSP"
-              rules={[
-                { required: true, message: "Vui lòng nhập tên sản phẩm!" },
-                { validator: noWhitespace },
-                { max: 255, message: 'Tên sản phẩm không được dài quá 255 ký tự!' },
-                {
-                  validator: (_, value) => {
-                    if (!value || value.trim().length < 3) {
-                      return Promise.reject(new Error('Tên sản phẩm tối thiểu 3 ký tự!'));
-                    }
-                    return Promise.resolve();
+              <Form.Item
+                label="Tên Sản Phẩm"
+                name="TenSP"
+                rules={[
+                  { required: true, message: "Vui lòng nhập tên sản phẩm!" },
+                  { validator: noWhitespace },
+                  { max: 255, message: 'Tên sản phẩm không được dài quá 255 ký tự!' },
+                  {
+                    validator: (_, value) => {
+                      if (!value || value.trim().length < 3) {
+                        return Promise.reject(new Error('Tên sản phẩm tối thiểu 3 ký tự!'));
+                      }
+                      return Promise.resolve();
+                    },
                   },
-                },
-              ]}
-            >
+                ]}
+              >
                 <Input placeholder="Nhập tên sản phẩm" />
               </Form.Item>
             </Col>
@@ -461,10 +605,25 @@ const ProductsEdit = () => {
                 name="TrangThai"
                 rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
               >
-                <Select placeholder="Chọn trạng thái" onChange={handleStatusChange}>
-                  <Option value="Còn hàng">Còn hàng</Option>
-                  <Option value="Hết hàng">Hết hàng</Option>
-                  <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
+                <Select
+                  placeholder="Chọn trạng thái"
+                  onChange={handleStatusChange}
+                  disabled={initialStatus === "Ngừng kinh doanh"}
+                >
+                  {initialStatus === "Còn hàng" ? (
+                    <>
+                      <Option value="Còn hàng">Còn hàng</Option>
+                      <Option value="Hết hàng">Hết hàng</Option>
+                    </>
+                  ) : initialStatus === "Ngừng kinh doanh" ? (
+                    <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
+                  ) : (
+                    <>
+                      <Option value="Còn hàng">Còn hàng</Option>
+                      <Option value="Hết hàng">Hết hàng</Option>
+                      <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
+                    </>
+                  )}
                 </Select>
               </Form.Item>
             </Col>
@@ -485,6 +644,7 @@ const ProductsEdit = () => {
               >
                 <Input
                   placeholder="Nhập màu"
+                  disabled={initialStatus === "Ngừng kinh doanh"}
                   addonAfter={
                     <div
                       style={{
@@ -499,99 +659,117 @@ const ProductsEdit = () => {
                 />
               </Form.Item>
             </Col>
+          </Row>
 
-            {Array.from({ length: 6 }, (_, index) => {
-              const version = index + 1;
-              const selectedMemories = getSelectedMemories(version);
-              return (
-                <Col xs={24} key={version}>
-                  <Row gutter={[16, 16]}>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={`Bộ Nhớ Trong ${version}`}
-                        name={`BoNhoTrong${version}`}
-                        rules={[{ required: false }]}
+          {visibleVersions.map((version) => (
+            <Row gutter={[16, 16]} key={version} style={{ marginBottom: 16 }}>
+              <Col xs={24} md={7}>
+                <Form.Item
+                  label={`Bộ Nhớ Trong ${version}`}
+                  name={`BoNhoTrong${version}`}
+                  rules={[{ required: false }]}
+                >
+                  <Select
+                    placeholder="Không có"
+                    onChange={(value) => handleMemoryChange(version, value)}
+                    disabled={product.TrangThai === "Ngừng kinh doanh"}
+                  >
+                    {[
+                      { value: "Không có", label: "Không có" },
+                      { value: "32GB", label: "32GB" },
+                      { value: "64GB", label: "64GB" },
+                      { value: "128GB", label: "128GB" },
+                      { value: "256GB", label: "256GB" },
+                      { value: "512GB", label: "512GB" },
+                      { value: "1TB", label: "1TB" },
+                    ].map((option) => (
+                      <Option
+                        key={option.value}
+                        value={option.value}
+                        disabled={getSelectedMemories(version).includes(option.value) && option.value !== "Không có"}
                       >
-                        <Select
-                          placeholder="Không có"
-                          onChange={(value) => handleMemoryChange(version, value)}
-                          disabled={product.TrangThai === "Ngừng kinh doanh"}
-                        >
-                          {[
-                            { value: "Không có", label: "Không có" },
-                            { value: "32GB", label: "32GB" },
-                            { value: "64GB", label: "64GB" },
-                            { value: "128GB", label: "128GB" },
-                            { value: "256GB", label: "256GB" },
-                            { value: "512GB", label: "512GB" },
-                            { value: "1TB", label: "1TB" },
-                          ].map((option) => (
-                            <Option
-                              key={option.value}
-                              value={option.value}
-                              disabled={selectedMemories.includes(option.value) && option.value !== "Không có"}
-                            >
-                              {option.label}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={`Số Lượng Bộ Nhớ Trong ${version}`}
-                        name={`SoLuong${version}`}
-                        rules={[
-                          {
-                            required: product[`BoNhoTrong${version}`] !== "Không có" && product.TrangThai === "Còn hàng",
-                            message: "Vui lòng nhập số lượng!",
-                          },
-                          { validator: noNegativeNumber },
-                        ]}
-                        validateStatus={quantityErrors[`SoLuong${version}`] ? "error" : ""}
-                        help={quantityErrors[`SoLuong${version}`]}
-                      >
-                        <Input
-                          type="number"
-                          placeholder="Nhập số lượng"
-                          disabled={
-                            product.TrangThai === "Hết hàng" ||
-                            product.TrangThai === "Ngừng kinh doanh" ||
-                            product[`BoNhoTrong${version}`] === "Không có"
-                          }
-                          onChange={(e) => handleQuantityChange(version, e.target.value)}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={`Giá ${version}`}
-                        name={`GiaSP${version}`}
-                        rules={[
-                          {
-                            required: product[`BoNhoTrong${version}`] !== "Không có" && product.TrangThai === "Còn hàng",
-                            message: "Vui lòng nhập giá!",
-                          },
-                          { validator: noNegativeNumber },
-                        ]}
-                        validateStatus={priceErrors[`GiaSP${version}`] ? "error" : ""}
-                        help={priceErrors[`GiaSP${version}`]}
-                      >
-                        <Input
-                          type="number"
-                          placeholder={`Nhập giá sản phẩm ${version}`}
-                          disabled={
-                            product.TrangThai === "Ngừng kinh doanh" ||
-                            product[`BoNhoTrong${version}`] === "Không có"
-                          }
-                          onChange={(e) => handlePriceChange(version, e.target.value)}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </Col>
-              );
-            })}
+                        {option.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={7}>
+                <Form.Item
+                  label={`Số Lượng Bộ Nhớ Trong ${version}`}
+                  name={`SoLuong${version}`}
+                  rules={[
+                    {
+                      required: product[`BoNhoTrong${version}`] !== "Không có" && product.TrangThai === "Còn hàng",
+                      message: "Vui lòng nhập số lượng!",
+                    },
+                    { validator: noNegativeNumber },
+                  ]}
+                  validateStatus={quantityErrors[`SoLuong${version}`] ? "error" : ""}
+                  help={quantityErrors[`SoLuong${version}`]}
+                >
+                  <Input
+                    type="number"
+                    placeholder="Nhập số lượng"
+                    disabled={
+                      product.TrangThai === "Hết hàng" ||
+                      product.TrangThai === "Ngừng kinh doanh" ||
+                      product[`BoNhoTrong${version}`] === "Không có"
+                    }
+                    onChange={(e) => handleQuantityChange(version, e.target.value)}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={7}>
+                <Form.Item
+                  label={`Giá ${version}`}
+                  name={`GiaSP${version}`}
+                  rules={[
+                    {
+                      required: product[`BoNhoTrong${version}`] !== "Không có" && product.TrangThai === "Còn hàng",
+                      message: "Vui lòng nhập giá!",
+                    },
+                    { validator: noNegativeNumber },
+                  ]}
+                  validateStatus={priceErrors[`GiaSP${version}`] ? "error" : ""}
+                  help={priceErrors[`GiaSP${version}`]}
+                >
+                  <Input
+                    type="number"
+                    placeholder={`Nhập giá sản phẩm ${version}`}
+                    disabled={
+                      product.TrangThai === "Ngừng kinh doanh" ||
+                      product[`BoNhoTrong${version}`] === "Không có"
+                    }
+                    onChange={(e) => handlePriceChange(version, e.target.value)}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={3} style={{ display: "flex", alignItems: "center" }}>
+                <Button
+                  type="danger"
+                  icon={<DeleteOutlined />}
+                  onClick={() => removeVersion(version)}
+                  disabled={visibleVersions.length === 1 || product.TrangThai === "Ngừng kinh doanh"}
+                >
+                  Ẩn
+                </Button>
+              </Col>
+            </Row>
+          ))}
+
+          <Row>
+            <Col xs={24}>
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                onClick={addVersion}
+                disabled={visibleVersions.length >= 6 || product.TrangThai === "Ngừng kinh doanh"}
+                block
+              >
+                Thêm Phiên Bản
+              </Button>
+            </Col>
           </Row>
         </Card>
 

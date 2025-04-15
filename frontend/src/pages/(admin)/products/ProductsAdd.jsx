@@ -221,6 +221,8 @@ const ProductsAdd = () => {
           HDH: mainValues.HDH,
           LoaiPin: mainValues.LoaiPin,
           CapSac: mainValues.CapSac,
+          ManHinh: mainValues.ManHinh, // Thêm trường ManHinh
+          CPU: mainValues.CPU,         // Thêm trường CPU
           ...product.memoryData.reduce((acc, data, i) => ({
             ...acc,
             [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,

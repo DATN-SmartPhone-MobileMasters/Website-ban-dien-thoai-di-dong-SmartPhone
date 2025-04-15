@@ -1,186 +1,205 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { confirmAlert } from "react-confirm-alert";
-import "react-confirm-alert/src/react-confirm-alert.css";
-import { deletePromotion, fetchPromotion } from "../../../service/api";
+import React, { useEffect, useState, forwardRef } from "react";
+import { Table, Select, Button, Popconfirm, message } from "antd";
+import { fetchPromotion, deletePromotion } from "../../../service/api";
+import moment from "moment";
+import { useNavigate } from "react-router-dom";
+
+const { Option } = Select;
 
 const statusMap = {
-  0: "🔵 Đang diễn ra",
-  1: "🔴 Đã sử dụng",
-  2: "🟡 Chưa bắt đầu",
+  0: "🟡 Chưa bắt đầu",
+  1: "🔵 Đang diễn ra",
+  2: "🔴 Đã kết thúc",
 };
 
-// Hàm định dạng ngày theo DD/MM/YYYY
 const formatDate = (dateString) => {
   if (!dateString) return "Không xác định";
-  return new Intl.DateTimeFormat("vi-VN").format(new Date(dateString));
+  return moment(dateString).format("DD/MM/YYYY");
 };
 
-const Promotion = () => {
+const Promotion = forwardRef((props, ref) => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
+  const navigate = useNavigate();
 
-  const getPromotions = useCallback(async () => {
+  const getPromotions = async () => {
     try {
       setLoading(true);
       const response = await fetchPromotion();
       setPromotions(response.data?.data || []);
     } catch (error) {
-      setError("Có lỗi khi lấy dữ liệu.");
+      console.error("Lỗi khi lấy danh sách khuyến mãi:", error);
+      setPromotions([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
+
+  React.useImperativeHandle(ref, () => ({ getPromotions }));
 
   useEffect(() => {
     getPromotions();
-  }, [getPromotions]);
-
-  const promotionsList = useMemo(() => {
-    return promotions.map((promotion) => ({
-      ...promotion,
-      TrangThaiText: statusMap[promotion.TrangThai] || "⚪ Không xác định",
-      NgayBDText: formatDate(promotion.NgayBD),
-      NgayKTText: formatDate(promotion.NgayKT),
-      LoaiKMText:
-        promotion.LoaiKM === "percentage"
-          ? "Giảm theo %"
-          : "Giảm số tiền cố định",
-      GiaTriKMText:
-        promotion.LoaiKM === "percentage"
-          ? `${promotion.GiaTriKM}%`
-          : `${promotion.GiaTriKM} VND`,
-    }));
-  }, [promotions]);
-
-  const handleDelete = useCallback((id) => {
-    confirmAlert({
-      title: "Xác nhận xóa",
-      message: "Bạn có chắc chắn muốn xóa khuyến mãi này?",
-      buttons: [
-        {
-          label: "Có",
-          onClick: async () => {
-            try {
-              await deletePromotion(id);
-              setPromotions((prev) =>
-                prev.filter((promotion) => promotion._id !== id)
-              );
-            } catch (error) {
-              alert("Có lỗi xảy ra khi xóa khuyến mãi.");
-            }
-          },
-        },
-        { label: "Không" },
-      ],
-    });
   }, []);
 
-  return (
-    <div className="container-fluid">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 text-gray-800">Danh Sách Khuyến Mãi</h1>
-        <div>
-          <button
-            className="btn btn-secondary me-2"
-            onClick={getPromotions}
-            disabled={loading}
-          >
-            {loading ? "⏳ Đang tải..." : "🔄 Làm mới"}
-          </button>
-          <Link className="btn btn-primary" to="/admin/vouchers/add">
-            ➕ Thêm Khuyến Mãi
-          </Link>
-        </div>
-      </div>
-      <p className="mb-4">
-        Đây là danh sách tất cả các khuyến mãi trong hệ thống.
-      </p>
+  const handleDelete = async (id) => {
+    try {
+      await deletePromotion(id);
+      message.success("Xóa khuyến mãi thành công!");
+      getPromotions();
+    } catch (error) {
+      message.error("Xóa thất bại, thử lại sau!");
+    }
+  };
 
-      <div className="card shadow mb-4">
-        <div className="card-header py-3">
-          <h6 className="m-0 font-weight-bold text-primary">Khuyến Mãi</h6>
+  const handleStatusChange = (value) => {
+    setSelectedStatus(
+      value !== undefined && value !== null ? Number(value) : null
+    );
+  };
+
+  const handleSortChange = (value) => setSortOrder(value);
+
+  let filteredPromotions =
+    selectedStatus !== null
+      ? promotions.filter(
+          (km) => Number(km.TrangThai) === Number(selectedStatus)
+        )
+      : promotions;
+
+  if (sortOrder === "newest") {
+    filteredPromotions.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+  } else if (sortOrder === "oldest") {
+    filteredPromotions.sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
+  }
+
+  const columns = [
+    { title: "Mã KM", dataIndex: "MaKM", key: "MaKM", align: "center" },
+    { title: "Tên KM", dataIndex: "TenKM", key: "TenKM", align: "center" },
+    {
+      title: "Loại KM",
+      dataIndex: "LoaiKM",
+      key: "LoaiKM",
+      align: "center",
+      render: (value) =>
+        value === "percentage" ? "Giảm theo %" : "Giảm số tiền cố định",
+    },
+    {
+      title: "Giá trị KM",
+      dataIndex: "GiaTriKM",
+      key: "GiaTriKM",
+      align: "center",
+      render: (value, record) =>
+        record.LoaiKM === "percentage" ? `${value}%` : `${value} VND`,
+    },
+    {
+      title: "Ngày Bắt Đầu",
+      dataIndex: "NgayBD",
+      key: "NgayBD",
+      align: "center",
+      render: formatDate,
+    },
+    {
+      title: "Ngày Kết Thúc",
+      dataIndex: "NgayKT",
+      key: "NgayKT",
+      align: "center",
+      render: formatDate,
+    },
+    {
+      title: "Trạng Thái",
+      dataIndex: "TrangThai",
+      key: "TrangThai",
+      align: "center",
+      render: (value) => statusMap[value] || "⚪ Không xác định",
+    },
+    {
+      title: "Hành động",
+      key: "actions",
+      align: "center",
+      render: (record) => (
+        <div>
+          <Popconfirm
+            title="Bạn có chắc muốn xóa khuyến mãi này?"
+            onConfirm={() => handleDelete(record._id)}
+            okText="Có"
+            cancelText="Hủy"
+          >
+            <Button type="primary" danger>
+              Xóa
+            </Button>
+          </Popconfirm>
+          {/* <Button
+            type="primary"
+            style={{ marginRight: 8 }}
+            onClick={() => navigate(`/admin/vouchers/edit/${record._id}`)}
+          >
+            Sửa
+          </Button> */}
         </div>
-        <div className="card-body">
-          <div className="table-responsive">
-            {loading && (
-              <div className="text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            )}
-            {error && !loading && (
-              <div className="alert alert-danger" role="alert">
-                {error}
-              </div>
-            )}
-            {!loading && !error && (
-              <table className="table table-bordered table-striped">
-                <thead>
-                  <tr>
-                    <th>Mã KM</th>
-                    <th>Tên KM</th>
-                    <th>Loại KM</th>
-                    <th>Giá Trị KM</th>
-                    <th>Ngày Bắt Đầu</th>
-                    <th>Ngày Kết Thúc</th>
-                    <th>Trạng Thái</th>
-                    <th>Hành Động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {promotionsList.length > 0 ? (
-                    promotionsList
-                      .slice()
-                      .sort(
-                        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-                      )
-                      .map((promotion) => (
-                        <tr key={promotion._id}>
-                          <td>{promotion.MaKM}</td>
-                          <td>{promotion.TenKM}</td>
-                          <td>{promotion.LoaiKMText}</td>
-                          <td>{promotion.GiaTriKMText}</td>
-                          <td>{promotion.NgayBDText}</td>
-                          <td>{promotion.NgayKTText}</td>
-                          <td>
-                            <span className="badge bg-info">
-                              {promotion.TrangThaiText}
-                            </span>
-                          </td>
-                          <td className="d-flex justify-content-center gap-3">
-                            {/* <Link
-                            to={`/admin/vouchers/edit/${promotion._id}`}
-                            className="btn btn-warning btn-sm"
-                          >
-                            <i className="fas fa-edit"></i> Chỉnh Sửa
-                          </Link> */}
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleDelete(promotion._id)}
-                            >
-                              <i className="fas fa-trash"></i> Xóa
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                  ) : (
-                    <tr>
-                      <td colSpan={8} className="text-center">
-                        Không có dữ liệu.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            )}
+      ),
+    },
+  ];
+
+  return (
+    <div style={{ padding: 20, width: "100%", height: "100vh" }}>
+      <h2 style={{ textAlign: "center", marginBottom: 20 }}>
+        Danh sách khuyến mãi
+      </h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
+        <div style={{ display: "flex", gap: 20 }}>
+          <div>
+            <span style={{ marginRight: 10 }}>Lọc theo trạng thái:</span>
+            <Select
+              placeholder="Chọn trạng thái"
+              style={{ width: 200 }}
+              onChange={handleStatusChange}
+              allowClear
+            >
+              <Option value={0}>🟡 Chưa bắt đầu</Option>
+              <Option value={1}>🔵 Đang diễn ra</Option>
+              <Option value={2}>🔴 Đã kết thúc</Option>
+            </Select>
+          </div>
+          <div>
+            <span style={{ marginRight: 10 }}>Sắp xếp:</span>
+            <Select
+              placeholder="Chọn kiểu sắp xếp"
+              style={{ width: 150 }}
+              onChange={handleSortChange}
+              allowClear
+            >
+              <Option value="newest">Gần nhất</Option>
+              <Option value="oldest">Lâu nhất</Option>
+            </Select>
           </div>
         </div>
+        <Button type="primary" onClick={() => navigate("/admin/vouchers/add")}>
+          + Thêm Khuyến Mãi
+        </Button>
       </div>
+      <Table
+        columns={columns}
+        dataSource={filteredPromotions}
+        rowKey={(record) => record._id}
+        bordered
+        pagination={{ pageSize: 10 }}
+        loading={loading}
+      />
     </div>
   );
-};
+});
+Promotion.displayName = "Promotion";
 
 export default Promotion;
