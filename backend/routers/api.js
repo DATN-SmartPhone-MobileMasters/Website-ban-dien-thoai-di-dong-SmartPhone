@@ -6,6 +6,7 @@ import CommentController from "../controllers/CommentController.js";
 import HoaDonController from "../controllers/HoaDonController.js";
 import PromotionController from "../controllers/PromotionController.js";
 import DanhGiaController from "../controllers/DanhGiaController.js";
+import BannerController from "../controllers/BannerControlle.js";
 // tạo router
 const apiRouter = Router();
 
@@ -75,6 +76,12 @@ apiRouter.get("/promotions/:id", PromotionControl.getDetailPromotion);
 apiRouter.post("/promotions", PromotionControl.createPromotion);
 apiRouter.delete("/promotions/:id", PromotionControl.deletePromotion);
 apiRouter.put("/promotions/:id", PromotionControl.updatePromotion);
+const BannerControl = new BannerController();
+apiRouter.get("/banners", BannerControl.bannerList); // Lấy danh sách banner
+apiRouter.get("/banners/:id", BannerControl.bannerDetail); // Lấy chi tiết banner
+apiRouter.post("/banners", BannerControl.bannerCreate); // Tạo banner
+apiRouter.put("/banners/:id", BannerControl.bannerUpdate); // Cập nhật banner
+apiRouter.delete("/banners/:id", BannerControl.bannerDelete); // Xóa banner
 
 
 export default apiRouter;
