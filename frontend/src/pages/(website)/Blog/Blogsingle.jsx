@@ -1,41 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
-
-const post = {
-  title: "E-Commerce Free Template",
-  date: "20 DECEMBER, 2020",
-  author: "ADMIN",
-  content: `Phasellus vehicula cursus ligula, et vulputate sem vehicula eu. Mauris hendrerit ultrices dui, ut aliquet sapien malesuada id. Suspendisse potenti.`,
-  image: "https://picsum.photos/800/400",
-  relatedPosts: [
-    {
-      title: "E-Commerce Free Template",
-      image: "https://picsum.photos/200/150",
-    },
-    { title: "Online Mobile Store", image: "https://picsum.photos/200/150" },
-    {
-      title: "E-Commerce Free Template",
-      image: "https://picsum.photos/200/150",
-    },
-  ],
-  comments: [
-    {
-      name: "Joshua Cody",
-      text: "Bài viết rất hay!",
-      date: "20 DECEMBER, 2020",
-    },
-    {
-      name: "Mung Thomson",
-      text: "Cảm ơn vì những thông tin hữu ích!",
-      date: "20 DECEMBER, 2020",
-    },
-    {
-      name: "Eric Pham",
-      text: "Giữ vững phong độ nhé!",
-      date: "20 DECEMBER, 2020",
-    },
-  ],
-};
+import { useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   return (
@@ -44,25 +8,21 @@ const Sidebar = () => {
       <ul className="mt-2">
         <li className="text-gray-700">Smartphones</li>
         <li className="text-gray-700">Android Phones</li>
-        <li className="text-gray-700">iPhones</li>
+        <li className="text-gray-700">IOS</li>
       </ul>
-      <h2 className="text-xl font-bold mt-6">Thống Kê</h2>
-      <ul className="mt-2">
-        <li className="text-gray-700">Tháng 1 (2023)</li>
-        <li className="text-gray-700">Tháng 2 (2023)</li>
-        <li className="text-gray-700">Tháng 3 (2023)</li>
-      </ul>
-      <h2 className="text-xl font-bold mt-6">Người Dùng</h2>
-      <ul className="mt-2">
-        <li className="text-gray-700">Admin</li>
-        <li className="text-gray-700">Khách Hàng</li>
-      </ul>
+    
     </div>
   );
 };
 
 const Blogsingle = () => {
-  const { id } = useParams();
+  const location = useLocation();
+  const post = location.state?.post;
+
+  if (!post) {
+    return <p>Không tìm thấy bài viết!</p>;
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gray-100 flex gap-6">
       {/* Nội dung chính */}
@@ -112,7 +72,6 @@ const Blogsingle = () => {
             ))}
           </div>
         </div>
-
         {/* Form bình luận */}
         <div className="mt-8 bg-white p-6 shadow-md rounded-md">
           <h2 className="text-xl font-bold">Để lại bình luận</h2>
