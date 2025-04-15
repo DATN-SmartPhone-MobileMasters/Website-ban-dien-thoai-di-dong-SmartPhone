@@ -90,7 +90,7 @@ const Orderdetail = () => {
                 role: role,
                 name: userRes.data.HoVaTen,
               },
-              cancellationDate: new Date(),
+              cancellationDate: new Date()
             };
 
             if (hoaDon.paymentMethod === "COD" || 
@@ -125,6 +125,11 @@ const Orderdetail = () => {
             
             if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "COD") {
               updateData.checkPayment = "Đã Thanh Toán";
+              updateData.deliveryDate = new Date();
+              updateData.transactionDate = new Date();
+            }
+            if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "VNPay") {
+              updateData.deliveryDate = new Date();
             }
 
             await updateOrder(id, updateData);
@@ -311,6 +316,14 @@ const Orderdetail = () => {
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <p className="text-sm text-blue-600">Trạng thái thanh toán:</p>
                 <p className="font-medium text-blue-800">{hoaDon.checkPayment}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-600">Ngày hoàn thành giao hàng</p>
+                <p className="font-medium text-blue-800">{hoaDon.deliveryDate || "Chưa có"} </p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-600">Ngày hoàn thành thanh toán</p>
+                <p className="font-medium text-blue-800">{hoaDon.transactionDate || "Chưa có"} </p>
               </div>
             </div>
           </div>

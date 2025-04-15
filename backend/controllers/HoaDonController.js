@@ -449,6 +449,7 @@ async thongKeDoanhThu(req, res) {
         {
           paymentStatus: "Chờ xử lý",
           checkPayment: vnp_ResponseCode === "00" ? "Đã Thanh Toán" : "Chưa Thanh Toán",
+          transactionDate: vnp_ResponseCode === "00" ? new Date() : "Chưa có",
           vnp_TransactionNo,
           vnp_ResponseCode,
           updatedAt: new Date(),
