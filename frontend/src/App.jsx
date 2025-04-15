@@ -54,7 +54,7 @@ import AddDanhGiaUser from "./pages/(website)/danhgia/AddDanhGiaUser";
 import ListDanhGiaUser from "./pages/(website)/danhgia/ListDanhGiaUser";
 import SpDaMua from "./pages/(website)/sanphamdamua/SpDaMua";
 import Socket from "./pages/(website)/socket/Socket";
-
+import ListBanner from "./pages/(admin)/banner/ListBanner";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -168,6 +168,10 @@ function App() {
         {
           path: "/addcomment",
           element: <AddComment />,
+        },
+        {
+          path: "/listbanner",
+          element: <ListBanner />,
         },
       ],
     },

@@ -123,3 +123,12 @@ export const createDanhGia = async (data) =>
   axios.post(`${API_URL}/danhgias`, data);
 export const updateDanhGia = async (id, data) =>
   axios.put(`${API_URL}/danhgias/${id}`, data);
+export const fetchBanners = async () => axios.get(`${API_URL}/banners`);
+export const createBanner = async (data) =>
+  axios.post(`${API_URL}/banners`, data);
+export const updateBanner = async (id, data) =>
+  axios.put(`${API_URL}/banners/${id}`, data);
+export const deleteBanner = async (id) =>
+  axios.delete(`${API_URL}/banners/${id}`);
+export const getBannerById = async (id) =>
+  axios.get(`${API_URL}/banners/${id}`);
