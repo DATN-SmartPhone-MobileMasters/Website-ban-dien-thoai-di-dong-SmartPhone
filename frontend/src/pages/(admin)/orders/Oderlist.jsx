@@ -6,24 +6,21 @@ import io from "socket.io-client";
 
 const { Option } = Select;
 
-// Hàm formatDate để định dạng ngày tháng
+// Hàm định dạng ngày tháng
 const formatDate = (dateString) => {
   if (!dateString) return "Không có";
   const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 };
 
-// Hàm chuẩn hóa chuỗi trạng thái (loại bỏ khoảng trắng thừa, chuẩn hóa unicode, không phân biệt hoa thường)
+// Hàm chuẩn hóa chuỗi trạng thái
 const normalizeString = (str) => {
   if (!str) return "";
   return str
     .trim()
-    .normalize("NFC") // Chuẩn hóa unicode
-    .replace(/\s+/g, " ") // Loại bỏ khoảng trắng thừa
-    .toLowerCase(); // Chuyển về chữ thường để so sánh không phân biệt hoa thường
+    .normalize("NFC")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 };
 
 const OrderList = () => {
@@ -36,7 +33,7 @@ const OrderList = () => {
   const [sortTotal, setSortTotal] = useState("");
   const location = useLocation();
 
-  // Khởi tạo kết nối Socket.IO
+  // Khởi tạo Socket.IO
   const socket = io("http://localhost:5000", {
     reconnection: true,
     reconnectionAttempts: 5,
@@ -44,24 +41,21 @@ const OrderList = () => {
     transports: ["websocket", "polling"],
   });
 
+  // Lấy danh sách hóa đơn
   useEffect(() => {
     const getHoaDons = async () => {
       try {
         const response = await fetchOrders();
         const storedHiddenOrders = JSON.parse(localStorage.getItem("hiddenOrders")) || [];
         setHiddenOrders(storedHiddenOrders);
-        // Sort orders by createdAt in descending order (newest first)
-        const all = (response.data.data || []).sort(
+
+        // Sắp xếp đơn hàng theo ngày tạo (mới nhất trước)
+        const sortedOrders = (response.data.data || []).sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        // Debug: In ra danh sách trạng thái để kiểm tra
-        console.log("Danh sách trạng thái từ API:", all.map(order => ({
-          id: order._id,
-          paymentStatus: order.paymentStatus,
-          normalizedStatus: normalizeString(order.paymentStatus)
-        })));
-        setAllOrders(all);
-        applyFilters(all, storedHiddenOrders);
+
+        setAllOrders(sortedOrders);
+        applyFilters(sortedOrders, storedHiddenOrders);
       } catch (error) {
         console.error("Lỗi khi tải danh sách hóa đơn:", error);
         message.error("Lỗi khi tải danh sách hóa đơn!");
@@ -71,10 +65,9 @@ const OrderList = () => {
     getHoaDons();
   }, [location.key, showHidden]);
 
-  // Lắng nghe sự kiện Socket.IO để cập nhật trạng thái hóa đơn
+  // Lắng nghe sự kiện Socket.IO
   useEffect(() => {
     socket.on("orderStatusUpdated", (data) => {
-      console.log("Received orderStatusUpdated event:", data);
       setAllOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === data.orderId
@@ -86,19 +79,14 @@ const OrderList = () => {
                 FeedBack: data.FeedBack,
               }
             : order
-        )
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Đảm bảo sắp xếp mới nhất
       );
     });
 
-    socket.on("connect", () => {
-      console.log("Connected to socket server");
-    });
+    socket.on("connect", () => console.log("Kết nối socket thành công"));
+    socket.on("connect_error", (error) => console.error("Lỗi kết nối socket:", error));
 
-    socket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-    });
-
-    // Cleanup khi component unmount
+    // Cleanup
     return () => {
       socket.off("orderStatusUpdated");
       socket.off("connect");
@@ -107,23 +95,20 @@ const OrderList = () => {
     };
   }, [socket]);
 
-  // Hàm áp dụng các bộ lọc
+  // Hàm áp dụng bộ lọc
   const applyFilters = (orders, hiddenOrders) => {
     let filtered = [...orders];
 
-    // Lọc theo trạng thái hiển thị (ẩn hoặc không ẩn)
+    // Lọc hiển thị đơn hàng ẩn/không ẩn
     filtered = showHidden
       ? filtered.filter((order) => hiddenOrders.includes(order._id))
       : filtered.filter((order) => !hiddenOrders.includes(order._id));
 
-    // Lọc theo trạng thái đơn hàng
+    // Lọc theo trạng thái
     if (statusFilter) {
       const normalizedStatusFilter = normalizeString(statusFilter);
-      console.log("Giá trị statusFilter (chuẩn hóa):", normalizedStatusFilter);
-      
       filtered = filtered.filter((order) => {
         const normalizedOrderStatus = normalizeString(order.paymentStatus);
-        // Logic đặc biệt cho "Đã xác nhận" và "Xác nhận"
         if (normalizedStatusFilter === "đã xác nhận" || normalizedStatusFilter === "xác nhận") {
           return normalizedOrderStatus === "đã xác nhận" || normalizedOrderStatus === "xác nhận";
         }
@@ -133,30 +118,27 @@ const OrderList = () => {
 
     // Lọc theo ngày
     if (dateFilter) {
-      filtered = filtered.filter((order) => {
-        const createdAt = formatDate(order.createdAt);
-        return createdAt === dateFilter;
-      });
+      filtered = filtered.filter((order) => formatDate(order.createdAt) === dateFilter);
     }
 
     // Sắp xếp theo tổng tiền
     if (sortTotal === "low-to-high") {
-      filtered = filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
+      filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
     } else if (sortTotal === "high-to-low") {
-      filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
+      filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else {
-      // Default sorting: newest orders first
-      filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     setHoaDons(filtered);
   };
 
-  // Cập nhật bộ lọc khi thay đổi
+  // Cập nhật bộ lọc
   useEffect(() => {
     applyFilters(allOrders, hiddenOrders);
   }, [statusFilter, dateFilter, sortTotal, allOrders, hiddenOrders]);
 
+  // Ẩn đơn hàng
   const handleHideOrder = (id) => {
     const updatedHiddenOrders = [...hiddenOrders, id];
     setHiddenOrders(updatedHiddenOrders);
@@ -165,6 +147,7 @@ const OrderList = () => {
     message.success("Đã ẩn đơn hàng thành công");
   };
 
+  // Khôi phục đơn hàng
   const handleRestoreOrder = (id) => {
     const updatedHiddenOrders = hiddenOrders.filter((item) => item !== id);
     setHiddenOrders(updatedHiddenOrders);
@@ -193,7 +176,7 @@ const OrderList = () => {
               <label className="mr-2">Lọc theo trạng thái:</label>
               <Select
                 value={statusFilter}
-                onChange={(value) => setStatusFilter(value)}
+                onChange={setStatusFilter}
                 style={{ width: 200 }}
                 placeholder="Chọn trạng thái"
                 allowClear
@@ -220,7 +203,7 @@ const OrderList = () => {
               <label className="mr-2">Sắp xếp tổng tiền:</label>
               <Select
                 value={sortTotal}
-                onChange={(value) => setSortTotal(value)}
+                onChange={setSortTotal}
                 style={{ width: 200 }}
                 placeholder="Chọn sắp xếp"
                 allowClear
@@ -232,7 +215,7 @@ const OrderList = () => {
             </div>
           </div>
           <div className="table-responsive">
-            <table className="table table-hover table-bordered dataTable no-footer">
+            <table className="table table-hover table-bordered">
               <thead>
                 <tr>
                   <th>STT</th>
@@ -251,9 +234,9 @@ const OrderList = () => {
                     <tr key={hoaDon._id}>
                       <td>{i + 1}</td>
                       <td>{formatDate(hoaDon.createdAt)}</td>
-                      <td>{hoaDon.shippingInfo.name || "Không có"}</td>
-                      <td>{hoaDon.shippingInfo.phone || "Không có"}</td>
-                      <td>{hoaDon.shippingInfo.address || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo?.name || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo?.phone || "Không có"}</td>
+                      <td>{hoaDon.shippingInfo?.address || "Không có"}</td>
                       <td>
                         {hoaDon.total
                           ? `${hoaDon.total.toLocaleString()} VND`
@@ -268,10 +251,7 @@ const OrderList = () => {
                           👁️ Xem chi tiết
                         </Link>
                         {!showHidden &&
-                          (hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Thanh Toán' ||
-                            hoaDon.paymentStatus === "Huỷ Đơn" && hoaDon.checkPayment === 'Đã Hoàn Tiền' ||
-                            hoaDon.paymentStatus === "Hoàn thành" && hoaDon.checkPayment === 'Đã Thanh Toán'
-                          ) && (
+                          ["Hoàn thành", "Huỷ Đơn"].includes(hoaDon.paymentStatus) && (
                             <button
                               onClick={() => handleHideOrder(hoaDon._id)}
                               className="btn btn-warning ml-2"
