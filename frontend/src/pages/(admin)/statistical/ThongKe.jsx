@@ -61,13 +61,17 @@ const ThongKe = () => {
               beginAtZero: true,
             },
           },
+
+          // tooltip chart.js hiển thị chi tiết hơn trong biểu đồ
           plugins: {
+           
+            
             tooltip: {
               callbacks: {
                 title: (tooltipItems) => {
                   const index = tooltipItems[0].dataIndex;
                   const item = thongKeDoanhThu.doanhThuTheoNgay[index];
-                  return `Ngày: ${item.date || item._id}`;
+                  return `Ngày: ${item.date || item._id.ngay}`;
                 },
                 label: (tooltipItem) => {
                   const index = tooltipItem.dataIndex;
