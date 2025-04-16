@@ -107,9 +107,8 @@ const Slider = () => {
       {/* Hiển thị ảnh */}
       <img
         src={slides[currentIndex].img}
-        className="w-full h-auto object-contain transition-transform duration-500"
+        className="w-full h-[500px] object-contain transition-transform duration-500"
         alt={`Banner ${slides[currentIndex].id}`}
-        style={{ maxHeight: "600px" }}
       />
 
       {/* Nút điều hướng */}
