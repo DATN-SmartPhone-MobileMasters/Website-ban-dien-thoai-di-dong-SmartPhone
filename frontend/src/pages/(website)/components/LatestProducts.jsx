@@ -160,7 +160,7 @@ const LatestProducts = ({ onProductClick }) => {
       <div className="max-w-7xl mx-auto px-4">
         <Title level={2} className="text-center mb-8 text-blue-600">
           <FireOutlined className="text-red-500 mr-2" />
-          Sản phẩm iPhone mớiที่สุด
+          Sản phẩm iPhone mới
           <FireOutlined className="text-red-500 ml-2" />
         </Title>
 

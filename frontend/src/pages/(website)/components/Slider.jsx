@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import Socket from '../socket/Socket';
-import { fetchBanners } from '../../../service/api';
+import React, { useState, useEffect } from "react";
+import Socket from "../socket/Socket";
+import { fetchBanners } from "../../../service/api";
 
 const Slider = () => {
   const [slides, setSlides] = useState([]);
@@ -13,35 +13,26 @@ const Slider = () => {
     try {
       setLoading(true);
       const response = await fetchBanners();
-      console.log('Dữ liệu nhận từ API:', response.data);
+      console.log("Dữ liệu nhận từ API:", response.data);
 
-      // Tạo slides từ dữ liệu API
-      const banners = Array.isArray(response.data) && response.data.length > 0 ? response.data : [];
-      const newSlides = banners[0]
-        ? [
-            { id: 1, img: banners[0].Banner1 || '' },
-            { id: 2, img: banners[0].Banner2 || '' },
-            { id: 3, img: banners[0].Banner3 || '' },
-            { id: 4, img: banners[0].Banner4 || '' },
-            { id: 5, img: banners[0].Banner5 || '' },
-            { id: 6, img: banners[0].Banner6 || '' },
-            { id: 7, img: banners[0].Banner7 || '' },
-            { id: 8, img: banners[0].Banner8 || '' },
-            { id: 9, img: banners[0].Banner9 || '' },
-            { id: 10, img: banners[0].Banner10 || '' },
-          ].filter(slide => slide.img)
-        : [];
+      // Lọc các banner có `status` là true và tạo slides
+      const banners = response.data || [];
+      const activeBanners = banners.filter((banner) => banner.status === true);
+      const newSlides = activeBanners.map((banner, index) => ({
+        id: index + 1,
+        img: banner.imgUrl,
+      }));
 
       if (newSlides.length === 0) {
-        setError('Không có banner nào để hiển thị.');
+        setError("Không có banner nào để hiển thị.");
       } else {
         setSlides(newSlides);
         setCurrentIndex(0);
       }
       setLoading(false);
     } catch (err) {
-      console.error('Lỗi khi tải banner:', err);
-      setError('Không thể tải banner.');
+      console.error("Lỗi khi tải banner:", err);
+      setError("Không thể tải banner.");
       setLoading(false);
     }
   };
@@ -53,14 +44,14 @@ const Slider = () => {
 
   // Lắng nghe sự kiện bannerUpdated từ Socket.IO
   useEffect(() => {
-    Socket.on('bannerUpdated', (updatedBanner) => {
-      console.log('Banner được cập nhật:', updatedBanner);
+    Socket.on("bannerUpdated", (updatedBanner) => {
+      console.log("Banner được cập nhật:", updatedBanner);
       loadBanners(); // Tải lại danh sách banner
     });
 
     // Dọn dẹp listener khi component unmount
     return () => {
-      Socket.off('bannerUpdated');
+      Socket.off("bannerUpdated");
     };
   }, []);
 
@@ -118,7 +109,7 @@ const Slider = () => {
         src={slides[currentIndex].img}
         className="w-full h-auto object-contain transition-transform duration-500"
         alt={`Banner ${slides[currentIndex].id}`}
-        style={{ maxHeight: '600px' }}
+        style={{ maxHeight: "600px" }}
       />
 
       {/* Nút điều hướng */}
@@ -141,7 +132,7 @@ const Slider = () => {
           <div
             key={index}
             className={`w-3 h-3 rounded-full ${
-              index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'
+              index === currentIndex ? "bg-blue-600" : "bg-gray-300"
             } transition-all cursor-pointer`}
             onClick={() => setCurrentIndex(index)}
           />
