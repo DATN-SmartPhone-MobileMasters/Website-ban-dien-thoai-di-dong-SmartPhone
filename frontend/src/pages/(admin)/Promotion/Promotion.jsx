@@ -95,7 +95,28 @@ const Promotion = forwardRef((props, ref) => {
       key: "GiaTriKM",
       align: "center",
       render: (value, record) =>
-        record.LoaiKM === "percentage" ? `${value}%` : `${value} VND`,
+        record.LoaiKM === "percentage"
+          ? `${value}%`
+          : `${value.toLocaleString()} VND`,
+    },
+    {
+      title: "Giá trị tối thiểu",
+      dataIndex: "GiaTriToiThieu",
+      key: "GiaTriToiThieu",
+      align: "center",
+      render: (value) => `${value?.toLocaleString()} VND`,
+    },
+    {
+      title: "Giảm tối đa",
+      dataIndex: "GiamToiDa",
+      key: "GiamToiDa",
+      align: "center",
+      render: (value, record) =>
+        record.LoaiKM === "percentage"
+          ? value
+            ? `${value.toLocaleString()} VND`
+            : "Không giới hạn"
+          : "Không áp dụng",
     },
     {
       title: "Ngày Bắt Đầu",
@@ -134,13 +155,6 @@ const Promotion = forwardRef((props, ref) => {
               Xóa
             </Button>
           </Popconfirm>
-          {/* <Button
-            type="primary"
-            style={{ marginRight: 8 }}
-            onClick={() => navigate(`/admin/vouchers/edit/${record._id}`)}
-          >
-            Sửa
-          </Button> */}
         </div>
       ),
     },

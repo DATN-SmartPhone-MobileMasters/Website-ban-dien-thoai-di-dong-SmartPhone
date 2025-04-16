@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Form,
   Input,
@@ -33,6 +33,12 @@ const AddPromotion = () => {
       message.error(
         error.response?.data?.message || "Có lỗi xảy ra khi thêm khuyến mãi."
       );
+    }
+  };
+
+  const handleLoaiKMChange = (value) => {
+    if (value === "fixed") {
+      form.setFieldsValue({ GiamToiDa: undefined }); // Reset giá trị của trường Giảm Tối Đa khi chọn 'fixed'
     }
   };
 
@@ -77,7 +83,10 @@ const AddPromotion = () => {
             { required: true, message: "Loại khuyến mãi là trường bắt buộc" },
           ]}
         >
-          <Select placeholder="Chọn loại khuyến mãi">
+          <Select
+            placeholder="Chọn loại khuyến mãi"
+            onChange={handleLoaiKMChange}
+          >
             <Option value="fixed">Giảm số tiền cố định</Option>
             <Option value="percentage">Giảm theo %</Option>
           </Select>
@@ -97,7 +106,6 @@ const AddPromotion = () => {
                 const loaiKM = getFieldValue("LoaiKM");
                 if (value === undefined)
                   return Promise.reject("Vui lòng nhập giá trị");
-
                 if (value < 0)
                   return Promise.reject("Giá trị không được là số âm");
                 if (loaiKM === "percentage") {
@@ -117,6 +125,45 @@ const AddPromotion = () => {
             placeholder="Nhập giá trị khuyến mãi"
           />
         </Form.Item>
+
+        <Form.Item
+          label="Giá Trị Tối Thiểu"
+          name="GiaTriToiThieu"
+          rules={[
+            { required: true, message: "Giá trị tối thiểu là trường bắt buộc" },
+            {
+              type: "number",
+              min: 0,
+              message: "Giá trị tối thiểu không được âm",
+            },
+          ]}
+        >
+          <InputNumber
+            style={{ width: "100%" }}
+            placeholder="Nhập giá trị tối thiểu đơn hàng"
+          />
+        </Form.Item>
+
+        {/* Kiểm tra nếu Loại Khuyến Mãi không phải là 'fixed', mới hiển thị trường Giảm Tối Đa */}
+        {form.getFieldValue("LoaiKM") !== "fixed" && (
+          <Form.Item
+            label="Giảm Tối Đa"
+            name="GiamToiDa"
+            rules={[
+              { required: true, message: "Giảm tối đa là trường bắt buộc" },
+              {
+                type: "number",
+                min: 0,
+                message: "Giảm tối đa không được âm",
+              },
+            ]}
+          >
+            <InputNumber
+              style={{ width: "100%" }}
+              placeholder="Nhập số tiền giảm tối đa"
+            />
+          </Form.Item>
+        )}
 
         <Form.Item
           label="Ngày Bắt Đầu"
