@@ -74,7 +74,9 @@ const Cart = () => {
       "BoNhoTrong5",
       "BoNhoTrong6",
     ];
-    return keys.find((key) => availableMemories[key] === memory) || "BoNhoTrong1";
+    return (
+      keys.find((key) => availableMemories[key] === memory) || "BoNhoTrong1"
+    );
   };
 
   const updateCart = async () => {
@@ -163,7 +165,9 @@ const Cart = () => {
       localStorage.setItem(`cart_${userId}`, JSON.stringify(updatedCart));
 
       const initialSelection = updatedCart.reduce((acc, _, index) => {
-        acc[index] = updatedCart[index].maxQuantity > 0 && !updatedCart[index].isDiscontinued;
+        acc[index] =
+          updatedCart[index].maxQuantity > 0 &&
+          !updatedCart[index].isDiscontinued;
         return acc;
       }, {});
       setSelectedItems(initialSelection);
@@ -197,7 +201,9 @@ const Cart = () => {
 
         const newSelectedItems = {};
         newStoredCart.forEach((_, index) => {
-          newSelectedItems[index] = newStoredCart[index].maxQuantity > 0 && !newStoredCart[index].isDiscontinued;
+          newSelectedItems[index] =
+            newStoredCart[index].maxQuantity > 0 &&
+            !newStoredCart[index].isDiscontinued;
         });
         setSelectedItems(newSelectedItems);
 
@@ -230,7 +236,8 @@ const Cart = () => {
           if (item.id === updatedProduct._id) {
             let newPrice = item.price;
             let newMaxQuantity = item.maxQuantity;
-            let isDiscontinued = updatedProduct.TrangThai === "Ngừng kinh doanh";
+            let isDiscontinued =
+              updatedProduct.TrangThai === "Ngừng kinh doanh";
 
             const memoryKey = getMemoryKey(item.memory, updatedProduct);
             const memoryIndex = memoryKey.slice(-1);
@@ -289,7 +296,9 @@ const Cart = () => {
 
         const newSelectedItems = {};
         updatedCart.forEach((_, index) => {
-          newSelectedItems[index] = updatedCart[index].maxQuantity > 0 && !updatedCart[index].isDiscontinued;
+          newSelectedItems[index] =
+            updatedCart[index].maxQuantity > 0 &&
+            !updatedCart[index].isDiscontinued;
         });
         setSelectedItems(newSelectedItems);
 
@@ -369,7 +378,8 @@ const Cart = () => {
 
     const newSelectedItems = {};
     newCart.forEach((_, i) => {
-      newSelectedItems[i] = newCart[i].maxQuantity > 0 && !newCart[i].isDiscontinued;
+      newSelectedItems[i] =
+        newCart[i].maxQuantity > 0 && !newCart[i].isDiscontinued;
     });
     setSelectedItems(newSelectedItems);
 
@@ -446,7 +456,8 @@ const Cart = () => {
 
     const newSelectedItems = {};
     newCart.forEach((_, i) => {
-      newSelectedItems[i] = newCart[i].maxQuantity > 0 && !newCart[i].isDiscontinued;
+      newSelectedItems[i] =
+        newCart[i].maxQuantity > 0 && !newCart[i].isDiscontinued;
     });
     setSelectedItems(newSelectedItems);
 
@@ -492,32 +503,48 @@ const Cart = () => {
       return;
     }
 
-    const total = calculateTotal();
+    const total = calculateTotal(); // Tính toán tổng giá trị đơn hàng
 
-    if (total < 10000000) {
+    // Kiểm tra giá trị đơn hàng tối thiểu
+    if (total < promotion.GiaTriToiThieu) {
       message.error(
-        "Đơn hàng giá trị tối thiểu 10 triệu để áp dụng mã giảm giá."
+        `Đơn hàng cần có giá trị tối thiểu là ${promotion.GiaTriToiThieu} VND để áp dụng mã giảm giá.`
       );
       return;
     }
 
     let discountAmount = 0;
-    if (promotion.LoaiKM === "percentage") {
-      discountAmount = (total * promotion.GiaTriKM) / 100;
-    } else {
-      discountAmount = promotion.GiaTriKM;
-    }
 
-    const maxDiscount = 2000000;
-    if (discountAmount > maxDiscount) {
-      discountAmount = maxDiscount;
-      message.warning("Mã giảm giá chỉ áp dụng tối đa 2,000,000 VND.");
+    // Xử lý giảm giá theo loại khuyến mãi
+    if (promotion.LoaiKM === "percentage") {
+      // Tính giảm giá theo phần trăm
+      discountAmount = (total * promotion.GiaTriKM) / 100;
+
+      // Kiểm tra giới hạn giảm tối đa nếu có
+      if (promotion.GiamToiDa && discountAmount > promotion.GiamToiDa) {
+        discountAmount = promotion.GiamToiDa;
+        message.warning(
+          `Mã giảm giá chỉ áp dụng tối đa ${promotion.GiamToiDa} VND.`
+        );
+      }
+    } else if (promotion.LoaiKM === "fixed") {
+      // Tính giảm giá cố định
+      discountAmount = promotion.GiaTriKM;
+
+      // Kiểm tra giới hạn giảm tối đa nếu có
+      if (promotion.GiamToiDa && discountAmount > promotion.GiamToiDa) {
+        discountAmount = promotion.GiamToiDa;
+        message.warning(
+          `Mã giảm giá chỉ áp dụng tối đa ${promotion.GiamToiDa} VND.`
+        );
+      }
     }
 
     setDiscount(discountAmount);
     setVoucher(tempVoucher);
     message.success("Áp dụng mã giảm giá thành công!");
 
+    // Lưu voucher vào localStorage
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
     if (userId) {
@@ -563,7 +590,9 @@ const Cart = () => {
   const handleCheckout = () => {
     navigate("/checkcart", {
       state: {
-        cart: cart.filter((_, index) => selectedItems[index] && !cart[index].isDiscontinued),
+        cart: cart.filter(
+          (_, index) => selectedItems[index] && !cart[index].isDiscontinued
+        ),
         total: calculateOriginalTotal(),
         finalTotal: calculateFinalTotal(),
         discount: discount,
@@ -622,7 +651,9 @@ const Cart = () => {
             const newSelectedItems = {};
             cart.forEach((_, index) => {
               newSelectedItems[index] =
-                e.target.checked && cart[index].maxQuantity > 0 && !cart[index].isDiscontinued;
+                e.target.checked &&
+                cart[index].maxQuantity > 0 &&
+                !cart[index].isDiscontinued;
             });
             setSelectedItems(newSelectedItems);
           }}
@@ -674,46 +705,50 @@ const Cart = () => {
                         "BoNhoTrong4",
                         "BoNhoTrong5",
                         "BoNhoTrong6",
-                      ].map(
-                        (memoryKey) =>
-                          record.availableMemories[memoryKey] &&
-                          record.availableMemories[memoryKey] !== "Không có" ? (
-                            <div
-                              key={memoryKey}
-                              style={{ position: "relative", textAlign: "center" }}
+                      ].map((memoryKey) =>
+                        record.availableMemories[memoryKey] &&
+                        record.availableMemories[memoryKey] !== "Không có" ? (
+                          <div
+                            key={memoryKey}
+                            style={{
+                              position: "relative",
+                              textAlign: "center",
+                            }}
+                          >
+                            <Button
+                              type={
+                                record.memory ===
+                                record.availableMemories[memoryKey]
+                                  ? "primary"
+                                  : "default"
+                              }
+                              size="small"
+                              onClick={() =>
+                                handleMemoryChange(index, memoryKey)
+                              }
+                              disabled={record.maxQuantity === 0}
                             >
-                              <Button
-                                type={
-                                  record.memory ===
-                                  record.availableMemories[memoryKey]
-                                    ? "primary"
-                                    : "default"
-                                }
-                                size="small"
-                                onClick={() => handleMemoryChange(index, memoryKey)}
-                                disabled={record.maxQuantity === 0}
-                              >
-                                {record.availableMemories[memoryKey]}
-                              </Button>
-                              {record.memory ===
-                                record.availableMemories[memoryKey] &&
-                                record.availableMemories[
-                                  `SoLuong${memoryKey.slice(-1)}`
-                                ] === 0 && (
-                                  <Text
-                                    type="danger"
-                                    style={{
-                                      display: "block",
-                                      fontSize: 12,
-                                      marginTop: 4,
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    Hết hàng
-                                  </Text>
-                                )}
-                            </div>
-                          ) : null
+                              {record.availableMemories[memoryKey]}
+                            </Button>
+                            {record.memory ===
+                              record.availableMemories[memoryKey] &&
+                              record.availableMemories[
+                                `SoLuong${memoryKey.slice(-1)}`
+                              ] === 0 && (
+                                <Text
+                                  type="danger"
+                                  style={{
+                                    display: "block",
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  Hết hàng
+                                </Text>
+                              )}
+                          </div>
+                        ) : null
                       )}
                     </div>
                   </>
@@ -746,7 +781,9 @@ const Cart = () => {
       dataIndex: "price",
       key: "price",
       render: (price) => (
-        <Text strong>{price === 0 ? "Ngừng kinh doanh" : formatCurrency(price)}</Text>
+        <Text strong>
+          {price === 0 ? "Ngừng kinh doanh" : formatCurrency(price)}
+        </Text>
       ),
       align: "center",
     },
@@ -760,7 +797,11 @@ const Cart = () => {
             <Button
               icon={<MinusOutlined />}
               onClick={() => decreaseQuantity(index)}
-              disabled={quantity <= 1 || record.maxQuantity === 0 || record.isDiscontinued}
+              disabled={
+                quantity <= 1 ||
+                record.maxQuantity === 0 ||
+                record.isDiscontinued
+              }
             />
             <Text>{quantity}</Text>
             <Button
@@ -772,7 +813,9 @@ const Cart = () => {
           <Text type="secondary">Còn lại: {record.maxQuantity}</Text>
           {(record.maxQuantity <= 0 || record.isDiscontinued) && (
             <Text type="danger">
-              {record.isDiscontinued ? "Sản phẩm đã ngừng kinh doanh" : "Sản phẩm đã hết hàng"}
+              {record.isDiscontinued
+                ? "Sản phẩm đã ngừng kinh doanh"
+                : "Sản phẩm đã hết hàng"}
             </Text>
           )}
         </Space>
@@ -847,11 +890,15 @@ const Cart = () => {
                 <Space>
                   <Button
                     type="link"
-                    onClick={hasSelectedInStockItems ? showVoucherModal : undefined}
+                    onClick={
+                      hasSelectedInStockItems ? showVoucherModal : undefined
+                    }
                     disabled={!hasSelectedInStockItems}
                     style={{
                       color: hasSelectedInStockItems ? "#1890ff" : "#d9d9d9",
-                      cursor: hasSelectedInStockItems ? "pointer" : "not-allowed",
+                      cursor: hasSelectedInStockItems
+                        ? "pointer"
+                        : "not-allowed",
                     }}
                   >
                     {voucher ? `Mã: ${voucher}` : "Chọn mã giảm giá"}
@@ -893,7 +940,9 @@ const Cart = () => {
                 </Text>
               )}
 
-              {cart.some((item) => item.maxQuantity === 0 || item.isDiscontinued) && (
+              {cart.some(
+                (item) => item.maxQuantity === 0 || item.isDiscontinued
+              ) && (
                 <Alert
                   message="Có sản phẩm đã hết hàng hoặc ngừng kinh doanh, vui lòng xóa hoặc chọn bộ nhớ khác."
                   type="warning"
@@ -982,8 +1031,8 @@ const Cart = () => {
                                       <Text type="success">Có thể sử dụng</Text>
                                     ) : (
                                       <Text type="danger">
-                                        Bạn chưa đủ điều kiện sử dụng hoặc Voucher
-                                        đã hết!
+                                        Bạn chưa đủ điều kiện sử dụng hoặc
+                                        Voucher đã hết!
                                       </Text>
                                     )}
                                   </Text>

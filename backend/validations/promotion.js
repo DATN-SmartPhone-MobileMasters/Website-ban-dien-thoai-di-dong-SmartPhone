@@ -4,7 +4,7 @@ const promotionValidator = Joi.object({
   MaKM: Joi.string()
     .pattern(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$/)
     .min(3)
-    .max(20)
+    .max(8)
     .required()
     .messages({
       "string.base": "Mã khuyến mãi phải là chuỗi ký tự",
@@ -12,7 +12,7 @@ const promotionValidator = Joi.object({
       "string.pattern.base":
         "Mã khuyến mãi phải có cả chữ và số, không được toàn số và không chứa ký tự đặc biệt",
       "string.min": "Mã khuyến mãi phải có ít nhất 3 ký tự",
-      "string.max": "Mã khuyến mãi không được dài quá 20 ký tự",
+      "string.max": "Mã khuyến mãi không được dài quá 8 ký tự",
       "any.required": "Mã khuyến mãi là trường bắt buộc",
     }),
   TenKM: Joi.string().required().messages({
