@@ -245,6 +245,13 @@ const Orderdetail = () => {
     );
   }
 
+  const isRepaymentOrder = 
+    hoaDon.paymentMethod === 'VNPay' &&
+    hoaDon.checkPayment === 'Chưa Thanh Toán' &&
+    hoaDon.paymentStatus !== 'Huỷ Đơn' &&
+    hoaDon.paymentStatus !== 'Hoàn thành' &&
+    hoaDon.paymentStatus !== 'Đang Giao';
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 to-gray-50">
       <div className="container mx-auto p-8">
@@ -318,13 +325,19 @@ const Orderdetail = () => {
                 <p className="font-medium text-blue-800">{hoaDon.checkPayment}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-600">Ngày hoàn thành giao hàng</p>
-                <p className="font-medium text-blue-800">{hoaDon.deliveryDate || "Chưa có"} </p>
+                <p className="text-sm text-blue-600">Ngày hoàn thành giao hàng:</p>
+                <p className="font-medium text-blue-800">{hoaDon.deliveryDate ? new Date(hoaDon.deliveryDate).toLocaleDateString() : "Chưa có"}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-600">Ngày hoàn thành thanh toán</p>
-                <p className="font-medium text-blue-800">{hoaDon.transactionDate || "Chưa có"} </p>
+                <p className="text-sm text-blue-600">Ngày hoàn thành thanh toán:</p>
+                <p className="font-medium text-blue-800">{hoaDon.transactionDate ? new Date(hoaDon.transactionDate).toLocaleDateString() : "Chưa có"}</p>
               </div>
+              {isRepaymentOrder && (
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 md:col-span-2">
+                  <p className="text-sm text-yellow-600">Trạng thái thanh toán lại:</p>
+                  <p className="font-medium text-yellow-800">Đơn hàng đang chờ thanh toán lại</p>
+                </div>
+              )}
             </div>
           </div>
 
