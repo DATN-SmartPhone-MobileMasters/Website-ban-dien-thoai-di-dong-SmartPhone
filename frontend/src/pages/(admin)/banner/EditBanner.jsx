@@ -1,14 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { message } from "antd";
 import {
-  createBanner,
-  fetchBanners,
+  Form,
+  Upload,
+  Image,
+  Button,
+  Checkbox,
+  Typography,
+  Card,
+  message,
+  Space,
+} from "antd";
+import {
+  UploadOutlined,
+  ArrowLeftOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
+import {
   getBannerById,
   updateBanner,
   uploadImage,
+  fetchBanners,
 } from "../../../service/api";
+
+const { Title } = Typography;
 
 const BannerEdit = () => {
   const {
@@ -20,14 +36,13 @@ const BannerEdit = () => {
   } = useForm();
   const { id } = useParams();
   const [imageUrl, setImageUrl] = useState("");
-  const [existingBanners, setExistingBanners] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const loadBanners = async () => {
       try {
-        const res = await fetchBanners();
-        setExistingBanners(res.data.data);
+        await fetchBanners(); // optional if needed
       } catch (error) {
         console.error("Error loading banners:", error);
       }
@@ -35,36 +50,39 @@ const BannerEdit = () => {
     loadBanners();
   }, []);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
+  const handleImageUpload = async ({ file }) => {
     const formData = new FormData();
     formData.append("image", file);
 
     try {
       const response = await uploadImage(formData);
-      setImageUrl(response.data.imageUrl);
-      setValue("imgUrl", response.data.imageUrl);
+      const url = response.data.imageUrl;
+      setImageUrl(url);
+      setValue("imgUrl", url);
+      message.success("Tải ảnh thành công");
     } catch (error) {
-      message.error("Tải ảnh lên thất bại");
+      message.error("Tải ảnh thất bại");
     }
   };
+
   useEffect(() => {
     (async () => {
       try {
-        const [bannerRes] = await Promise.all([getBannerById(id)]);
-        setImageUrl(bannerRes.data.data.imgUrl);
+        const bannerRes = await getBannerById(id);
+        const data = bannerRes.data.data;
+        setImageUrl(data.imgUrl);
 
         reset({
-          imgUrl: bannerRes.data.data.imgUrl,
-          status: bannerRes.data.data.status,
+          imgUrl: data.imgUrl,
+          status: data.status,
         });
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("Error loading banner:", error);
+        message.error("Không thể tải dữ liệu banner!");
       }
     })();
-  }, [id, reset]);
+  }, [id, reset, setValue]);
+
   const onSubmit = async (data) => {
     const bannerData = {
       ...data,
@@ -72,82 +90,80 @@ const BannerEdit = () => {
     };
 
     try {
+      setLoading(true);
       await updateBanner(id, bannerData);
-      message.success("Sửa banner thành công!");
+      message.success("Cập nhật banner thành công!");
       navigate("/admin/banners");
     } catch (error) {
-      message.error("Sửa banner thất bại!");
+      message.error("Cập nhật banner thất bại!");
       console.error(error.response);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container mt-4">
-      <h1 className="h3 mb-4 text-center text-primary">Sửa Banner</h1>
-      <div className="card shadow-lg">
-        <div className="card-body">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Hình ảnh */}
-            <div className="form-group mb-4">
-              <label htmlFor="imgUrl" className="form-label">
-                Hình ảnh
-              </label>
-              <input
-                type="file"
-                className="form-control"
-                onChange={handleImageUpload}
-                accept="image/*"
-              />
-              {imageUrl && (
-                <div className="mt-3">
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    className="img-thumbnail"
-                    style={{ maxWidth: "200px" }}
-                  />
-                </div>
-              )}
-              <input
-                type="hidden"
-                {...register("imgUrl", {
-                  required: "Vui lòng tải lên hình ảnh",
-                })}
-              />
-              <small className="text-danger">{errors.imgUrl?.message}</small>
-            </div>
+      <Title level={3} className="text-center text-warning">
+        Sửa Banner
+      </Title>
 
-            {/* Trạng thái */}
-            <div className="form-group mb-4">
-              <label htmlFor="status" className="form-label">
-                Trạng thái
-              </label>
-              <div className="form-check">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="status"
-                  {...register("status")}
-                />
-                <label htmlFor="status" className="form-check-label">
-                  Kích hoạt
-                </label>
+      <Card bordered className="shadow">
+        <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
+          {/* Upload hình ảnh */}
+          <Form.Item label="Hình ảnh" required>
+            <Upload
+              accept="image/*"
+              showUploadList={false}
+              customRequest={handleImageUpload}
+            >
+              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+            </Upload>
+            {imageUrl && (
+              <Image
+                src={imageUrl}
+                alt="Preview"
+                width={200}
+                className="mt-3"
+                style={{ borderRadius: 8 }}
+              />
+            )}
+            {!imageUrl && (
+              <div style={{ color: "red", marginTop: 5 }}>
+                {errors.imgUrl?.message}
               </div>
-              <small className="text-danger">{errors.status?.message}</small>
-            </div>
+            )}
+            <input
+              type="hidden"
+              {...register("imgUrl", {
+                required: "Vui lòng tải lên hình ảnh",
+              })}
+            />
+          </Form.Item>
 
-            {/* Nút hành động */}
-            <div className="d-flex justify-content-between">
-              <Link to="/admin/banners" className="btn btn-secondary">
-                <i className="bi bi-arrow-left"></i> Quay lại
+          {/* Trạng thái */}
+          <Form.Item label="Trạng thái">
+            <Checkbox {...register("status")}>Kích hoạt</Checkbox>
+          </Form.Item>
+
+          {/* Nút hành động */}
+          <Form.Item>
+            <Space className="w-100 justify-content-between">
+              <Link to="/admin/banners">
+                <Button icon={<ArrowLeftOutlined />}>Quay lại</Button>
               </Link>
-              <button type="submit" className="btn btn-success">
-                <i className="bi bi-plus-circle"></i> Cập nhật
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<EditOutlined />}
+                loading={loading}
+              >
+                Cập nhật
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 };

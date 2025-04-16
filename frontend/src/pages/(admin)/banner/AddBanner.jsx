@@ -1,8 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { message } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Checkbox,
+  Upload,
+  Image,
+  message,
+  Card,
+  Typography,
+  Space,
+} from "antd";
+import { UploadOutlined, ArrowLeftOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { createBanner, fetchBanners, uploadImage } from "../../../service/api";
+
+const { Title } = Typography;
 
 const BannerAdd = () => {
   const {
@@ -13,6 +27,7 @@ const BannerAdd = () => {
   } = useForm();
   const [imageUrl, setImageUrl] = useState("");
   const [existingBanners, setExistingBanners] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,19 +42,18 @@ const BannerAdd = () => {
     loadBanners();
   }, []);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
+  const handleImageUpload = async ({ file }) => {
     const formData = new FormData();
     formData.append("image", file);
 
     try {
       const response = await uploadImage(formData);
-      setImageUrl(response.data.imageUrl);
-      setValue("imgUrl", response.data.imageUrl);
+      const url = response.data.imageUrl;
+      setImageUrl(url);
+      setValue("imgUrl", url);
+      message.success("Tải ảnh thành công");
     } catch (error) {
-      message.error("Tải ảnh lên thất bại");
+      message.error("Tải ảnh thất bại");
     }
   };
 
@@ -50,81 +64,80 @@ const BannerAdd = () => {
     };
 
     try {
+      setLoading(true);
       await createBanner(bannerData);
       message.success("Thêm banner thành công!");
       navigate("/admin/banners");
     } catch (error) {
       message.error("Thêm banner thất bại!");
       console.error(error.response);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container mt-4">
-      <h1 className="h3 mb-4 text-center text-primary">Thêm Banner</h1>
-      <div className="card shadow-lg">
-        <div className="card-body">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Hình ảnh */}
-            <div className="form-group mb-4">
-              <label htmlFor="imgUrl" className="form-label">
-                Hình ảnh
-              </label>
-              <input
-                type="file"
-                className="form-control"
-                onChange={handleImageUpload}
-                accept="image/*"
-                required
-              />
-              {imageUrl && (
-                <div className="mt-3">
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    className="img-thumbnail"
-                    style={{ maxWidth: "200px" }}
-                  />
-                </div>
-              )}
-              <input
-                type="hidden"
-                {...register("imgUrl", { required: "Vui lòng tải lên hình ảnh" })}
-              />
-              <small className="text-danger">{errors.imgUrl?.message}</small>
-            </div>
+      <Title level={3} className="text-center text-primary">
+        Thêm Banner
+      </Title>
 
-            {/* Trạng thái */}
-            <div className="form-group mb-4">
-              <label htmlFor="status" className="form-label">
-                Trạng thái
-              </label>
-              <div className="form-check">
-                <input
-                  type="checkbox"
-                  className="form-check-input"
-                  id="status"
-                  {...register("status")}
-                />
-                <label htmlFor="status" className="form-check-label">
-                  Kích hoạt
-                </label>
+      <Card bordered className="shadow">
+        <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
+          {/* Upload hình ảnh */}
+          <Form.Item label="Hình ảnh" required>
+            <Upload
+              accept="image/*"
+              showUploadList={false}
+              customRequest={handleImageUpload}
+            >
+              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+            </Upload>
+            {imageUrl && (
+              <Image
+                src={imageUrl}
+                alt="Preview"
+                width={200}
+                className="mt-3"
+                style={{ borderRadius: 8 }}
+              />
+            )}
+            {!imageUrl && (
+              <div style={{ color: "red", marginTop: 5 }}>
+                {errors.imgUrl?.message}
               </div>
-              <small className="text-danger">{errors.status?.message}</small>
-            </div>
+            )}
+            <input
+              type="hidden"
+              {...register("imgUrl", {
+                required: "Vui lòng tải lên hình ảnh",
+              })}
+            />
+          </Form.Item>
 
-            {/* Nút hành động */}
-            <div className="d-flex justify-content-between">
-              <Link to="/admin/banners" className="btn btn-secondary">
-                <i className="bi bi-arrow-left"></i> Quay lại
+          {/* Trạng thái */}
+          <Form.Item label="Trạng thái">
+            <Checkbox {...register("status")}>Kích hoạt</Checkbox>
+          </Form.Item>
+
+          {/* Nút hành động */}
+          <Form.Item>
+            <Space className="w-100 justify-content-between">
+              <Link to="/admin/banners">
+                <Button icon={<ArrowLeftOutlined />}>Quay lại</Button>
               </Link>
-              <button type="submit" className="btn btn-success">
-                <i className="bi bi-plus-circle"></i> Thêm
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<PlusCircleOutlined />}
+                loading={loading}
+              >
+                Thêm
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
     </div>
   );
 };
