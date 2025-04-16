@@ -64,9 +64,9 @@ const ProductsList = () => {
             ? { ...product, [quantityField]: newQuantity }
             : product
         );
-        
+
         setupReloadTimer();
-        return updatedProducts.map(product => checkAndUpdateProductStatus(product));
+        return updatedProducts.map((product) => checkAndUpdateProductStatus(product));
       });
     });
 
@@ -83,16 +83,16 @@ const ProductsList = () => {
   }, [search, memory, status, brand, products]);
 
   const checkAndUpdateProductStatus = async (product) => {
-    const totalQuantity = 
-      (product.SoLuong1 || 0) + 
-      (product.SoLuong2 || 0) + 
-      (product.SoLuong3 || 0) + 
-      (product.SoLuong4 || 0) + 
-      (product.SoLuong5 || 0) + 
+    const totalQuantity =
+      (product.SoLuong1 || 0) +
+      (product.SoLuong2 || 0) +
+      (product.SoLuong3 || 0) +
+      (product.SoLuong4 || 0) +
+      (product.SoLuong5 || 0) +
       (product.SoLuong6 || 0);
-    
+
     let newStatus = product.TrangThai;
-    
+
     if (totalQuantity === 0 && product.TrangThai !== "Hết hàng") {
       newStatus = "Hết hàng";
       try {
@@ -101,11 +101,11 @@ const ProductsList = () => {
         console.error("Lỗi khi cập nhật trạng thái sản phẩm:", error);
         return product;
       }
-      
+
       if (product.TrangThai === "Còn hàng" && newStatus === "Hết hàng") {
         setupReloadTimer();
       }
-      
+
       return { ...product, TrangThai: newStatus };
     } else if (totalQuantity > 0 && product.TrangThai === "Hết hàng") {
       newStatus = "Còn hàng";
@@ -117,7 +117,7 @@ const ProductsList = () => {
       }
       return { ...product, TrangThai: newStatus };
     }
-    
+
     return product;
   };
 
@@ -128,11 +128,13 @@ const ProductsList = () => {
       const data = Array.isArray(response.data)
         ? response.data
         : response.data.data || [];
-      
-      const updatedProducts = await Promise.all(data.map(async product => {
-        return await checkAndUpdateProductStatus(product);
-      }));
-      
+
+      const updatedProducts = await Promise.all(
+        data.map(async (product) => {
+          return await checkAndUpdateProductStatus(product);
+        })
+      );
+
       const reversedData = [...updatedProducts].reverse();
       setProducts(reversedData);
       setFilteredProducts(reversedData);
@@ -441,21 +443,23 @@ const ProductsList = () => {
               Xem
             </Button>
           </Link>
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa sản phẩm này không?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button
-              type="primary"
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
+          {["Hết hàng", "Ngừng kinh doanh"].includes(record.TrangThai) && (
+            <Popconfirm
+              title="Bạn có chắc chắn muốn xóa sản phẩm này không?"
+              onConfirm={() => handleDelete(record._id)}
+              okText="Có"
+              cancelText="Không"
             >
-              Xóa
-            </Button>
-          </Popconfirm>
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              >
+                Xóa
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       ),
       width: 150,
