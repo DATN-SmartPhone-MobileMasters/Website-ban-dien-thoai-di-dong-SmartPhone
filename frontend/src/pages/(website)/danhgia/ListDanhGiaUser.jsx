@@ -9,14 +9,14 @@ const ListDanhGiaUser = () => {
   const [danhGias, setDanhGias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStar, setSelectedStar] = useState(null);
-  const [sortOrder, setSortOrder] = useState(null);
+  const [sortOrder, setSortOrder] = useState('newest'); // Set default sort order to 'newest'
 
   useEffect(() => {
     const getDanhGias = async () => {
       try {
         setLoading(true);
         const response = await fetchDanhGias();
-        setDanhGias(response.data?.data ?? []); // Bỏ filter isApproved
+        setDanhGias(response.data?.data ?? []);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách đánh giá:", error);
         setDanhGias([]);
@@ -28,17 +28,22 @@ const ListDanhGiaUser = () => {
   }, []);
 
   const handleSelectChange = (value) => setSelectedStar(value || null);
-  const handleSortChange = (value) => setSortOrder(value);
+  const handleSortChange = (value) => setSortOrder(value || 'newest'); // Default to 'newest' if cleared
 
+  // Filter by star rating
   let filteredDanhGias = selectedStar !== null
     ? danhGias.filter((dg) => Number(dg.DanhGia) === selectedStar)
     : danhGias;
 
-  if (sortOrder === 'newest') {
-    filteredDanhGias.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  } else if (sortOrder === 'oldest') {
-    filteredDanhGias.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  }
+  // Sort by date
+  filteredDanhGias = [...filteredDanhGias].sort((a, b) => {
+    if (sortOrder === 'newest' || !sortOrder) {
+      return new Date(b.created_at) - new Date(a.created_at); // Newest first
+    } else if (sortOrder === 'oldest') {
+      return new Date(a.created_at) - new Date(b.created_at); // Oldest first
+    }
+    return 0;
+  });
 
   const renderImage = (url) => (
     url ? <Image width={100} height={100} style={{ objectFit: 'cover', borderRadius: 10 }} src={url} /> : 'Không có ảnh'
@@ -80,7 +85,7 @@ const ListDanhGiaUser = () => {
         </div>
         <div>
           <span style={{ marginRight: 10 }}>Sắp xếp:</span>
-          <Select placeholder="Chọn kiểu sắp xếp" style={{ width: 150 }} onChange={handleSortChange} allowClear>
+          <Select placeholder="Chọn kiểu sắp xếp" style={{ width: 150 }} onChange={handleSortChange} value={sortOrder} allowClear>
             <Option value="newest">Gần nhất</Option>
             <Option value="oldest">Lâu nhất</Option>
           </Select>

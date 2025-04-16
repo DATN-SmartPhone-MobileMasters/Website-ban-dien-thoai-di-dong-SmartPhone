@@ -40,6 +40,7 @@ const ProfileReceipt = () => {
     const fetchData = async () => {
       try {
         if (userData.id) {
+          setLoading(true);
           const response = await fetchOrdersByUserId(userData.id);
           const sortedOrders = response.data.data.sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -93,6 +94,7 @@ const ProfileReceipt = () => {
     };
   }, [socket, userData.id]);
 
+  // Đồng bộ filteredOrders với orders
   useEffect(() => {
     let filtered = [...orders];
 
@@ -257,36 +259,6 @@ const ProfileReceipt = () => {
     }
   };
 
-  // Logic tự động hủy đơn hàng sau 10 giây
-  useEffect(() => {
-    const timers = {};
-
-    orders.forEach((order) => {
-      if (
-        order.paymentMethod === 'VNPay' &&
-        order.checkPayment === 'Chưa Thanh Toán' &&
-        order.paymentStatus !== 'Huỷ Đơn'
-      ) {
-        const createdAt = new Date(order.createdAt).getTime();
-        const now = new Date().getTime();
-        const timeElapsed = now - createdAt;
-        const timeLeft = 60000 - timeElapsed;
-
-        if (timeLeft > 0) {
-          timers[order._id] = setTimeout(() => {
-            handleCancelOrder(order._id, order.products, 'Quá hạn thanh toán');
-          }, timeLeft);
-        } else if (timeElapsed >= 60000 && order.paymentStatus !== 'Huỷ Đơn') {
-          handleCancelOrder(order._id, order.products, 'Quá hạn thanh toán');
-        }
-      }
-    });
-
-    return () => {
-      Object.keys(timers).forEach((orderId) => clearTimeout(timers[orderId]));
-    };
-  }, [orders]);
-
   const columns = [
     {
       title: 'Mã đơn hàng',
@@ -360,11 +332,13 @@ const ProfileReceipt = () => {
         const showRepayment =
           record.paymentMethod === 'VNPay' &&
           record.checkPayment === 'Chưa Thanh Toán' &&
-          record.paymentStatus !== 'Huỷ Đơn';
+          record.paymentStatus !== 'Huỷ Đơn' &&
+          record.paymentStatus !== 'Hoàn thành' &&
+          record.paymentStatus !== 'Đang giao';
 
         return (
           <>
-            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhẫn') && (
               <Button danger onClick={() => handleManualCancelOrder(record._id, record.products)}>
                 Huỷ đơn
               </Button>
@@ -377,7 +351,6 @@ const ProfileReceipt = () => {
                 style={{ marginLeft: 8 }}
               >
                 Thanh toán lại
-                (Tự hủy đơn sau 24H)
               </Button>
             )}
 
