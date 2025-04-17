@@ -4,7 +4,7 @@ import { Table, Tag, Button, message, Modal, Select, DatePicker, Form, Input } f
 import { fetchOrdersByUserId, updateOrder, createVNPayPayment } from '../../../service/api';
 import moment from 'moment';
 import axios from 'axios';
-import io from 'socket.io-client';
+import Socket from '../socket/Socket';
 
 const { Option } = Select;
 
@@ -21,14 +21,7 @@ const ProfileReceipt = () => {
   const [sortTotal, setSortTotal] = useState('');
   const [form] = Form.useForm();
 
-  // Khởi tạo kết nối Socket.IO
-  const socket = io('http://localhost:5000', {
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    transports: ['websocket', 'polling'],
-  });
-
+  // Lấy thông tin người dùng từ localStorage
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
     if (storedUserData) {
@@ -36,13 +29,14 @@ const ProfileReceipt = () => {
     }
   }, []);
 
+  // Lấy danh sách đơn hàng
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (userData.id) {
           setLoading(true);
           const response = await fetchOrdersByUserId(userData.id);
-          const sortedOrders = response.data.data.sort(
+          const sortedOrders = (response.data.data || []).sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );
           setOrders(sortedOrders);
@@ -50,6 +44,7 @@ const ProfileReceipt = () => {
         }
       } catch (error) {
         message.error('Lỗi tải danh sách đơn hàng');
+        console.error('Lỗi:', error);
       } finally {
         setLoading(false);
       }
@@ -59,7 +54,21 @@ const ProfileReceipt = () => {
 
   // Lắng nghe sự kiện Socket.IO
   useEffect(() => {
-    socket.on('orderStatusUpdated', (data) => {
+    Socket.on('orderCreated', (newOrder) => {
+      console.log('ProfileReceipt nhận đơn hàng mới:', newOrder);
+      if (newOrder.userId === userData.id) {
+        setOrders((prevOrders) => {
+          if (prevOrders.some((order) => order._id === newOrder._id)) {
+            return prevOrders;
+          }
+          return [newOrder, ...prevOrders].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+        });
+      }
+    });
+
+    Socket.on('orderStatusUpdated', (data) => {
       if (data.userId === userData.id) {
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
@@ -73,28 +82,19 @@ const ProfileReceipt = () => {
                   checkPayment: data.checkPayment,
                 }
               : order
-          )
+          ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         );
       }
     });
 
-    socket.on('connect', () => {
-      console.log('Connected to socket server');
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-    });
-
+    // Cleanup
     return () => {
-      socket.off('orderStatusUpdated');
-      socket.off('connect');
-      socket.off('connect_error');
-      socket.disconnect();
+      Socket.off('orderCreated');
+      Socket.off('orderStatusUpdated');
     };
-  }, [socket, userData.id]);
+  }, [userData.id]);
 
-  // Đồng bộ filteredOrders với orders
+  // Áp dụng bộ lọc
   useEffect(() => {
     let filtered = [...orders];
 
@@ -112,11 +112,11 @@ const ProfileReceipt = () => {
     }
 
     if (sortTotal === 'high-to-low') {
-      filtered = filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
+      filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortTotal === 'low-to-high') {
-      filtered = filtered.sort((a, b) => (a.total || 0) - (a.total || 0));
+      filtered.sort((a, b) => (a.total || 0) - (a.total || 0));
     } else {
-      filtered = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     setFilteredOrders(filtered);
@@ -162,40 +162,24 @@ const ProfileReceipt = () => {
   const handleCancelOrder = async (orderId, products, reason = '') => {
     try {
       const userData = JSON.parse(localStorage.getItem('userData'));
-      let role = 'User';
       const order = orders.find((order) => order._id === orderId);
       if (order && order.paymentStatus === 'Đã Xác Nhận') {
         await updateProductQuantities(products, 'add');
       }
-      if (
-        order.paymentMethod === 'COD' ||
-        (order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán')
-      ) {
-        await updateOrder(orderId, {
-          paymentStatus: 'Huỷ Đơn',
-          FeedBack: reason,
-          cancelledBy: {
-            userId: userData.id,
-            role: role,
-            name: userData.Email,
-          },
-          cancellationDate: new Date(),
-          ...(order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán'
-            ? { checkPayment: 'Yêu Cầu Hoàn Tiền' }
-            : {}),
-        });
-      } else if (order.paymentMethod === 'VNPay' && order.checkPayment !== 'Đã Thanh Toán') {
-        await updateOrder(orderId, {
-          paymentStatus: 'Huỷ Đơn',
-          FeedBack: reason,
-          cancelledBy: {
-            userId: userData.id,
-            role: role,
-            name: userData.Email,
-          },
-          cancellationDate: new Date(),
-        });
+      const updateData = {
+        paymentStatus: 'Huỷ Đơn',
+        FeedBack: reason,
+        cancelledBy: {
+          userId: userData.id,
+          role: 'User',
+          name: userData.Email,
+        },
+        cancellationDate: new Date(),
+      };
+      if (order.paymentMethod === 'VNPay' && order.checkPayment === 'Đã Thanh Toán') {
+        updateData.checkPayment = 'Yêu Cầu Hoàn Tiền';
       }
+      await updateOrder(orderId, updateData);
       message.success('Huỷ đơn hàng thành công');
     } catch (error) {
       message.error('Huỷ đơn hàng thất bại');
@@ -248,7 +232,6 @@ const ProfileReceipt = () => {
         orderInfo: `Thanh toán lại đơn hàng ${orderId}`,
         returnUrl: `${window.location.origin}/order-return`,
       };
-
       const response = await createVNPayPayment(vnpayData);
       if (response.data.paymentUrl) {
         window.location.href = response.data.paymentUrl;
@@ -338,12 +321,11 @@ const ProfileReceipt = () => {
 
         return (
           <>
-            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhẫn') && (
+            {(record.paymentStatus === 'Chờ xử lý' || record.paymentStatus === 'Đã Xác Nhận') && (
               <Button danger onClick={() => handleManualCancelOrder(record._id, record.products)}>
                 Huỷ đơn
               </Button>
             )}
-
             {showRepayment && (
               <Button
                 type="primary"
@@ -353,7 +335,6 @@ const ProfileReceipt = () => {
                 Thanh toán lại
               </Button>
             )}
-
             {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
               <Link to={`/adddanhgiauser/${record._id}`}>
                 <Button type="primary" style={{ marginLeft: 8 }}>
@@ -361,7 +342,6 @@ const ProfileReceipt = () => {
                 </Button>
               </Link>
             )}
-
             {record.paymentStatus === 'Hoàn thành' && isReviewed && (
               <Button type="primary" disabled style={{ marginLeft: 8 }}>
                 Đã đánh giá
@@ -408,7 +388,6 @@ const ProfileReceipt = () => {
               </li>
             </ul>
           </div>
-
           <div className="w-full bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-2xl font-light mb-6">Đơn hàng đã đặt</h3>
             <div className="mb-6 flex items-center gap-6">
