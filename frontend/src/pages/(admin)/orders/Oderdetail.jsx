@@ -334,7 +334,7 @@ const Orderdetail = () => {
               </div>
               {isRepaymentOrder && (
                 <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 md:col-span-2">
-                  <p className="text-sm text-yellow-600">Trạng thái thanh toán lại:</p>
+                  <p className="text-sm text-yellow-600">NOTE:</p>
                   <p className="font-medium text-yellow-800">Đơn hàng đang chờ thanh toán lại</p>
                 </div>
               )}

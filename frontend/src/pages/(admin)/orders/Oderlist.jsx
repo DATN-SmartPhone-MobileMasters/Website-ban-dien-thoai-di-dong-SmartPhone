@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { message, Select, DatePicker } from "antd";
 import { fetchOrders } from "../../../service/api";
-import io from "socket.io-client";
+import Socket from "../../(website)/socket/Socket";
 
 const { Option } = Select;
 
@@ -33,14 +33,6 @@ const OrderList = () => {
   const [sortTotal, setSortTotal] = useState("");
   const location = useLocation();
 
-  // Khởi tạo Socket.IO
-  const socket = io("http://localhost:5000", {
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    transports: ["websocket", "polling"],
-  });
-
   // Lấy danh sách hóa đơn
   useEffect(() => {
     const getHoaDons = async () => {
@@ -49,7 +41,6 @@ const OrderList = () => {
         const storedHiddenOrders = JSON.parse(localStorage.getItem("hiddenOrders")) || [];
         setHiddenOrders(storedHiddenOrders);
 
-        // Sắp xếp đơn hàng theo ngày tạo (mới nhất trước)
         const sortedOrders = (response.data.data || []).sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -63,11 +54,23 @@ const OrderList = () => {
     };
 
     getHoaDons();
-  }, [location.key, showHidden]);
+  }, [location.key]);
 
   // Lắng nghe sự kiện Socket.IO
   useEffect(() => {
-    socket.on("orderStatusUpdated", (data) => {
+    Socket.on("orderCreated", (newOrder) => {
+      console.log('OrderList nhận đơn hàng mới:', newOrder);
+      setAllOrders((prevOrders) => {
+        if (prevOrders.some((order) => order._id === newOrder._id)) {
+          return prevOrders;
+        }
+        return [newOrder, ...prevOrders].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+      });
+    });
+
+    Socket.on("orderStatusUpdated", (data) => {
       setAllOrders((prevOrders) =>
         prevOrders.map((order) =>
           order._id === data.orderId
@@ -79,21 +82,16 @@ const OrderList = () => {
                 FeedBack: data.FeedBack,
               }
             : order
-        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Đảm bảo sắp xếp mới nhất
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       );
     });
 
-    socket.on("connect", () => console.log("Kết nối socket thành công"));
-    socket.on("connect_error", (error) => console.error("Lỗi kết nối socket:", error));
-
     // Cleanup
     return () => {
-      socket.off("orderStatusUpdated");
-      socket.off("connect");
-      socket.off("connect_error");
-      socket.disconnect();
+      Socket.off("orderCreated");
+      Socket.off("orderStatusUpdated");
     };
-  }, [socket]);
+  }, []);
 
   // Hàm áp dụng bộ lọc
   const applyFilters = (orders, hiddenOrders) => {
@@ -136,7 +134,7 @@ const OrderList = () => {
   // Cập nhật bộ lọc
   useEffect(() => {
     applyFilters(allOrders, hiddenOrders);
-  }, [statusFilter, dateFilter, sortTotal, allOrders, hiddenOrders]);
+  }, [statusFilter, dateFilter, sortTotal, allOrders, hiddenOrders, showHidden]);
 
   // Ẩn đơn hàng
   const handleHideOrder = (id) => {
@@ -170,7 +168,6 @@ const OrderList = () => {
           </button>
         </div>
         <div className="card-body">
-          {/* Bộ lọc */}
           <div className="mb-4 d-flex gap-4">
             <div>
               <label className="mr-2">Lọc theo trạng thái:</label>
