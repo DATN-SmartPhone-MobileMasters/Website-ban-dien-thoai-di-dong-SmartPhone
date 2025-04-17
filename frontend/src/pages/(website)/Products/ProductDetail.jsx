@@ -7,8 +7,6 @@ import {
   getProducts,
   fetchProducts,
 } from "../../../service/api";
-import SellerProducts from "../../(website)/components/SellerProducts";
-import LatestProducts from "../../(website)/components/LatestProducts";
 import {
   FaShoppingCart,
   FaExchangeAlt,
@@ -1185,12 +1183,7 @@ const ProductDetail = () => {
       )}
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        <Col span={24}>
-          <LatestProducts onProductClick={handleProductClick} />
-        </Col>
-        <Col span={24}>
-          <SellerProducts onProductClick={handleProductClick} />
-        </Col>
+        
         <Col span={24}>
           <Card title={<Title level={4}>Bình Luận</Title>}>
             <Form form={form} onFinish={onFinish} layout="vertical">
