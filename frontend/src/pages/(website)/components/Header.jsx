@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,7 +12,10 @@ import {
 } from "react-icons/fa";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
-import { updateUser, getUserById } from "../../../service/api";
+import { updateUser, getUserById, fetchProducts } from "../../../service/api";
+import { Typography, message } from "antd";
+
+const { Text } = Typography;
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,6 +24,12 @@ const Header = () => {
   const [userData, setUserData] = useState(null);
   const [cartCount, setCartCount] = useState(0);
   const navigate = useNavigate();
+
+  // State cho tìm kiếm
+  const [products, setProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
 
   // Kiểm tra đăng nhập và lấy thông tin người dùng
   useEffect(() => {
@@ -38,18 +47,47 @@ const Header = () => {
     const updateCartCount = () => {
       const userData = JSON.parse(localStorage.getItem("userData"));
       const userId = userData?.id;
-  
+
       if (userId) {
         const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
-        // Thay vì tính tổng quantity, chỉ đếm số lượng sản phẩm (số phần tử trong mảng)
         setCartCount(cartItems.length);
       }
     };
-  
+
     updateCartCount();
     window.addEventListener("cartUpdated", updateCartCount);
     return () => {
       window.removeEventListener("cartUpdated", updateCartCount);
+    };
+  }, []);
+
+  // Lấy danh sách sản phẩm cho tìm kiếm
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const response = await fetchProducts();
+        const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+        setProducts(data);
+      } catch (error) {
+        message.error("Lỗi khi tải danh sách sản phẩm!");
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    getProducts();
+  }, []);
+
+  // Xử lý nhấp ra ngoài để ẩn gợi ý
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -129,6 +167,30 @@ const Header = () => {
     }
   };
 
+  // Hàm lấy bộ nhớ và giá đầu tiên hợp lệ
+  const getFirstValidMemoryAndPrice = (product) => {
+    const memories = [
+      product.BoNhoTrong1, product.BoNhoTrong2, product.BoNhoTrong3,
+      product.BoNhoTrong4, product.BoNhoTrong5, product.BoNhoTrong6,
+    ];
+    const prices = [
+      product.GiaSP1, product.GiaSP2, product.GiaSP3,
+      product.GiaSP4, product.GiaSP5, product.GiaSP6,
+    ];
+
+    for (let i = 0; i < memories.length; i++) {
+      if (memories[i] && memories[i].toLowerCase() !== "không có") {
+        return { memory: memories[i], price: prices[i] };
+      }
+    }
+    return { memory: null, price: null };
+  };
+
+  // Lọc sản phẩm dựa trên searchQuery
+  const filteredProducts = products.filter((product) =>
+    product.TenSP.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <header className="shadow-md bg-white">
       {/* Top Bar */}
@@ -151,17 +213,74 @@ const Header = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="flex-grow mx-4">
+        <div className="flex-grow mx-4 relative" ref={searchRef}>
           <div className="flex items-center bg-gray-100 px-4 py-2 rounded-full">
             <input
               type="text"
               placeholder="Tìm kiếm sản phẩm..."
               className="flex-grow bg-transparent outline-none px-2 text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
             />
             <button className="text-gray-600 hover:text-blue-600">
               <FaSearch size={18} />
             </button>
           </div>
+          {/* Danh sách gợi ý */}
+          {searchQuery && isSearchFocused && filteredProducts.length > 0 && (
+            <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
+              {filteredProducts.map((product) => {
+                const { price } = getFirstValidMemoryAndPrice(product);
+                const isOutOfStock =
+                  product.SoLuong1 === 0 &&
+                  product.SoLuong2 === 0 &&
+                  product.SoLuong3 === 0 &&
+                  product.SoLuong4 === 0 &&
+                  product.SoLuong5 === 0 &&
+                  product.SoLuong6 === 0;
+
+                return (
+                  <Link
+                    to={`/products/product_detail/${product._id}`}
+                    key={product._id}
+                    className="flex items-center p-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
+                    onClick={() => setIsSearchFocused(false)}
+                  >
+                    <img
+                      src={product.HinhAnh1}
+                      alt={product.TenSP}
+                      className="w-12 h-12 object-contain mr-3"
+                    />
+                    <div className="flex-1">
+                      <Text
+                        ellipsis={{ tooltip: product.TenSP }}
+                        className="text-gray-800 font-medium"
+                      >
+                        {product.TenSP}
+                      </Text>
+                      <div>
+                        <Text
+                          className={`text-sm ${
+                            isOutOfStock ? "text-gray-500" : "text-blue-600"
+                          }`}
+                        >
+                          {isOutOfStock
+                            ? "Liên hệ"
+                            : price
+                            ? new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(price)
+                            : "Chưa có giá"}
+                        </Text>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* User Dropdown */}
@@ -253,7 +372,7 @@ const Header = () => {
         <Link
           to="/cart"
           className="relative text-gray-600 hover:text-blue-600 ml-3"
-          onClick={handleCartClick} // Hàm đã được định nghĩa ở trên
+          onClick={handleCartClick}
         >
           <FaShoppingCart size={20} />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">
