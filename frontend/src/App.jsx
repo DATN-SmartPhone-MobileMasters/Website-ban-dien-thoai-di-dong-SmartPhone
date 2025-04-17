@@ -41,7 +41,7 @@ import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/Blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
-
+import List from "./pages/(website)/components/List";
 import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
@@ -192,6 +192,10 @@ function App() {
     {
       element: <LayoutWebsite />,
       children: [
+        {
+          path: "/list",
+          element: <List />,
+        },
         {
           path: "/sanphamdamua",
           element: <SpDaMua />,
