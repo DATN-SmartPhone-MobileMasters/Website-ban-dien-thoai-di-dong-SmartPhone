@@ -1,4 +1,5 @@
 import danhgia from "../models/DanhGia.js";
+import { io } from "../server.js";
 
 class DanhGiaController {
   // Lấy danh sách đánh giá
@@ -22,6 +23,13 @@ class DanhGiaController {
     try {
       const id = req.params.id;
       const deletedDanhGia = await danhgia.findByIdAndDelete(id);
+      if (!deletedDanhGia) {
+        return res.status(404).json({
+          message: "Không tìm thấy đánh giá",
+        });
+      }
+      // Phát sự kiện Socket.IO khi xóa đánh giá
+      io.emit("danhGiaDeleted", deletedDanhGia);
       res.status(200).json({
         message: "Xóa thành công",
         data: deletedDanhGia,
@@ -37,8 +45,10 @@ class DanhGiaController {
   // Tạo mới đánh giá
   async apiCreate(req, res) {
     try {
-      const data = req.body; // Dữ liệu gửi từ client
-      const newDanhGia = await danhgia.create(data); // Tạo mới đánh giá
+      const data = req.body;
+      const newDanhGia = await danhgia.create(data);
+      // Phát sự kiện Socket.IO khi tạo đánh giá
+      io.emit("danhGiaCreated", newDanhGia);
       res.status(200).json({
         message: "Tạo đánh giá thành công",
         data: newDanhGia,
@@ -51,12 +61,22 @@ class DanhGiaController {
     }
   }
 
-  // Cập nhật đánh giá (ví dụ: trạng thái hiển thị)
+  // Cập nhật đánh giá
   async apiUpdate(req, res) {
     try {
       const id = req.params.id;
-      const updateData = req.body; // Dữ liệu cập nhật từ client
-      const updatedDanhGia = await danhgia.findByIdAndUpdate(id, updateData, { new: true });
+      const updateData = req.body;
+      const updatedDanhGia = await danhgia.findByIdAndUpdate(id, updateData, {
+        new: true,
+        runValidators: true,
+      });
+      if (!updatedDanhGia) {
+        return res.status(404).json({
+          message: "Không tìm thấy đánh giá",
+        });
+      }
+      // Phát sự kiện Socket.IO khi cập nhật đánh giá
+      io.emit("danhGiaUpdated", updatedDanhGia);
       res.status(200).json({
         message: "Cập nhật đánh giá thành công",
         data: updatedDanhGia,
