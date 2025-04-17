@@ -241,7 +241,15 @@ const ProfileReceipt = () => {
       message.error('Có lỗi xảy ra khi tạo thanh toán VNPay!');
     }
   };
-
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      await updateOrder(orderId, { paymentStatus: "Hoàn thành" });
+      message.success("Đơn hàng đã được hoàn thành!");
+    } catch (error) {
+      message.error("Cập nhật thất bại!");
+      console.error(error);
+    }
+  };
   const columns = [
     {
       title: 'Mã đơn hàng',
@@ -335,6 +343,17 @@ const ProfileReceipt = () => {
                 Thanh toán lại
               </Button>
             )}
+            {
+              record.paymentStatus === 'Giao Hàng Thành Công' && (
+                <Button
+                  type="primary"
+                  onClick={() => handleCompleteOrder(record._id)}
+                  style={{ marginLeft: 8 }}
+                >
+                  Xác nhận hoàn thành
+                </Button>
+              )
+            }
             {record.paymentStatus === 'Hoàn thành' && !isReviewed && (
               <Link to={`/adddanhgiauser/${record._id}`}>
                 <Button type="primary" style={{ marginLeft: 8 }}>

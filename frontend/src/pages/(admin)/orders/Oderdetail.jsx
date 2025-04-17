@@ -418,16 +418,54 @@ const Orderdetail = () => {
                   </button>
                 </>
               )}
-
-              {hoaDon.paymentStatus === "Đang Giao" && (
+              {hoaDon.paymentStatus === "Giao Hàng Thất Bại" && (
+                <>
                 <button
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
-                  onClick={() => handleStatusChange("Hoàn thành")}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                  onClick={() => handleStatusChange("Huỷ Đơn")}
                 >
-                  ✅ Hoàn thành
+                  ❌ Huỷ Đơn
                 </button>
+                <button
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
+                onClick={() => handleStatusChange("Giao Hàng Lại")}
+              >
+                🔁 Giao Hàng Lại
+              </button>
+              </>
               )}
-
+              {hoaDon.paymentStatus === "Đang Giao" && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
+                    onClick={() => handleStatusChange("Giao Hàng Thành Công")}
+                  >
+                    🚚 Giao Hàng Thành Công
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                    onClick={() => handleStatusChange("Giao Hàng Thất Bại")}
+                  >
+                    🚚 Giao Hàng Thất Bại
+                  </button>
+                </>
+              )}
+              {hoaDon.paymentStatus === "Giao Hàng Lại" && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
+                    onClick={() => handleStatusChange("Giao Hàng Thành Công")}
+                  >
+                    🚚 Giao Hàng Thành Công
+                  </button>
+                  <button
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                  onClick={() => handleStatusChange("Huỷ Đơn")}
+                >
+                  ❌ Huỷ Đơn
+                </button>
+                </>
+              )}
               {hoaDon.checkPayment === 'Yêu Cầu Hoàn Tiền' && (
                 <button
                   className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition duration-200"
