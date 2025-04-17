@@ -16,11 +16,7 @@ const formatDate = (dateString) => {
 // Hàm chuẩn hóa chuỗi trạng thái
 const normalizeString = (str) => {
   if (!str) return "";
-  return str
-    .trim()
-    .normalize("NFC")
-    .replace(/\s+/g, " ")
-    .toLowerCase();
+  return str.trim().normalize("NFC").replace(/\s+/g, " ").toLowerCase();
 };
 
 const OrderList = () => {
@@ -56,10 +52,10 @@ const OrderList = () => {
     getHoaDons();
   }, [location.key]);
 
-  // Lắng nghe sự kiện Socket.IO
+  // Lắng nghe sự kiện từ Socket.IO
   useEffect(() => {
     Socket.on("orderCreated", (newOrder) => {
-      console.log('OrderList nhận đơn hàng mới:', newOrder);
+      console.log("OrderList nhận đơn hàng mới:", newOrder);
       setAllOrders((prevOrders) => {
         if (prevOrders.some((order) => order._id === newOrder._id)) {
           return prevOrders;
@@ -72,21 +68,22 @@ const OrderList = () => {
 
     Socket.on("orderStatusUpdated", (data) => {
       setAllOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order._id === data.orderId
-            ? {
-                ...order,
-                paymentStatus: data.paymentStatus,
-                cancelledBy: data.cancelledBy,
-                cancellationDate: data.cancellationDate,
-                FeedBack: data.FeedBack,
-              }
-            : order
-        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        prevOrders
+          .map((order) =>
+            order._id === data.orderId
+              ? {
+                  ...order,
+                  paymentStatus: data.paymentStatus,
+                  cancelledBy: data.cancelledBy,
+                  cancellationDate: data.cancellationDate,
+                  FeedBack: data.FeedBack,
+                }
+              : order
+          )
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       );
     });
 
-    // Cleanup
     return () => {
       Socket.off("orderCreated");
       Socket.off("orderStatusUpdated");
@@ -97,12 +94,10 @@ const OrderList = () => {
   const applyFilters = (orders, hiddenOrders) => {
     let filtered = [...orders];
 
-    // Lọc hiển thị đơn hàng ẩn/không ẩn
     filtered = showHidden
       ? filtered.filter((order) => hiddenOrders.includes(order._id))
       : filtered.filter((order) => !hiddenOrders.includes(order._id));
 
-    // Lọc theo trạng thái
     if (statusFilter) {
       const normalizedStatusFilter = normalizeString(statusFilter);
       filtered = filtered.filter((order) => {
@@ -114,12 +109,10 @@ const OrderList = () => {
       });
     }
 
-    // Lọc theo ngày
     if (dateFilter) {
       filtered = filtered.filter((order) => formatDate(order.createdAt) === dateFilter);
     }
 
-    // Sắp xếp theo tổng tiền
     if (sortTotal === "low-to-high") {
       filtered.sort((a, b) => (a.total || 0) - (b.total || 0));
     } else if (sortTotal === "high-to-low") {
@@ -131,12 +124,10 @@ const OrderList = () => {
     setHoaDons(filtered);
   };
 
-  // Cập nhật bộ lọc
   useEffect(() => {
     applyFilters(allOrders, hiddenOrders);
   }, [statusFilter, dateFilter, sortTotal, allOrders, hiddenOrders, showHidden]);
 
-  // Ẩn đơn hàng
   const handleHideOrder = (id) => {
     const updatedHiddenOrders = [...hiddenOrders, id];
     setHiddenOrders(updatedHiddenOrders);
@@ -145,7 +136,6 @@ const OrderList = () => {
     message.success("Đã ẩn đơn hàng thành công");
   };
 
-  // Khôi phục đơn hàng
   const handleRestoreOrder = (id) => {
     const updatedHiddenOrders = hiddenOrders.filter((item) => item !== id);
     setHiddenOrders(updatedHiddenOrders);
@@ -167,6 +157,7 @@ const OrderList = () => {
             {showHidden ? "🔙 Quay lại danh sách chính" : "👻 Xem đơn hàng đã ẩn"}
           </button>
         </div>
+
         <div className="card-body">
           <div className="mb-4 d-flex gap-4">
             <div>
@@ -186,6 +177,7 @@ const OrderList = () => {
                 <Option value="Huỷ Đơn">Huỷ Đơn</Option>
               </Select>
             </div>
+
             <div>
               <label className="mr-2">Lọc theo ngày:</label>
               <DatePicker
@@ -196,6 +188,7 @@ const OrderList = () => {
                 allowClear
               />
             </div>
+
             <div>
               <label className="mr-2">Sắp xếp tổng tiền:</label>
               <Select
@@ -211,6 +204,7 @@ const OrderList = () => {
               </Select>
             </div>
           </div>
+
           <div className="table-responsive">
             <table className="table table-hover table-bordered">
               <thead>
@@ -247,15 +241,14 @@ const OrderList = () => {
                         >
                           👁️ Xem chi tiết
                         </Link>
-                        {!showHidden &&
-                          ["Hoàn thành", "Huỷ Đơn"].includes(hoaDon.paymentStatus) && (
-                            <button
-                              onClick={() => handleHideOrder(hoaDon._id)}
-                              className="btn btn-warning ml-2"
-                            >
-                              🚫 Ẩn đơn hàng
-                            </button>
-                          )}
+                        {!showHidden && hoaDon.paymentStatus === "Hoàn thành" && (
+                          <button
+                            onClick={() => handleHideOrder(hoaDon._id)}
+                            className="btn btn-warning ml-2"
+                          >
+                            🚫 Ẩn đơn hàng
+                          </button>
+                        )}
                         {showHidden && (
                           <button
                             onClick={() => handleRestoreOrder(hoaDon._id)}
