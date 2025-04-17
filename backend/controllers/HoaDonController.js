@@ -147,6 +147,19 @@ class HoaDonController {
       const newOrder = new hoadon(req.body);
       const savedOrder = await newOrder.save();
 
+      // Phát sự kiện Socket.IO cho đơn hàng mới
+      io.emit("orderCreated", {
+        _id: savedOrder._id,
+        userId: savedOrder.userId,
+        createdAt: savedOrder.createdAt,
+        paymentStatus: savedOrder.paymentStatus,
+        shippingInfo: savedOrder.shippingInfo,
+        total: savedOrder.total,
+        paymentMethod: savedOrder.paymentMethod,
+        products: savedOrder.products,
+        checkPayment: savedOrder.checkPayment,
+      });
+
       res.status(201).json({
         message: "Tạo hóa đơn thành công",
         data: savedOrder,
