@@ -214,13 +214,15 @@ const ProfileReceiptDetails = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">
-                    Ngày hoàn thành thanh toán:
-                  </p>
+                  <p className="text-sm text-gray-600">Ngày hoàn thành thanh toán:</p>
                   <p className="font-medium">
-                    {order.transactionDate || "Chưa có"}
+                    {order.transactionDate === '1999-12-31T17:00:00.000Z'
+                      ? 'Chưa Có'
+                      : order.transactionDate
+                      ? new Date(order.transactionDate).toLocaleString()
+                      : 'Chưa có'}
                   </p>
-                </div>
+              </div>
                 <div>
                   <p className="text-sm text-gray-600">Tổng thanh toán:</p>
                   <p className="font-medium">
