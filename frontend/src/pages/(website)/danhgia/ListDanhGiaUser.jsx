@@ -186,7 +186,7 @@ const ListDanhGiaUser = () => {
         dataSource={filteredDanhGias}
         rowKey={(record) => record._id}
         bordered
-        pagination={{ pageSize: 10 }}
+        pagination={{ pageSize: 5 }}
         loading={loading}
         style={{ backgroundColor: 'white', borderRadius: 10, overflow: 'hidden' }}
       />
