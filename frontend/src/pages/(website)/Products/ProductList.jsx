@@ -22,30 +22,23 @@ const ProductList = () => {
   useEffect(() => {
     getProducts();
 
-    // Lắng nghe sự kiện productCreated từ server
     Socket.on("productCreated", (newProduct) => {
-      setProducts((prevProducts) => {
-        return [newProduct, ...prevProducts];
-      });
+      setProducts((prevProducts) => [newProduct, ...prevProducts]);
     });
 
-    // Lắng nghe sự kiện productUpdated từ server
     Socket.on("productUpdated", (updatedProduct) => {
       setProducts((prevProducts) => {
         const productIndex = prevProducts.findIndex((p) => p._id === updatedProduct._id);
         let updatedProducts = [...prevProducts];
-
         if (productIndex !== -1) {
           updatedProducts[productIndex] = updatedProduct;
         } else {
           updatedProducts = [updatedProduct, ...updatedProducts];
         }
-
         return updatedProducts;
       });
     });
 
-    // Dọn dẹp listener khi component unmount
     return () => {
       Socket.off("productCreated");
       Socket.off("productUpdated");
@@ -53,17 +46,31 @@ const ProductList = () => {
   }, []);
 
   useEffect(() => {
-    setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
+    setCurrentPage(1);
   }, [selectedBrand, selectedStorage, searchQuery, sortOrder, priceRange]);
 
   const normalizeBrandName = (name) => {
-    const match = name.match(/^(Iphone|Samsung|Xiaomi|Oppo)(\d+)/i);
-    if (match) {
-      const brand = match[1];
-      const model = match[2];
-      return `${brand} ${model}`;
+    // Loại bỏ khoảng trắng thừa, chuyển về chữ thường và chuẩn hóa
+    const cleanName = name
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ") // Chuẩn hóa khoảng trắng
+      .replace(/điện thoại/gi, "") // Loại bỏ "điện thoại"
+      .replace(/[^a-z0-9\s]/g, "") // Loại bỏ ký tự đặc biệt
+      .trim();
+
+    // Danh sách các thương hiệu cần nhận diện
+    const knownBrands = ["iphone", "samsung", "xiaomi", "oppo", "vivo", "realme", "huawei", "nokia"];
+    
+    // Tìm thương hiệu khớp trong tên sản phẩm
+    for (const brand of knownBrands) {
+      if (cleanName.includes(brand)) {
+        return brand.charAt(0).toUpperCase() + brand.slice(1); // Viết hoa chữ cái đầu
+      }
     }
-    return name.split(" ")[0];
+
+    // Nếu không tìm thấy thương hiệu nào, trả về phần đầu tiên của tên
+    return cleanName.split(" ")[0].charAt(0).toUpperCase() + cleanName.split(" ")[0].slice(1) || "Unknown";
   };
 
   const getProducts = async () => {
@@ -73,10 +80,11 @@ const ProductList = () => {
       const data = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProducts(data);
 
+      // Tạo danh sách thương hiệu duy nhất
       const uniqueBrands = [...new Set(data.map((product) => {
         const nameParts = product.TenSP.split("|")[0].trim();
         return normalizeBrandName(nameParts);
-      }))];
+      }))].sort(); // Sắp xếp danh sách thương hiệu
       setBrands(uniqueBrands);
     } catch (error) {
       message.error("Lỗi khi tải danh sách sản phẩm!");
@@ -85,7 +93,6 @@ const ProductList = () => {
     }
   };
 
-  // Hàm tìm bộ nhớ và giá hợp lệ đầu tiên
   const getFirstValidMemoryAndPrice = (product) => {
     const memories = [
       product.BoNhoTrong1,
@@ -109,7 +116,7 @@ const ProductList = () => {
         return { memory: memories[i], price: prices[i] };
       }
     }
-    return { memory: null, price: null }; // Không xảy ra theo giả định
+    return { memory: null, price: null };
   };
 
   const sortedProducts = [...products]
@@ -117,7 +124,7 @@ const ProductList = () => {
     .filter((product) => {
       if (!selectedBrand) return true;
       const normalizedProductName = normalizeBrandName(product.TenSP.split("|")[0].trim());
-      return normalizedProductName.toLowerCase().startsWith(selectedBrand.toLowerCase());
+      return normalizedProductName.toLowerCase() === selectedBrand.toLowerCase();
     })
     .filter((product) => searchQuery ? product.TenSP.toLowerCase().includes(searchQuery.toLowerCase()) : true)
     .filter((product) => {

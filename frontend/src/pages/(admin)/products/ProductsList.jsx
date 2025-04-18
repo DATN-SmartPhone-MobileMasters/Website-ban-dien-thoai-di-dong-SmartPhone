@@ -121,6 +121,30 @@ const ProductsList = () => {
     return product;
   };
 
+  const normalizeBrandName = (name) => {
+    // Loại bỏ khoảng trắng thừa, chuyển về chữ thường và chuẩn hóa
+    const cleanName = name
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ") // Chuẩn hóa khoảng trắng
+      .replace(/điện thoại/gi, "") // Loại bỏ "điện thoại"
+      .replace(/[^a-z0-9\s]/g, "") // Loại bỏ ký tự đặc biệt
+      .trim();
+
+    // Danh sách các thương hiệu cần nhận diện
+    const knownBrands = ["iphone", "samsung", "xiaomi", "oppo", "vivo", "realme", "huawei", "nokia"];
+    
+    // Tìm thương hiệu khớp trong tên sản phẩm
+    for (const brand of knownBrands) {
+      if (cleanName.includes(brand)) {
+        return brand.charAt(0).toUpperCase() + brand.slice(1); // Viết hoa chữ cái đầu
+      }
+    }
+
+    // Nếu không tìm thấy thương hiệu nào, trả về phần đầu tiên của tên
+    return cleanName.split(" ")[0].charAt(0).toUpperCase() + cleanName.split(" ")[0].slice(1) || "Unknown";
+  };
+
   const getProducts = async () => {
     setLoading(true);
     try {
@@ -140,8 +164,8 @@ const ProductsList = () => {
       setFilteredProducts(reversedData);
 
       const uniqueBrands = [
-        ...new Set(data.map((p) => p.TenSP.split(" ")[0].trim().toLowerCase())),
-      ].map((brand) => brand.charAt(0).toUpperCase() + brand.slice(1));
+        ...new Set(data.map((p) => normalizeBrandName(p.TenSP.split("|")[0].trim()))),
+      ].sort();
       setBrands(uniqueBrands);
     } catch (error) {
       message.error("Lỗi khi lấy danh sách sản phẩm!");
@@ -211,8 +235,7 @@ const ProductsList = () => {
 
     if (brand) {
       filtered = filtered.filter(
-        (p) =>
-          p.TenSP.split(" ")[0].trim().toLowerCase() === brand.toLowerCase()
+        (p) => normalizeBrandName(p.TenSP.split("|")[0].trim()).toLowerCase() === brand.toLowerCase()
       );
     }
 
