@@ -14,8 +14,17 @@ import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { updateUser, getUserById, fetchProducts } from "../../../service/api";
 import { Typography, message } from "antd";
+import io from "socket.io-client";
 
 const { Text } = Typography;
+
+// Kết nối Socket.IO
+const socket = io("http://localhost:5000", {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  transports: ["websocket", "polling"],
+});
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +84,23 @@ const Header = () => {
     };
 
     getProducts();
+  }, []);
+
+  // Lắng nghe sự kiện productUpdated từ Socket.IO
+  useEffect(() => {
+    socket.on("productUpdated", (updatedProduct) => {
+      console.log("Sản phẩm được cập nhật:", updatedProduct);
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product._id === updatedProduct._id ? updatedProduct : product
+        )
+      );
+    });
+
+    // Dọn dẹp listener khi component unmount
+    return () => {
+      socket.off("productUpdated");
+    };
   }, []);
 
   // Xử lý nhấp ra ngoài để ẩn gợi ý

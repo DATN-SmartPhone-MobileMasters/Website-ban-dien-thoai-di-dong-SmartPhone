@@ -12,7 +12,6 @@ import {
   Spin,
   Alert,
   Typography,
-  Space,
   Upload,
   message,
 } from "antd";
@@ -130,7 +129,7 @@ const ProductsEdit = () => {
 
   const onFinish = async (values) => {
     try {
-      let updatedValues = { ...values };
+      let updatedValues = { ...values, _id: id };
 
       // Đặt các phiên bản không hiển thị về "Không có"
       for (let i = 1; i <= 6; i++) {
@@ -207,7 +206,8 @@ const ProductsEdit = () => {
 
       const updatedProduct = await updateProducts(id, updatedValues);
       message.success("Cập nhật sản phẩm thành công!");
-      socket.emit("productUpdated", updatedProduct.data.data);
+      // Phát sự kiện productUpdated với dữ liệu đầy đủ
+      socket.emit("productUpdated", updatedValues);
       const newQuantities = {};
       const newMemories = {};
       const newPrices = {};
