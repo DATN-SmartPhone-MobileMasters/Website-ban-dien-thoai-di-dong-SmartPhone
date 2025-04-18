@@ -307,6 +307,11 @@ class HoaDonController {
         },
       };
 
+
+ // chỗ này để sửa ngày tính thời gian thực
+      const startOfWeek = new Date(2025, 3, 14); // Thứ 2, ngày 14/4/2025
+      const endOfWeek = new Date(2025, 3, 20, 23, 59, 59); // Chủ nhật, ngày 20/4/2025
+
       const doanhThuTheoNgay = await hoadon.aggregate([
         matchCompletedOrders,
         { $unwind: "$products" },
@@ -334,13 +339,21 @@ class HoaDonController {
       const doanhThuTheoTuan = await hoadon.aggregate([
         matchCompletedOrders,
         {
+          $match: {
+            createdAt: {
+              $gte: startOfWeek,
+              $lte: endOfWeek,
+            },
+          },
+        },
+        {
           $group: {
-            _id: { $week: "$createdAt" },
+            _id: null,
             tongDoanhThu: { $sum: "$total" },
           },
         },
-        { $sort: { _id: 1 } },
       ]);
+  
 
       const doanhThuTheoThang = await hoadon.aggregate([
         matchCompletedOrders,
@@ -368,10 +381,7 @@ class HoaDonController {
         (acc, item) => acc + item.tongDoanhThu,
         0
       );
-      const tongDoanhThuTheoTuan = doanhThuTheoTuan.reduce(
-        (acc, item) => acc + item.tongDoanhThu,
-        0
-      );
+      const tongDoanhThuTheoTuan = doanhThuTheoTuan.length > 0 ? doanhThuTheoTuan[0].tongDoanhThu : 0;
 
       res.status(200).json({
         doanhThuTheoNgay,

@@ -35,15 +35,35 @@ const ThongKe = () => {
       if (chartRef.current) {
         chartRef.current.destroy();
       }
-
+  
+      // Tính ngày bắt đầu (thứ 2) và ngày kết thúc (chủ nhật) của tuần hiện tại
+      const today = new Date(2025, 3, 18); // Ngày hiện tại (thay đổi theo nhu cầu)
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Đặt ngày là thứ 2
+      startOfWeek.setHours(0, 0, 0, 0); // Đặt thời gian là đầu ngày
+  
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Tiến đến chủ nhật
+      endOfWeek.setHours(23, 59, 59, 999); // Đặt thời gian là cuối ngày
+  
+      // Lọc dữ liệu doanh thu theo ngày trong khoảng từ thứ 2 đến chủ nhật
+      const filteredData = thongKeDoanhThu.doanhThuTheoNgay.filter((item) => {
+        const itemDate = new Date(item._id.ngay);
+        return itemDate >= startOfWeek && itemDate <= endOfWeek;
+      });
+  
+      // Lấy nhãn và dữ liệu cho biểu đồ
+      const labels = filteredData.map((item) => item._id.ngay);
+      const data = filteredData.map((item) => item.tongDoanhThu);
+  
       chartRef.current = new Chart(canvasRef.current, {
         type: "bar",
         data: {
-          labels: thongKeDoanhThu.doanhThuTheoNgay.map((item) => `${item._id.ngay} ${item._id.gio}h`),
+          labels,
           datasets: [
             {
               label: "Doanh Thu Theo Ngày",
-              data: thongKeDoanhThu.doanhThuTheoNgay.map((item) => item.tongDoanhThu),
+              data,
               backgroundColor: "rgba(75, 192, 192, 0.2)",
               borderColor: "rgba(75, 192, 192, 1)",
               borderWidth: 1,
@@ -61,34 +81,10 @@ const ThongKe = () => {
               beginAtZero: true,
             },
           },
-
-          // tooltip chart.js hiển thị chi tiết hơn trong biểu đồ
-          plugins: {
-           
-            
-            tooltip: {
-              callbacks: {
-                title: (tooltipItems) => {
-                  const index = tooltipItems[0].dataIndex;
-                  const item = thongKeDoanhThu.doanhThuTheoNgay[index];
-                  return `Ngày: ${item.date || item._id.ngay}`;
-                },
-                label: (tooltipItem) => {
-                  const index = tooltipItem.dataIndex;
-                  const products = thongKeDoanhThu.doanhThuTheoNgay[index].sanPhamDaBan;
-                
-                  return products.map((p) => 
-                    `${p.TenSP} (${p.memory}) - ${p.quantity} sản phẩm - Bán lúc: ${p.thoiGianBan}`
-                  );
-                }
-                
-              },
-            },
-          },
         },
       });
     }
-
+  
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
