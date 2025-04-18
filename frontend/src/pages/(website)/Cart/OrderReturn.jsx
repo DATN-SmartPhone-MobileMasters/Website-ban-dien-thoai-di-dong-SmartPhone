@@ -32,7 +32,6 @@ const OrderReturn = () => {
       } catch (error) {
         console.error('Lỗi xử lý thanh toán:', error);
         message.error('Lỗi hệ thống');
-        navigate('/');
       }
     };
   

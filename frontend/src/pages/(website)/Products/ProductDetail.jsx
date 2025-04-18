@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Socket from "../socket/Socket";
 import {
   createComment,
   fetchComments,
   getProducts,
   fetchProducts,
 } from "../../../service/api";
-import SellerProducts from "../../(website)/components/SellerProducts";
-import LatestProducts from "../../(website)/components/LatestProducts";
 import {
   FaShoppingCart,
   FaExchangeAlt,
@@ -33,8 +30,16 @@ import {
   Flex,
   Tag,
 } from "antd";
+import io from "socket.io-client";
 
 const { Title, Text, Paragraph } = Typography;
+
+const socket = io("http://localhost:5000", {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  transports: ["websocket", "polling"],
+});
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -64,7 +69,6 @@ const ProductDetail = () => {
   const [displayedComments, setDisplayedComments] = useState(5);
   const timeoutRef = useRef(null);
 
-  // Hàm chuẩn hóa tên sản phẩm
   const normalizeProductName = (name) => {
     const mainName = name.split("|")[0].trim();
     return mainName.replace(/\s+/g, "").toLowerCase();
@@ -158,7 +162,7 @@ const ProductDetail = () => {
   }, [relatedProducts]);
 
   useEffect(() => {
-    Socket.on("productUpdated", (updatedProduct) => {
+    socket.on("productUpdated", (updatedProduct) => {
       if (updatedProduct._id === id) {
         setProduct(updatedProduct);
 
@@ -205,10 +209,24 @@ const ProductDetail = () => {
           setSelectedImage(updatedProduct.HinhAnh1);
         }
       }
+
+      // Cập nhật allProducts
+      setAllProducts((prevProducts) =>
+        prevProducts.map((p) =>
+          p._id === updatedProduct._id ? updatedProduct : p
+        )
+      );
+
+      // Cập nhật relatedProducts
+      setRelatedProducts((prevRelated) =>
+        prevRelated.map((p) =>
+          p._id === updatedProduct._id ? updatedProduct : p
+        )
+      );
     });
 
     return () => {
-      Socket.off("productUpdated");
+      socket.off("productUpdated");
     };
   }, [id, selectedMemory.memory]);
 
@@ -623,6 +641,45 @@ const ProductDetail = () => {
       currency: "VND",
     }).format(value);
 
+  const getDisplayMemoryAndPrice = (product) => {
+    // Kiểm tra nếu sản phẩm ngừng kinh doanh hoặc hết hàng với tất cả số lượng bằng 0
+    const allQuantitiesZero = [
+      product.SoLuong1,
+      product.SoLuong2,
+      product.SoLuong3,
+      product.SoLuong4,
+      product.SoLuong5,
+      product.SoLuong6,
+    ].every((quantity) => quantity === 0 || quantity === undefined);
+
+    if (
+      product.TrangThai === "Ngừng kinh doanh" ||
+      (product.TrangThai === "Hết hàng" && allQuantitiesZero)
+    ) {
+      return { memory: "Liên hệ", price: null };
+    }
+
+    const memories = [
+      { memory: product.BoNhoTrong1, price: product.GiaSP1, quantity: product.SoLuong1, index: 1 },
+      { memory: product.BoNhoTrong2, price: product.GiaSP2, quantity: product.SoLuong2, index: 2 },
+      { memory: product.BoNhoTrong3, price: product.GiaSP3, quantity: product.SoLuong3, index: 3 },
+      { memory: product.BoNhoTrong4, price: product.GiaSP4, quantity: product.SoLuong4, index: 4 },
+      { memory: product.BoNhoTrong5, price: product.GiaSP5, quantity: product.SoLuong5, index: 5 },
+      { memory: product.BoNhoTrong6, price: product.GiaSP6, quantity: product.SoLuong6, index: 6 },
+    ].filter((item) => item.memory && item.memory !== "Không có");
+
+    if (memories.length === 0) {
+      return { memory: "Không có", price: 0 };
+    }
+
+    const availableMemory = memories.find((item) => item.quantity > 0);
+    if (availableMemory) {
+      return { memory: availableMemory.memory, price: availableMemory.price };
+    }
+
+    return { memory: memories[0].memory, price: memories[0].price };
+  };
+
   const handleMouseMove = (e) => {
     const { left, top, width, height } = e.target.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
@@ -929,24 +986,17 @@ const ProductDetail = () => {
                             }
                             description={
                               <Space direction="vertical" size={4}>
-                                <Text type="danger" strong>
-                                  {formatCurrency(relatedProduct.GiaSP1)}
-                                </Text>
-                                <Text style={{ fontSize: "12px" }}>
-                                  {relatedProduct.BoNhoTrong1}
-                                </Text>
-                                <Badge
-                                  status={
-                                    relatedProduct.SoLuong1 > 0
-                                      ? "success"
-                                      : "error"
-                                  }
-                                  text={
-                                    relatedProduct.SoLuong1 > 0
-                                      ? "Còn hàng"
-                                      : "Hết hàng"
-                                  }
-                                  style={{ fontSize: "12px" }}
+                                <div
+                                  style={{
+                                    width: 30,
+                                    height: 30,
+                                    borderRadius: "50%",
+                                    backgroundColor:
+                                      relatedProduct.Mau1 !== "Hết Hàng"
+                                        ? relatedProduct.Mau1
+                                        : "gray",
+                                    border: "2px solid #1890ff",
+                                  }}
                                 />
                               </Space>
                             }
@@ -957,7 +1007,7 @@ const ProductDetail = () => {
 
                     {showRelatedRightArrow && (
                       <Button
-                        shape thí="circle"
+                        shape="circle"
                         icon={<FaChevronRight />}
                         onClick={() => scrollRelatedProducts("right")}
                         style={{
@@ -1023,13 +1073,21 @@ const ProductDetail = () => {
 
       <Modal
         title="Chọn sản phẩm để so sánh"
-        visible={compareModalVisible}
-        onOk={handleCompare}
-        onCancel={() => setCompareModalVisible(false)}
-        okText="So sánh"
-        cancelText="Hủy"
+        open={compareModalVisible}
+        footer={null}
         width={800}
+        onCancel={() => setCompareModalVisible(false)}
       >
+        <Flex justify="flex-end" style={{ marginBottom: 16 }}>
+          <Space>
+            <Button onClick={() => setCompareModalVisible(false)}>
+              Hủy
+            </Button>
+            <Button type="primary" onClick={handleCompare}>
+              So sánh
+            </Button>
+          </Space>
+        </Flex>
         {selectedCompareProducts.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <Text strong>Sản phẩm đã chọn: </Text>
@@ -1147,28 +1205,39 @@ const ProductDetail = () => {
                   }}
                   className="scrollbar-hidden"
                 >
-                  {allProducts.map((product) => (
-                    <Card
-                      key={product._id}
-                      hoverable
-                      style={{ minWidth: 250, marginRight: 16 }}
-                      cover={<img alt={product.TenSP} src={product.HinhAnh1} />}
-                      onClick={() => handleProductClick(product._id)}
-                    >
-                      <Card.Meta
-                        title={product.TenSP}
-                        description={
-                          <>
-                            <Text type="danger">
-                              {formatCurrency(product.GiaSP1)}
-                            </Text>
-                            <br />
-                            <Text>{product.BoNhoTrong1}</Text>
-                          </>
+                  {allProducts.map((product) => {
+                    const { memory, price } = getDisplayMemoryAndPrice(product);
+                    return (
+                      <Card
+                        key={product._id}
+                        hoverable
+                        style={{ minWidth: 250, marginRight: 16 }}
+                        cover={
+                          <img alt={product.TenSP} src={product.HinhAnh1} />
                         }
-                      />
-                    </Card>
-                  ))}
+                        onClick={() => handleProductClick(product._id)}
+                      >
+                        <Card.Meta
+                          title={product.TenSP}
+                          description={
+                            <>
+                              {memory === "Liên hệ" ? (
+                                <Text type="danger">Liên hệ</Text>
+                              ) : (
+                                <>
+                                  <Text type="danger">
+                                    {formatCurrency(price)}
+                                  </Text>
+                                  <br />
+                                  <Text>{memory}</Text>
+                                </>
+                              )}
+                            </>
+                          }
+                        />
+                      </Card>
+                    );
+                  })}
                 </div>
                 {showRightArrow && (
                   <Button
@@ -1185,12 +1254,6 @@ const ProductDetail = () => {
       )}
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        <Col span={24}>
-          <LatestProducts onProductClick={handleProductClick} />
-        </Col>
-        <Col span={24}>
-          <SellerProducts onProductClick={handleProductClick} />
-        </Col>
         <Col span={24}>
           <Card title={<Title level={4}>Bình Luận</Title>}>
             <Form form={form} onFinish={onFinish} layout="vertical">

@@ -41,7 +41,7 @@ import Cart from "./pages/(website)/Cart/Cart";
 import AboutList from "./pages/(website)/about/AboutList";
 import Blogdefault from "./pages/(website)/Blog/Blogdefault";
 import Blogsingle from "./pages/(website)/Blog/Blogsingle";
-
+import List from "./pages/(website)/components/List";
 import Checkcart from "./pages/(website)/Cart/Checkcart";
 import AdminLogin from "./pages/(admin)/Admin-Login";
 import DanhGia from "./pages/(admin)/danhgia/DanhGia";
@@ -55,6 +55,8 @@ import ListDanhGiaUser from "./pages/(website)/danhgia/ListDanhGiaUser";
 import SpDaMua from "./pages/(website)/sanphamdamua/SpDaMua";
 import Socket from "./pages/(website)/socket/Socket";
 import ListBanner from "./pages/(admin)/banner/ListBanner";
+import BannerAdd from "./pages/(admin)/banner/AddBanner";
+import BannerEdit from "./pages/(admin)/banner/EditBanner";
 function App() {
   const configRouter = createBrowserRouter([
     {
@@ -112,6 +114,18 @@ function App() {
         {
           path: "/admin/products",
           element: <ProductsList />,
+        },
+        {
+          path: "/admin/banners/add",
+          element: <BannerAdd />,
+        },
+        {
+          path: "/admin/banners/edit/:id",
+          element: <BannerEdit />,
+        },
+        {
+          path: "/admin/banners",
+          element: <ListBanner />,
         },
         {
           path: "/admin/brands",
@@ -178,6 +192,10 @@ function App() {
     {
       element: <LayoutWebsite />,
       children: [
+        {
+          path: "/list",
+          element: <List />,
+        },
         {
           path: "/sanphamdamua",
           element: <SpDaMua />,

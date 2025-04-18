@@ -123,12 +123,12 @@ const Orderdetail = () => {
           try {
             const updateData = { paymentStatus: newStatus };
             
-            if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "COD") {
+            if (newStatus === "Giao Hàng Thành Công" && hoaDon.paymentMethod === "COD") {
               updateData.checkPayment = "Đã Thanh Toán";
               updateData.deliveryDate = new Date();
               updateData.transactionDate = new Date();
             }
-            if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "VNPay") {
+            if (newStatus === "Giao Hàng Thành Công" && hoaDon.paymentMethod === "VNPay") {
               updateData.deliveryDate = new Date();
             }
 
@@ -245,6 +245,13 @@ const Orderdetail = () => {
     );
   }
 
+  const isRepaymentOrder = 
+    hoaDon.paymentMethod === 'VNPay' &&
+    hoaDon.checkPayment === 'Chưa Thanh Toán' &&
+    hoaDon.paymentStatus !== 'Huỷ Đơn' &&
+    hoaDon.paymentStatus !== 'Hoàn thành' &&
+    hoaDon.paymentStatus !== 'Đang Giao';
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 to-gray-50">
       <div className="container mx-auto p-8">
@@ -318,12 +325,12 @@ const Orderdetail = () => {
                 <p className="font-medium text-blue-800">{hoaDon.checkPayment}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-600">Ngày hoàn thành giao hàng</p>
-                <p className="font-medium text-blue-800">{hoaDon.deliveryDate || "Chưa có"} </p>
+                <p className="text-sm text-blue-600">Ngày hoàn thành giao hàng:</p>
+                <p className="font-medium text-blue-800">{hoaDon.deliveryDate ? new Date(hoaDon.deliveryDate).toLocaleDateString() : "Chưa có"}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-600">Ngày hoàn thành thanh toán</p>
-                <p className="font-medium text-blue-800">{hoaDon.transactionDate || "Chưa có"} </p>
+                <p className="text-sm text-blue-600">Ngày hoàn thành thanh toán:</p>
+                <p className="font-medium text-blue-800">{hoaDon.transactionDate ? new Date(hoaDon.transactionDate).toLocaleDateString() : "Chưa có"}</p>
               </div>
             </div>
           </div>
@@ -411,16 +418,54 @@ const Orderdetail = () => {
                   </button>
                 </>
               )}
-
-              {hoaDon.paymentStatus === "Đang Giao" && (
+              {hoaDon.paymentStatus === "Giao Hàng Thất Bại" && (
+                <>
                 <button
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
-                  onClick={() => handleStatusChange("Hoàn thành")}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                  onClick={() => handleStatusChange("Huỷ Đơn")}
                 >
-                  ✅ Hoàn thành
+                  ❌ Huỷ Đơn
                 </button>
+                <button
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition duration-200"
+                onClick={() => handleStatusChange("Giao Hàng Lại")}
+              >
+                🔁 Giao Hàng Lại
+              </button>
+              </>
               )}
-
+              {hoaDon.paymentStatus === "Đang Giao" && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
+                    onClick={() => handleStatusChange("Giao Hàng Thành Công")}
+                  >
+                    🚚 Giao Hàng Thành Công
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                    onClick={() => handleStatusChange("Giao Hàng Thất Bại")}
+                  >
+                    🚚 Giao Hàng Thất Bại
+                  </button>
+                </>
+              )}
+              {hoaDon.paymentStatus === "Giao Hàng Lại" && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200"
+                    onClick={() => handleStatusChange("Giao Hàng Thành Công")}
+                  >
+                    🚚 Giao Hàng Thành Công
+                  </button>
+                  <button
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
+                  onClick={() => handleStatusChange("Huỷ Đơn")}
+                >
+                  ❌ Huỷ Đơn
+                </button>
+                </>
+              )}
               {hoaDon.checkPayment === 'Yêu Cầu Hoàn Tiền' && (
                 <button
                   className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition duration-200"

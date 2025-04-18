@@ -5,10 +5,9 @@ import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
 import Socket from "../socket/Socket";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
+import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import "swiper/css/pagination";
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -54,7 +53,6 @@ const LatestProducts = ({ onProductClick }) => {
   useEffect(() => {
     getLatestProducts();
 
-    // Lắng nghe sự kiện productCreated
     Socket.on("productCreated", (newProduct) => {
       setProducts((prevProducts) => {
         const isIphone = newProduct.TenSP.toLowerCase().includes("iphone");
@@ -78,7 +76,6 @@ const LatestProducts = ({ onProductClick }) => {
       });
     });
 
-    // Lắng nghe sự kiện productUpdated
     Socket.on("productUpdated", (updatedProduct) => {
       setProducts((prevProducts) => {
         let updatedProducts = [...prevProducts];
@@ -111,7 +108,6 @@ const LatestProducts = ({ onProductClick }) => {
       });
     });
 
-    // Dọn dẹp các sự kiện khi component unmount
     return () => {
       Socket.off("productCreated");
       Socket.off("productUpdated");
@@ -123,12 +119,10 @@ const LatestProducts = ({ onProductClick }) => {
     slidesPerGroup: 1,
     spaceBetween: 20,
     navigation: true,
-    pagination: { clickable: true },
     loop: products.length >= 5,
-    modules: [Navigation, Pagination],
+    modules: [Navigation],
   };
 
-  // Hàm tìm bộ nhớ và giá hợp lệ đầu tiên
   const getFirstValidMemoryAndPrice = (product) => {
     const memories = [
       product.BoNhoTrong1,
@@ -152,7 +146,7 @@ const LatestProducts = ({ onProductClick }) => {
         return { memory: memories[i], price: prices[i] };
       }
     }
-    return { memory: null, price: null }; // Không xảy ra theo giả định
+    return { memory: null, price: null };
   };
 
   return (
@@ -160,7 +154,7 @@ const LatestProducts = ({ onProductClick }) => {
       <div className="max-w-7xl mx-auto px-4">
         <Title level={2} className="text-center mb-8 text-blue-600">
           <FireOutlined className="text-red-500 mr-2" />
-          Sản phẩm iPhone mớiที่สุด
+          Sản phẩm iPhone mới
           <FireOutlined className="text-red-500 ml-2" />
         </Title>
 
