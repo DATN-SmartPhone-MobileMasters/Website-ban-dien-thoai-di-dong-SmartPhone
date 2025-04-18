@@ -123,12 +123,12 @@ const Orderdetail = () => {
           try {
             const updateData = { paymentStatus: newStatus };
             
-            if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "COD") {
+            if (newStatus === "Giao Hàng Thành Công" && hoaDon.paymentMethod === "COD") {
               updateData.checkPayment = "Đã Thanh Toán";
               updateData.deliveryDate = new Date();
               updateData.transactionDate = new Date();
             }
-            if (newStatus === "Hoàn thành" && hoaDon.paymentMethod === "VNPay") {
+            if (newStatus === "Giao Hàng Thành Công" && hoaDon.paymentMethod === "VNPay") {
               updateData.deliveryDate = new Date();
             }
 
