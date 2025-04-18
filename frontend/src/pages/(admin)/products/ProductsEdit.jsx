@@ -42,11 +42,9 @@ const ProductsEdit = () => {
   const [priceErrors, setPriceErrors] = useState({});
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
   const [initialQuantities, setInitialQuantities] = useState({});
-  const [initialStatus, setInitialStatus] = useState("");
   const [initialMemories, setInitialMemories] = useState({});
   const [initialPrices, setInitialPrices] = useState({});
-  const [visibleVersions, setVisibleVersions] = useState([1]); // Quản lý các phiên bản hiển thị
-  const [previousStatus, setPreviousStatus] = useState(""); // Lưu trạng thái trước đó
+  const [visibleVersions, setVisibleVersions] = useState([1]);
 
   // Validators
   const noWhitespace = (_, value) => {
@@ -92,7 +90,7 @@ const ProductsEdit = () => {
             updatedProductData[`GiaSP${i}`] = 0;
             updatedProductData[`SoLuong${i}`] = 0;
           } else if (updatedProductData[`BoNhoTrong${i}`] !== "Không có") {
-            versions.push(i); // Thêm phiên bản nếu bộ nhớ không phải "Không có"
+            versions.push(i);
           }
           quantities[`SoLuong${i}`] = updatedProductData[`SoLuong${i}`] || 0;
           memories[`BoNhoTrong${i}`] = updatedProductData[`BoNhoTrong${i}`];
@@ -102,9 +100,7 @@ const ProductsEdit = () => {
         setInitialQuantities(quantities);
         setInitialMemories(memories);
         setInitialPrices(prices);
-        setInitialStatus(updatedProductData.TrangThai);
-        setPreviousStatus(updatedProductData.TrangThai); // Khởi tạo trạng thái trước đó
-        setVisibleVersions(versions.length > 0 ? versions : [1]); // Hiển thị ít nhất 1 phiên bản
+        setVisibleVersions(versions.length > 0 ? versions : [1]);
         form.setFieldsValue(updatedProductData);
         setBrands(brandsRes.data.data);
         validateQuantities(updatedProductData);
@@ -147,7 +143,6 @@ const ProductsEdit = () => {
 
       // Kiểm tra trạng thái và số lượng
       if (updatedValues.TrangThai === "Còn hàng") {
-        // Kiểm tra xem tất cả số lượng của các bộ nhớ không phải "Không có" có bằng 0 không
         const allQuantitiesZero = visibleVersions.every(
           (version) =>
             updatedValues[`BoNhoTrong${version}`] === "Không có" ||
@@ -155,12 +150,10 @@ const ProductsEdit = () => {
         );
 
         if (allQuantitiesZero) {
-          // Chuyển trạng thái thành "Hết hàng", giữ nguyên giá
           updatedValues.TrangThai = "Hết hàng";
           for (let i = 1; i <= 6; i++) {
             if (updatedValues[`BoNhoTrong${i}`] !== "Không có") {
-              updatedValues[`SoLuong${i}`] = 0; // Đặt số lượng về 0
-              // Giá giữ nguyên, không đặt về 0
+              updatedValues[`SoLuong${i}`] = 0;
             }
           }
           form.setFieldsValue({ 
@@ -177,7 +170,7 @@ const ProductsEdit = () => {
             ...Object.fromEntries(
               Array.from({ length: 6 }, (_, i) => [
                 [`SoLuong${i + 1}`, updatedValues[`BoNhoTrong${i + 1}`] !== "Không có" ? 0 : prev[`SoLuong${i + 1}`]],
-                [`GiaSP${i + 1}`, updatedValues[`GiaSP${i + 1}`]], // Giữ nguyên giá
+                [`GiaSP${i + 1}`, updatedValues[`GiaSP${i + 1}`]],
               ]).flat()
             ),
           }));
@@ -185,46 +178,12 @@ const ProductsEdit = () => {
           setPriceErrors({});
           setIsSubmitDisabled(false);
         }
-      }
-
-      // Kiểm tra trạng thái "Ngừng kinh doanh"
-      if (updatedValues.TrangThai === "Ngừng kinh doanh") {
-        for (let i = 1; i <= 6; i++) {
-          updatedValues[`BoNhoTrong${i}`] = "Không có";
-          updatedValues[`SoLuong${i}`] = 0;
-          updatedValues[`GiaSP${i}`] = 0;
-        }
-        form.setFieldsValue({
-          TrangThai: "Ngừng kinh doanh",
-          ...Object.fromEntries(
-            Array.from({ length: 6 }, (_, i) => [
-              [`BoNhoTrong${i + 1}`, "Không có"],
-              [`SoLuong${i + 1}`, 0],
-              [`GiaSP${i + 1}`, 0],
-            ]).flat()
-          ),
-        });
-        setProduct((prev) => ({
-          ...prev,
-          TrangThai: "Ngừng kinh doanh",
-          ...Object.fromEntries(
-            Array.from({ length: 6 }, (_, i) => [
-              [`BoNhoTrong${i + 1}`, "Không có"],
-              [`SoLuong${i + 1}`, 0],
-              [`GiaSP${i + 1}`, 0],
-            ]).flat()
-          ),
-        }));
-        setQuantityErrors({});
-        setPriceErrors({});
-        setIsSubmitDisabled(false);
-      } else {
+      } else if (updatedValues.TrangThai === "Hết hàng") {
         const allMemoriesNone = visibleVersions.every(
           (version) => updatedValues[`BoNhoTrong${version}`] === "Không có"
         );
 
-        if (allMemoriesNone && updatedValues.TrangThai !== "Hết hàng") {
-          updatedValues.TrangThai = "Hết hàng";
+        if (allMemoriesNone) {
           for (let i = 1; i <= 6; i++) {
             updatedValues[`SoLuong${i}`] = 0;
             updatedValues[`GiaSP${i}`] = 0;
@@ -249,7 +208,6 @@ const ProductsEdit = () => {
       const updatedProduct = await updateProducts(id, updatedValues);
       message.success("Cập nhật sản phẩm thành công!");
       socket.emit("productUpdated", updatedProduct.data.data);
-      setInitialStatus(updatedValues.TrangThai);
       const newQuantities = {};
       const newMemories = {};
       const newPrices = {};
@@ -270,63 +228,17 @@ const ProductsEdit = () => {
 
   const handleStatusChange = (value) => {
     const updatedFields = {};
-    
-    // Khi chuyển sang "Ngừng kinh doanh", lưu lại các giá trị hiện tại
-    if (value === "Ngừng kinh doanh") {
-      const currentQuantities = {};
-      const currentMemories = {};
-      const currentPrices = {};
-      for (let i = 1; i <= 6; i++) {
-        currentQuantities[`SoLuong${i}`] = product[`SoLuong${i}`] || 0;
-        currentMemories[`BoNhoTrong${i}`] = product[`BoNhoTrong${i}`] || "Không có";
-        currentPrices[`GiaSP${i}`] = product[`GiaSP${i}`] || 0;
-      }
-      setInitialQuantities(currentQuantities);
-      setInitialMemories(currentMemories);
-      setInitialPrices(currentPrices);
 
-      // Reset tất cả giá trị về "Không có" và 0
+    if (value === "Hết hàng") {
       for (let i = 1; i <= 6; i++) {
-        updatedFields[`BoNhoTrong${i}`] = "Không có";
-        updatedFields[`SoLuong${i}`] = 0;
-        updatedFields[`GiaSP${i}`] = 0;
-      }
-      setQuantityErrors({});
-      setPriceErrors({});
-      setIsSubmitDisabled(false);
-    } else if (value === "Hết hàng") {
-      if (product.TrangThai === "Ngừng kinh doanh") {
-        // Khôi phục các giá trị từ initial state
-        for (let i = 1; i <= 6; i++) {
-          updatedFields[`BoNhoTrong${i}`] = initialMemories[`BoNhoTrong${i}`];
-          updatedFields[`SoLuong${i}`] = 0; // Đặt số lượng về 0 khi trạng thái là "Hết hàng"
-          updatedFields[`GiaSP${i}`] = initialPrices[`GiaSP${i}`] || 0;
-        }
-      } else {
-        for (let i = 1; i <= 6; i++) {
-          if (product[`BoNhoTrong${i}`] !== "Không có") {
-            updatedFields[`SoLuong${i}`] = 0;
-          }
+        if (product[`BoNhoTrong${i}`] !== "Không có") {
+          updatedFields[`SoLuong${i}`] = 0;
         }
       }
     } else if (value === "Còn hàng") {
-      if (product.TrangThai === "Ngừng kinh doanh") {
-        // Khôi phục các giá trị từ initial state
-        for (let i = 1; i <= 6; i++) {
-          updatedFields[`BoNhoTrong${i}`] = initialMemories[`BoNhoTrong${i}`];
-          // Nếu trạng thái trước đó là "Hết hàng", đặt số lượng tối thiểu là 1 cho các bộ nhớ không phải "Không có"
-          if (previousStatus === "Hết hàng" && initialMemories[`BoNhoTrong${i}`] !== "Không có") {
-            updatedFields[`SoLuong${i}`] = 1;
-          } else {
-            updatedFields[`SoLuong${i}`] = initialQuantities[`SoLuong${i}`] || 0;
-          }
-          updatedFields[`GiaSP${i}`] = initialPrices[`GiaSP${i}`] || 0;
-        }
-      } else {
-        for (let i = 1; i <= 6; i++) {
-          if (product[`BoNhoTrong${i}`] !== "Không có") {
-            updatedFields[`SoLuong${i}`] = initialQuantities[`SoLuong${i}`] || 1;
-          }
+      for (let i = 1; i <= 6; i++) {
+        if (product[`BoNhoTrong${i}`] !== "Không có") {
+          updatedFields[`SoLuong${i}`] = initialQuantities[`SoLuong${i}`] || 1;
         }
       }
     }
@@ -338,7 +250,6 @@ const ProductsEdit = () => {
       ...updatedFields,
     }));
     validateQuantities({ ...product, TrangThai: value, ...updatedFields });
-    setPreviousStatus(product.TrangThai); // Cập nhật trạng thái trước đó
   };
 
   const handleMemoryChange = (version, value) => {
@@ -475,10 +386,9 @@ const ProductsEdit = () => {
 
   const addVersion = () => {
     if (visibleVersions.length < 6) {
-      // Tìm số nhỏ nhất chưa được sử dụng trong khoảng 1-6
       const allVersions = [1, 2, 3, 4, 5, 6];
       const unusedVersion = allVersions.find((v) => !visibleVersions.includes(v));
-      setVisibleVersions([...visibleVersions, unusedVersion].sort((a, b) => a - b)); // Sắp xếp để giữ thứ tự
+      setVisibleVersions([...visibleVersions, unusedVersion].sort((a, b) => a - b));
       form.setFieldsValue({
         [`BoNhoTrong${unusedVersion}`]: "Không có",
         [`SoLuong${unusedVersion}`]: 0,
@@ -495,7 +405,7 @@ const ProductsEdit = () => {
 
   const removeVersion = (version) => {
     if (visibleVersions.length > 1) {
-      setVisibleVersions(visibleVersions.filter((v) => v !== version).sort((a, b) => a - b)); // Sắp xếp lại
+      setVisibleVersions(visibleVersions.filter((v) => v !== version).sort((a, b) => a - b));
       form.setFieldsValue({
         [`BoNhoTrong${version}`]: "Không có",
         [`SoLuong${version}`]: 0,
@@ -608,22 +518,9 @@ const ProductsEdit = () => {
                 <Select
                   placeholder="Chọn trạng thái"
                   onChange={handleStatusChange}
-                  disabled={initialStatus === "Ngừng kinh doanh"}
                 >
-                  {initialStatus === "Còn hàng" ? (
-                    <>
-                      <Option value="Còn hàng">Còn hàng</Option>
-                      <Option value="Hết hàng">Hết hàng</Option>
-                    </>
-                  ) : initialStatus === "Ngừng kinh doanh" ? (
-                    <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
-                  ) : (
-                    <>
-                      <Option value="Còn hàng">Còn hàng</Option>
-                      <Option value="Hết hàng">Hết hàng</Option>
-                      <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
-                    </>
-                  )}
+                  <Option value="Còn hàng">Còn hàng</Option>
+                  <Option value="Hết hàng">Hết hàng</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -644,7 +541,6 @@ const ProductsEdit = () => {
               >
                 <Input
                   placeholder="Nhập màu"
-                  disabled={initialStatus === "Ngừng kinh doanh"}
                   addonAfter={
                     <div
                       style={{
@@ -672,7 +568,6 @@ const ProductsEdit = () => {
                   <Select
                     placeholder="Không có"
                     onChange={(value) => handleMemoryChange(version, value)}
-                    disabled={product.TrangThai === "Ngừng kinh doanh"}
                   >
                     {[
                       { value: "Không có", label: "Không có" },
@@ -713,7 +608,6 @@ const ProductsEdit = () => {
                     placeholder="Nhập số lượng"
                     disabled={
                       product.TrangThai === "Hết hàng" ||
-                      product.TrangThai === "Ngừng kinh doanh" ||
                       product[`BoNhoTrong${version}`] === "Không có"
                     }
                     onChange={(e) => handleQuantityChange(version, e.target.value)}
@@ -737,10 +631,7 @@ const ProductsEdit = () => {
                   <Input
                     type="number"
                     placeholder={`Nhập giá sản phẩm ${version}`}
-                    disabled={
-                      product.TrangThai === "Ngừng kinh doanh" ||
-                      product[`BoNhoTrong${version}`] === "Không có"
-                    }
+                    disabled={product[`BoNhoTrong${version}`] === "Không có"}
                     onChange={(e) => handlePriceChange(version, e.target.value)}
                   />
                 </Form.Item>
@@ -750,7 +641,7 @@ const ProductsEdit = () => {
                   type="danger"
                   icon={<DeleteOutlined />}
                   onClick={() => removeVersion(version)}
-                  disabled={visibleVersions.length === 1 || product.TrangThai === "Ngừng kinh doanh"}
+                  disabled={visibleVersions.length === 1}
                 >
                   Ẩn
                 </Button>
@@ -764,7 +655,7 @@ const ProductsEdit = () => {
                 type="dashed"
                 icon={<PlusOutlined />}
                 onClick={addVersion}
-                disabled={visibleVersions.length >= 6 || product.TrangThai === "Ngừng kinh doanh"}
+                disabled={visibleVersions.length >= 6}
                 block
               >
                 Thêm Phiên Bản
