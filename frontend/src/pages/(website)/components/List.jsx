@@ -110,7 +110,7 @@ const List = () => {
       <div className="max-w-7xl mx-auto px-4">
         {/* Thanh tìm kiếm và gợi ý */}
         <div className="mb-6 flex justify-center relative" ref={searchRef}>
-          <Input
+          {/* <Input
             placeholder="Tìm kiếm sản phẩm..."
             prefix={<SearchOutlined />}
             value={searchQuery}
@@ -119,7 +119,7 @@ const List = () => {
             allowClear
             size="large"
             style={{ width: "100%", maxWidth: "500px" }}
-          />
+          /> */}
           {/* Danh sách gợi ý */}
           {searchQuery && isSearchFocused && filteredProducts.length > 0 && (
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-full max-w-[500px] bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">

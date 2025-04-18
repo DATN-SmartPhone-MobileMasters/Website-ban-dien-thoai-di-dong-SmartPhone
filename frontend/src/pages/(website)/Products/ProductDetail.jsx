@@ -62,7 +62,6 @@ const ProductDetail = () => {
   const [displayedComments, setDisplayedComments] = useState(5);
   const timeoutRef = useRef(null);
 
-  // Hàm chuẩn hóa tên sản phẩm
   const normalizeProductName = (name) => {
     const mainName = name.split("|")[0].trim();
     return mainName.replace(/\s+/g, "").toLowerCase();
@@ -927,24 +926,17 @@ const ProductDetail = () => {
                             }
                             description={
                               <Space direction="vertical" size={4}>
-                                <Text type="danger" strong>
-                                  {formatCurrency(relatedProduct.GiaSP1)}
-                                </Text>
-                                <Text style={{ fontSize: "12px" }}>
-                                  {relatedProduct.BoNhoTrong1}
-                                </Text>
-                                <Badge
-                                  status={
-                                    relatedProduct.SoLuong1 > 0
-                                      ? "success"
-                                      : "error"
-                                  }
-                                  text={
-                                    relatedProduct.SoLuong1 > 0
-                                      ? "Còn hàng"
-                                      : "Hết hàng"
-                                  }
-                                  style={{ fontSize: "12px" }}
+                                <div
+                                  style={{
+                                    width: 30,
+                                    height: 30,
+                                    borderRadius: "50%",
+                                    backgroundColor:
+                                      relatedProduct.Mau1 !== "Hết Hàng"
+                                        ? relatedProduct.Mau1
+                                        : "gray",
+                                    border: "2px solid #1890ff",
+                                  }}
                                 />
                               </Space>
                             }
@@ -955,7 +947,7 @@ const ProductDetail = () => {
 
                     {showRelatedRightArrow && (
                       <Button
-                        shape thí="circle"
+                        shape="circle"
                         icon={<FaChevronRight />}
                         onClick={() => scrollRelatedProducts("right")}
                         style={{
@@ -1021,13 +1013,20 @@ const ProductDetail = () => {
 
       <Modal
         title="Chọn sản phẩm để so sánh"
-        visible={compareModalVisible}
-        onOk={handleCompare}
-        onCancel={() => setCompareModalVisible(false)}
-        okText="So sánh"
-        cancelText="Hủy"
+        open={compareModalVisible}
+        footer={null}
         width={800}
       >
+        <Flex justify="flex-end" style={{ marginBottom: 16 }}>
+          <Space>
+            <Button onClick={() => setCompareModalVisible(false)}>
+              Hủy
+            </Button>
+            <Button type="primary" onClick={handleCompare}>
+              So sánh
+            </Button>
+          </Space>
+        </Flex>
         {selectedCompareProducts.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <Text strong>Sản phẩm đã chọn: </Text>
@@ -1183,7 +1182,6 @@ const ProductDetail = () => {
       )}
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        
         <Col span={24}>
           <Card title={<Title level={4}>Bình Luận</Title>}>
             <Form form={form} onFinish={onFinish} layout="vertical">
