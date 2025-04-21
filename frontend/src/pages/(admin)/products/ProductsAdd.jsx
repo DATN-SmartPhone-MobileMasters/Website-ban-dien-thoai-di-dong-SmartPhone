@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createProducts, fetchBrands, uploadImage } from "../../../service/api";
 import { Form, Input, Select, Button, Upload, message, Card, Row, Col, Space, Divider } from 'antd';
 import { UploadOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import debounce from 'lodash/debounce';
 
 const { Option } = Select;
 
@@ -32,8 +33,8 @@ const ProductsAdd = () => {
       hiddenIndices: [],
     },
   ]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({ global: '', imageErrors: {} });
+  const [loading, setLoading] = useState({});
 
   useEffect(() => {
     const loadBrands = async () => {
@@ -42,11 +43,173 @@ const ProductsAdd = () => {
         setBrands(response.data.data);
       } catch (err) {
         console.error('Lỗi khi tải thương hiệu:', err);
-        setError('Không thể tải danh sách thương hiệu.');
+        setErrors((prev) => ({ ...prev, global: 'Không thể tải danh sách thương hiệu.' }));
       }
     };
     loadBrands();
   }, []);
+
+  const validateMainFields = async () => {
+    try {
+      await form.validateFields([
+        'TenSP',
+        'TenTH',
+        'MoTa',
+        'CamTruoc',
+        'CamSau',
+        'HDH',
+        'LoaiPin',
+        'CapSac',
+        'ManHinh',
+        'CPU',
+      ]);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const validateFormData = async (index) => {
+    try {
+      await form.validateFields([
+        `MaSP_${index}`,
+        `Mau1_${index}`,
+        `TrangThai_${index}`,
+        `BoNhoTrong_${index}_0`,
+        `GiaSP_${index}_0`,
+        `SoLuong_${index}_0`,
+      ]);
+      const product = products[index];
+      const images = [
+        { field: 'HinhAnh1', label: 'Hình ảnh 1' },
+        { field: 'HinhAnh2', label: 'Hình ảnh 2' },
+        { field: 'HinhAnh3', label: 'Hình ảnh 3' },
+        { field: 'HinhAnh4', label: 'Hình ảnh 4' },
+        { field: 'HinhAnh5', label: 'Hình ảnh 5' },
+        { field: 'HinhAnh6', label: 'Hình ảnh 6' },
+      ];
+      for (const img of images) {
+        if (!product[img.field]) {
+          throw new Error(`${img.label} không được để trống!`);
+        }
+      }
+      const hasSelectedMemory = product.memoryData.some(
+        (data) => data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ'
+      );
+      if (!hasSelectedMemory) {
+        throw new Error(`Phải chọn ít nhất một bộ nhớ!`);
+      }
+      return true;
+    } catch (error) {
+      if (error.message) {
+        message.error(error.message);
+      }
+      return false;
+    }
+  };
+
+  const debouncedValidateFields = debounce(async (fields) => {
+    try {
+      await form.validateFields(fields);
+    } catch (error) {
+      // Không làm gì, lỗi sẽ tự hiển thị tại Form.Item
+    }
+  }, 500);
+
+  const handleAddProduct = async (index) => {
+    setLoading((prev) => ({ ...prev, [index]: true }));
+
+    try {
+      const isMainFieldsValid = await validateMainFields();
+      if (!isMainFieldsValid) {
+        message.error('Vui lòng sửa lỗi ở phần Thông Tin Cơ Bản hoặc Thông Số Kỹ Thuật!');
+        return;
+      }
+
+      const isFormValid = await validateFormData(index);
+      if (!isFormValid) {
+        return;
+      }
+
+      const mainValues = form.getFieldsValue();
+      const product = products[index];
+      const productToAdd = {
+        ...product,
+        TenSP: mainValues.TenSP,
+        TenTH: mainValues.TenTH,
+        MoTa: mainValues.MoTa,
+        CamTruoc: mainValues.CamTruoc,
+        CamSau: mainValues.CamSau,
+        HDH: mainValues.HDH,
+        LoaiPin: mainValues.LoaiPin,
+        CapSac: mainValues.CapSac,
+        ManHinh: mainValues.ManHinh,
+        CPU: mainValues.CPU,
+        ...product.memoryData.reduce((acc, data, i) => ({
+          ...acc,
+          [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,
+          [`GiaSP${i + 1}`]: data.GiaSP,
+          [`SoLuong${i + 1}`]: data.SoLuong,
+        }), {}),
+      };
+
+      delete productToAdd.memoryData;
+      delete productToAdd.hiddenIndices;
+
+      await createProducts(productToAdd);
+      message.success(`Thêm sản phẩm Form ${index + 1} thành công!`);
+
+      const updatedProducts = [...products];
+      updatedProducts[index] = {
+        MaSP: '',
+        Mau1: '',
+        TrangThai: '',
+        HinhAnh1: null,
+        HinhAnh2: null,
+        HinhAnh3: null,
+        HinhAnh4: null,
+        HinhAnh5: null,
+        HinhAnh6: null,
+        memoryData: [
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: true },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+        ],
+        hiddenIndices: [],
+      };
+      setProducts(updatedProducts);
+
+      form.setFieldsValue({
+        [`MaSP_${index}`]: '',
+        [`Mau1_${index}`]: '',
+        [`TrangThai_${index}`]: '',
+        [`BoNhoTrong_${index}_0`]: 'Vui lòng chọn bộ nhớ',
+        [`GiaSP_${index}_0`]: '0',
+        [`SoLuong_${index}_0`]: '0',
+        [`HinhAnh1_${index}`]: undefined,
+        [`HinhAnh2_${index}`]: undefined,
+        [`HinhAnh3_${index}`]: undefined,
+        [`HinhAnh4_${index}`]: undefined,
+        [`HinhAnh5_${index}`]: undefined,
+        [`HinhAnh6_${index}`]: undefined,
+      });
+
+      setErrors((prev) => {
+        const newImageErrors = { ...prev.imageErrors };
+        delete newImageErrors[index];
+        return { ...prev, imageErrors: newImageErrors };
+      });
+    } catch (error) {
+      console.error(`Lỗi khi thêm sản phẩm Form ${index + 1}:`, error.response?.data || error);
+      const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm sản phẩm.';
+      message.error(`Thêm sản phẩm Form ${index + 1} thất bại: ${errorMsg}`);
+    } finally {
+      setLoading((prev) => ({ ...prev, [index]: false }));
+    }
+  };
 
   const handleProductChange = (index, field, value) => {
     const updatedProducts = [...products];
@@ -55,6 +218,22 @@ const ProductsAdd = () => {
       [field]: value,
     };
     setProducts(updatedProducts);
+    debouncedValidateFields([`MaSP_${index}`, `TrangThai_${index}`]);
+  };
+
+  const handleMainFieldsChange = () => {
+    debouncedValidateFields([
+      'TenSP',
+      'TenTH',
+      'MoTa',
+      'CamTruoc',
+      'CamSau',
+      'HDH',
+      'LoaiPin',
+      'CapSac',
+      'ManHinh',
+      'CPU',
+    ]);
   };
 
   const toggleMemoryVisibility = (productIndex) => {
@@ -75,6 +254,7 @@ const ProductsAdd = () => {
       product.hiddenIndices = [...product.hiddenIndices, lastVisibleIndex].sort((a, b) => a - b);
     }
     setProducts(updatedProducts);
+    debouncedValidateFields([`BoNhoTrong_${productIndex}_0`, `GiaSP_${productIndex}_0`, `SoLuong_${productIndex}_0`]);
   };
 
   const hideMemory = (productIndex, memoryIndex) => {
@@ -93,6 +273,7 @@ const ProductsAdd = () => {
     });
     product.hiddenIndices = [...product.hiddenIndices, memoryIndex].sort((a, b) => a - b);
     setProducts(updatedProducts);
+    debouncedValidateFields([`BoNhoTrong_${productIndex}_0`, `GiaSP_${productIndex}_0`, `SoLuong_${productIndex}_0`]);
   };
 
   const handleMemoryDataChange = (productIndex, memoryIndex, field, value) => {
@@ -118,6 +299,11 @@ const ProductsAdd = () => {
       });
     }
     setProducts(updatedProducts);
+    debouncedValidateFields([
+      `BoNhoTrong_${productIndex}_${memoryIndex}`,
+      `GiaSP_${productIndex}_${memoryIndex}`,
+      `SoLuong_${productIndex}_${memoryIndex}`,
+    ]);
   };
 
   const handleImageUpload = async (index, file, fieldName) => {
@@ -130,12 +316,23 @@ const ProductsAdd = () => {
       const response = await uploadImage(formData);
       const imageUrl = response.data.imageUrl;
       handleProductChange(index, fieldName, imageUrl);
-      message.success(`Tải ảnh ${fieldName} thành công!`);
+      setErrors((prev) => {
+        const newImageErrors = { ...prev.imageErrors };
+        delete newImageErrors[index];
+        return { ...prev, imageErrors: newImageErrors };
+      });
+      message.success(`Tải ảnh ${fieldName} thành công cho Form ${index + 1}!`);
       return false;
     } catch (error) {
-      console.error(`Lỗi khi tải ${fieldName}:`, error);
-      message.error(`Tải ảnh ${fieldName} thất bại`);
-      setError(`Không thể tải ảnh ${fieldName}.`);
+      console.error(`Lỗi khi tải ${fieldName} cho Form ${index + 1}:`, error);
+      message.error(`Tải ảnh ${fieldName} thất bại cho Form ${index + 1}!`);
+      setErrors((prev) => ({
+        ...prev,
+        imageErrors: {
+          ...prev.imageErrors,
+          [index]: `Không thể tải ảnh ${fieldName}.`,
+        },
+      }));
       return false;
     }
   };
@@ -164,89 +361,71 @@ const ProductsAdd = () => {
     setProducts([...products, newProduct]);
   };
 
-  const handleRemoveForm = (index) => {
-    if (index === 0) {
-      message.warning('Không thể xóa form sản phẩm đầu tiên!');
-      return;
-    }
+  const handleRemoveForm = async (index) => {
     const updatedProducts = [...products];
-    updatedProducts.splice(index, 1);
+    if (index === 0) {
+      updatedProducts[0] = {
+        MaSP: '',
+        Mau1: '',
+        TrangThai: '',
+        HinhAnh1: null,
+        HinhAnh2: null,
+        HinhAnh3: null,
+        HinhAnh4: null,
+        HinhAnh5: null,
+        HinhAnh6: null,
+        memoryData: [
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: true },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+        ],
+        hiddenIndices: [],
+      };
+      form.setFieldsValue({
+        [`MaSP_${index}`]: '',
+        [`Mau1_${index}`]: '',
+        [`TrangThai_${index}`]: '',
+        [`BoNhoTrong_${index}_0`]: 'Vui lòng chọn bộ nhớ',
+        [`GiaSP_${index}_0`]: '0',
+        [`SoLuong_${index}_0`]: '0',
+        [`HinhAnh1_${index}`]: undefined,
+        [`HinhAnh2_${index}`]: undefined,
+        [`HinhAnh3_${index}`]: undefined,
+        [`HinhAnh4_${index}`]: undefined,
+        [`HinhAnh5_${index}`]: undefined,
+        [`HinhAnh6_${index}`]: undefined,
+      });
+      message.success('Form sản phẩm đầu tiên đã được reset!');
+    } else {
+      updatedProducts.splice(index, 1);
+      const fieldsToRemove = [
+        `MaSP_${index}`,
+        `Mau1_${index}`,
+        `TrangThai_${index}`,
+        ...Array.from({ length: 6 }, (_, i) => [
+          `BoNhoTrong_${index}_${i}`,
+          `GiaSP_${index}_${i}`,
+          `SoLuong_${index}_${i}`,
+        ]).flat(),
+        `HinhAnh1_${index}`,
+        `HinhAnh2_${index}`,
+        `HinhAnh3_${index}`,
+        `HinhAnh4_${index}`,
+        `HinhAnh5_${index}`,
+        `HinhAnh6_${index}`,
+      ];
+      form.setFields(fieldsToRemove.map(name => ({ name, value: undefined })));
+      message.success(`Form sản phẩm ${index + 1} đã được xóa!`);
+    }
     setProducts(updatedProducts);
-  };
-
-  const validateMemorySelection = (product) => {
-    const hasSelectedMemory = product.memoryData.some(
-      (data) => data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ'
-    );
-    if (!hasSelectedMemory) {
-      throw new Error('Phải chọn ít nhất một bộ nhớ cho sản phẩm!');
-    }
-  };
-
-  const validateImages = (product, index) => {
-    const images = [
-      { field: 'HinhAnh1', label: 'Hình ảnh 1' },
-      { field: 'HinhAnh2', label: 'Hình ảnh 2' },
-      { field: 'HinhAnh3', label: 'Hình ảnh 3' },
-      { field: 'HinhAnh4', label: 'Hình ảnh 4' },
-      { field: 'HinhAnh5', label: 'Hình ảnh 5' },
-      { field: 'HinhAnh6', label: 'Hình ảnh 6' },
-    ];
-    for (const img of images) {
-      if (!product[img.field]) {
-        throw new Error(`${img.label} của sản phẩm ${index + 1} không được để trống!`);
-      }
-    }
-  };
-
-  const handleAddAllProducts = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      await form.validateFields();
-      const mainValues = form.getFieldsValue();
-      for (let i = 0; i < products.length; i++) {
-        const product = products[i];
-
-        validateImages(product, i);
-        validateMemorySelection(product);
-
-        const productToAdd = {
-          ...product,
-          TenSP: mainValues.TenSP,
-          TenTH: mainValues.TenTH,
-          MoTa: mainValues.MoTa,
-          CamTruoc: mainValues.CamTruoc,
-          CamSau: mainValues.CamSau,
-          HDH: mainValues.HDH,
-          LoaiPin: mainValues.LoaiPin,
-          CapSac: mainValues.CapSac,
-          ManHinh: mainValues.ManHinh, // Thêm trường ManHinh
-          CPU: mainValues.CPU,         // Thêm trường CPU
-          ...product.memoryData.reduce((acc, data, i) => ({
-            ...acc,
-            [`BoNhoTrong${i + 1}`]: data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ? '' : data.BoNhoTrong,
-            [`GiaSP${i + 1}`]: data.GiaSP,
-            [`SoLuong${i + 1}`]: data.SoLuong,
-          }), {}),
-        };
-
-        delete productToAdd.memoryData;
-        delete productToAdd.hiddenIndices;
-
-        await createProducts(productToAdd);
-        message.success(`Thêm sản phẩm ${i + 1} thành công!`);
-      }
-      navigate('/admin/products');
-      message.success('Thêm tất cả sản phẩm thành công!');
-    } catch (error) {
-      console.error('Lỗi khi thêm tất cả sản phẩm:', error.response?.data || error);
-      const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm tất cả sản phẩm.';
-      setError(errorMsg);
-      message.error(errorMsg);
-    } finally {
-      setLoading(false);
-    }
+    setErrors((prev) => {
+      const newImageErrors = { ...prev.imageErrors };
+      delete newImageErrors[index];
+      return { ...prev, imageErrors: newImageErrors };
+    });
   };
 
   const noWhitespace = (rule, value) => {
@@ -264,11 +443,12 @@ const ProductsAdd = () => {
   };
 
   const atLeastOneQuantityGreaterThanZero = (productIndex) => ({
-    validator(_, values) {
+    validator(_, value) {
+      const values = form.getFieldsValue();
       if (values[`TrangThai_${productIndex}`] === "Còn hàng") {
         const quantities = products[productIndex].memoryData.map((data) => data.SoLuong);
         if (quantities.every((q) => !q || Number(q) === 0)) {
-          return Promise.reject(new Error("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!"));
+          return Promise.reject("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!");
         }
       }
       return Promise.resolve();
@@ -284,7 +464,7 @@ const ProductsAdd = () => {
         (product, i) => i !== index && product.MaSP.trim() === value.trim()
       );
       if (isDuplicate) {
-        return Promise.reject(new Error('Mã sản phẩm đã tồn tại ở form trên!'));
+        return Promise.reject('Mã sản phẩm đã tồn tại ở form khác!');
       }
       return Promise.resolve();
     },
@@ -300,11 +480,11 @@ const ProductsAdd = () => {
     <div className="container" style={{ padding: '20px' }}>
       <h1 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: 'bold' }}>Thêm Sản Phẩm</h1>
 
-      {error && (
-        <div style={{ color: 'red', marginBottom: '20px', fontSize: '16px' }}>{error}</div>
+      {errors.global && (
+        <div style={{ color: 'red', marginBottom: '20px', fontSize: '16px' }}>{errors.global}</div>
       )}
 
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" onValuesChange={handleMainFieldsChange}>
         <Card title="Thông Tin Cơ Bản" style={{ marginBottom: '30px', padding: '20px' }}>
           <Row gutter={[16, 16]}>
             <Col span={12}>
@@ -318,7 +498,7 @@ const ProductsAdd = () => {
                   {
                     validator: (_, value) => {
                       if (!value || value.trim().length < 3) {
-                        return Promise.reject(new Error('Tên sản phẩm tối thiểu 3 ký tự!'));
+                        return Promise.reject('Tên sản phẩm tối thiểu 3 ký tự!');
                       }
                       return Promise.resolve();
                     },
@@ -465,18 +645,31 @@ const ProductsAdd = () => {
             title={`Form Sản Phẩm ${index + 1}`}
             style={{ marginBottom: '30px', padding: '20px' }}
             extra={
-              index > 0 && (
+              <Space>
+                <Button
+                  type="primary"
+                  onClick={() => handleAddProduct(index)}
+                  loading={loading[index]}
+                  style={{ fontSize: '14px' }}
+                >
+                  {loading[index] ? 'Đang thêm...' : 'Thêm Sản Phẩm'}
+                </Button>
                 <Button
                   type="primary"
                   danger
                   onClick={() => handleRemoveForm(index)}
                   style={{ fontSize: '14px' }}
                 >
-                  Xóa Form
+                  {index === 0 ? 'Reset Form' : 'Xóa Form'}
                 </Button>
-              )
+              </Space>
             }
           >
+            {errors.imageErrors[index] && (
+              <div style={{ color: 'red', marginBottom: '16px', fontSize: '14px' }}>
+                Lỗi: {errors.imageErrors[index]}
+              </div>
+            )}
             <Row gutter={[16, 16]}>
               <Col span={24}>
                 <Row gutter={[16, 16]}>
@@ -542,7 +735,16 @@ const ProductsAdd = () => {
                           <Form.Item
                             label={`Bộ Nhớ Trong ${memoryIndex + 1}`}
                             name={`BoNhoTrong_${index}_${memoryIndex}`}
-                            rules={[{ required: false }]}
+                            rules={[
+                              {
+                                validator: (_, value) => {
+                                  if (value === 'Vui lòng chọn bộ nhớ') {
+                                    return Promise.reject('Vui lòng chọn bộ nhớ!');
+                                  }
+                                  return Promise.resolve();
+                                },
+                              },
+                            ]}
                             initialValue={data.BoNhoTrong}
                           >
                             <Select
@@ -575,7 +777,10 @@ const ProductsAdd = () => {
                             label={`Giá Sản Phẩm ${memoryIndex + 1}`}
                             name={`GiaSP_${index}_${memoryIndex}`}
                             rules={[
-                              { required: data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ', message: 'Vui lòng nhập giá!' },
+                              {
+                                required: data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ',
+                                message: 'Vui lòng nhập giá!',
+                              },
                               { validator: noNegativeNumber },
                             ]}
                             initialValue={data.GiaSP}
@@ -594,7 +799,10 @@ const ProductsAdd = () => {
                             label={`Số Lượng ${memoryIndex + 1}`}
                             name={`SoLuong_${index}_${memoryIndex}`}
                             rules={[
-                              { required: data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ', message: 'Vui lòng nhập số lượng!' },
+                              {
+                                required: data.BoNhoTrong !== 'Vui lòng chọn bộ nhớ',
+                                message: 'Vui lòng nhập số lượng!',
+                              },
                               { validator: noNegativeNumber },
                               atLeastOneQuantityGreaterThanZero(index),
                             ]}
@@ -874,15 +1082,6 @@ const ProductsAdd = () => {
             style={{ width: '200px', fontSize: '16px' }}
           >
             Thêm Form Sản Phẩm
-          </Button>
-          <Button
-            type="primary"
-            onClick={handleAddAllProducts}
-            loading={loading}
-            size="large"
-            style={{ width: '200px', fontSize: '16px' }}
-          >
-            {loading ? 'Đang thêm tất cả...' : 'Thêm Tất Cả Sản Phẩm'}
           </Button>
         </Space>
       </Form>

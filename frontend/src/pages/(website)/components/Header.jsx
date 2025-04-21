@@ -58,7 +58,8 @@ const Header = () => {
       const userId = userData?.id;
 
       if (userId) {
-        const cartItems = JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
+        const cartItems =
+          JSON.parse(localStorage.getItem(`cart_${userId}`)) || [];
         setCartCount(cartItems.length);
       }
     };
@@ -75,7 +76,9 @@ const Header = () => {
     const getProducts = async () => {
       try {
         const response = await fetchProducts();
-        const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+        const data = Array.isArray(response.data)
+          ? response.data
+          : response.data.data || [];
         setProducts(data);
       } catch (error) {
         message.error("Lỗi khi tải danh sách sản phẩm!");
@@ -196,12 +199,20 @@ const Header = () => {
   // Hàm lấy bộ nhớ và giá đầu tiên hợp lệ
   const getFirstValidMemoryAndPrice = (product) => {
     const memories = [
-      product.BoNhoTrong1, product.BoNhoTrong2, product.BoNhoTrong3,
-      product.BoNhoTrong4, product.BoNhoTrong5, product.BoNhoTrong6,
+      product.BoNhoTrong1,
+      product.BoNhoTrong2,
+      product.BoNhoTrong3,
+      product.BoNhoTrong4,
+      product.BoNhoTrong5,
+      product.BoNhoTrong6,
     ];
     const prices = [
-      product.GiaSP1, product.GiaSP2, product.GiaSP3,
-      product.GiaSP4, product.GiaSP5, product.GiaSP6,
+      product.GiaSP1,
+      product.GiaSP2,
+      product.GiaSP3,
+      product.GiaSP4,
+      product.GiaSP5,
+      product.GiaSP6,
     ];
 
     for (let i = 0; i < memories.length; i++) {
@@ -343,6 +354,7 @@ const Header = () => {
                       <Link
                         to={`/account-details/${userData.id}`}
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-600 hover:text-white transition duration-200 whitespace-nowrap"
+                        style={{ textDecoration: "none" }}
                       >
                         <FaUser className="flex-shrink-0" />
                         <span>Thông tin tài khoản</span>
@@ -352,6 +364,7 @@ const Header = () => {
                       <Link
                         to={`/sanphamdamua`}
                         className="flex items-center gap-2 px-4 py-2 hover:bg-purple-600 hover:text-white transition duration-200 whitespace-nowrap"
+                        style={{ textDecoration: "none" }}
                       >
                         <FaBoxOpen className="flex-shrink-0" />
                         <span>Sản phẩm đã mua</span>
@@ -361,6 +374,7 @@ const Header = () => {
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-600 hover:text-white transition duration-200 whitespace-nowrap"
+                        style={{ textDecoration: "none" }}
                       >
                         <FaSignOutAlt className="flex-shrink-0" />
                         <span>Đăng xuất</span>
@@ -373,6 +387,7 @@ const Header = () => {
                       <Link
                         to="/login"
                         className="flex items-center gap-2 px-4 py-2 hover:bg-blue-500 hover:text-white transition whitespace-nowrap"
+                        style={{ textDecoration: "none" }}
                       >
                         <FaSignInAlt className="flex-shrink-0" />
                         <span>Đăng nhập</span>
@@ -382,6 +397,7 @@ const Header = () => {
                       <Link
                         to="/signup"
                         className="flex items-center gap-2 px-4 py-2 hover:bg-green-500 hover:text-white transition whitespace-nowrap"
+                        style={{ textDecoration: "none" }}
                       >
                         <FaUserPlus className="flex-shrink-0" />
                         <span>Đăng ký</span>
@@ -412,32 +428,56 @@ const Header = () => {
         <div className="container mx-auto px-6">
           <ul className="flex space-x-6 text-white text-lg">
             <li>
-              <Link to="/" className="py-4 inline-block text-white">
+              <Link
+                to="/"
+                className="py-3 inline-block text-white hover:bg-blue-700 rounded transition duration-300"
+                style={{ textDecoration: "none" }}
+              >
                 Trang chủ
               </Link>
             </li>
             <li>
-              <Link to="/products" className="py-4 inline-block text-white">
+              <Link
+                to="/products"
+                className="py-3 inline-block text-white hover:bg-blue-700 rounded transition duration-300"
+                style={{ textDecoration: "none" }}
+              >
                 Sản phẩm
               </Link>
             </li>
             <li>
-              <Link to="/about" className="py-4 inline-block text-white">
+              <Link
+                to="/about"
+                className="py-3 inline-block text-white hover:bg-blue-700 rounded transition duration-300"
+                style={{ textDecoration: "none" }}
+              >
                 Thông tin
               </Link>
             </li>
             <li>
-              <Link to="/blog" className="py-4 inline-block text-white">
+              <Link
+                to="/blog"
+                className="py-3 inline-block text-white hover:bg-blue-700 rounded transition duration-300"
+                style={{ textDecoration: "none" }}
+              >
                 Bài viết
               </Link>
             </li>
             <li>
-              <Link to="/listdanhgiauser" className="py-4 inline-block text-white">
+              <Link
+                to="/listdanhgiauser"
+                className="py-3 inline-block text-white hover:bg-blue-700 rounded transition duration-300"
+                style={{ textDecoration: "none" }}
+              >
                 Đánh giá
               </Link>
             </li>
             <li>
-              <Link to="/contact" className="py-4 inline-block text-white">
+              <Link
+                to="/contact"
+                className="py-3 inline-block text-white hover:bg-blue-700 rounded transition duration-300"
+                style={{ textDecoration: "none" }}
+              >
                 Liên hệ
               </Link>
             </li>
