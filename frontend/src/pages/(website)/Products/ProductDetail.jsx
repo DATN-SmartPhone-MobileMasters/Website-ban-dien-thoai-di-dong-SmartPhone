@@ -908,7 +908,7 @@ const ProductDetail = () => {
 
               {relatedProducts.length > 0 && (
                 <>
-                  <Divider orientation="left">Phiên bản khác</Divider>
+                  <Divider orientation="left">Phiên bản màu khác</Divider>
                   <div style={{ position: "relative", width: "100%" }}>
                     {showRelatedLeftArrow && (
                       <Button
