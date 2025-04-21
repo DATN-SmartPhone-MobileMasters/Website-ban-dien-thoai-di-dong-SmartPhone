@@ -647,7 +647,6 @@ const ProductsList = () => {
             >
               <Option value="Còn hàng">Còn hàng</Option>
               <Option value="Hết hàng">Hết hàng</Option>
-              <Option value="Ngừng kinh doanh">Ngừng kinh doanh</Option>
             </Select>
           </Col>
         </Row>
