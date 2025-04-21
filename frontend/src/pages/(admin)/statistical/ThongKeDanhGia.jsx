@@ -35,8 +35,22 @@ const ThongKeDanhGia = () => {
 
         // Lấy danh sách các năm có dữ liệu
         const yearsSet = new Set();
-        danhGias.forEach((dg) => yearsSet.add(moment(dg.created_at).year()));
-        setAvailableYears([...yearsSet].sort((a, b) => b - a));
+danhGias.forEach((dg) => yearsSet.add(moment(dg.created_at).year()));
+
+const currentYear = moment().year();
+const sortedYears = [...yearsSet].sort((a, b) => b - a);
+
+if (!yearsSet.has(currentYear)) {
+  sortedYears.unshift(currentYear); // Thêm nếu chưa có
+}
+
+setAvailableYears(sortedYears);
+
+// 👉 Chỉ set năm mặc định nếu người dùng chưa chọn gì
+if (year === null && yearsSet.has(currentYear)) {
+  setYear(currentYear);
+}
+
 
         const filteredDanhGias = danhGias.filter((dg) => {
           const date = moment(dg.created_at);
@@ -151,13 +165,13 @@ const ThongKeDanhGia = () => {
       </Title>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        <Select
-          value={year}
-          onChange={setYear}
-          style={{ width: 140 }}
-          placeholder="Chọn năm"
-          allowClear
-        >
+      <Select
+  value={year}
+  onChange={setYear}
+  style={{ width: 140 }}
+  placeholder="Chọn năm"
+>
+
           {availableYears.map((y) => (
             <Option key={y} value={y}>{y}</Option>
           ))}
@@ -182,7 +196,7 @@ const ThongKeDanhGia = () => {
           placeholder="Kiểu thống kê"
         >
           <Option value="real">Tuần (7 ngày gần nhất)</Option>
-          <Option value="iso">Tuần ISO</Option>
+          <Option value="iso">Tuần của năm</Option>
         </Select>
       </div>
 
