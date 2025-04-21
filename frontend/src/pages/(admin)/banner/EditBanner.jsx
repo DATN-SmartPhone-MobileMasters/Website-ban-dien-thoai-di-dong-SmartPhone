@@ -32,6 +32,7 @@ const BannerEdit = () => {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm();
   const { id } = useParams();
@@ -42,7 +43,7 @@ const BannerEdit = () => {
   useEffect(() => {
     const loadBanners = async () => {
       try {
-        await fetchBanners(); // optional if needed
+        await fetchBanners(); // nếu cần
       } catch (error) {
         console.error("Error loading banners:", error);
       }
@@ -74,7 +75,7 @@ const BannerEdit = () => {
 
         reset({
           imgUrl: data.imgUrl,
-          status: data.status,
+          status: data.status ?? false,
         });
       } catch (error) {
         console.error("Error loading banner:", error);
@@ -104,7 +105,7 @@ const BannerEdit = () => {
 
   return (
     <div className="container mt-4">
-      <Title level={3} className="text-center text-warning">
+      <Title level={3} className="text-center text-yellow-500">
         Sửa Banner
       </Title>
 
@@ -143,12 +144,17 @@ const BannerEdit = () => {
 
           {/* Trạng thái */}
           <Form.Item label="Trạng thái">
-            <Checkbox {...register("status")}>Kích hoạt</Checkbox>
+            <Checkbox
+              checked={!!watch("status")}
+              onChange={(e) => setValue("status", e.target.checked)}
+            >
+              Kích hoạt
+            </Checkbox>
           </Form.Item>
 
           {/* Nút hành động */}
           <Form.Item>
-            <Space className="w-100 justify-content-between">
+            <Space className="w-full justify-between">
               <Link to="/admin/banners">
                 <Button icon={<ArrowLeftOutlined />}>Quay lại</Button>
               </Link>
