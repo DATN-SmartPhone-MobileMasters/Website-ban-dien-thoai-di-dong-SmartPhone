@@ -36,26 +36,28 @@ const ThongKe = () => {
         chartRef.current.destroy();
       }
   
-      // Tính ngày bắt đầu (thứ 2) và ngày kết thúc (chủ nhật) của tuần hiện tại
-      const today = new Date(2025, 3, 18); // Ngày hiện tại (thay đổi theo nhu cầu)
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Đặt ngày là thứ 2
-      startOfWeek.setHours(0, 0, 0, 0); // Đặt thời gian là đầu ngày
+      // Lấy tháng và năm hiện tại
+      const today = new Date();
+      const currentMonth = today.getMonth();
+      const currentYear = today.getFullYear();
   
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6); // Tiến đến chủ nhật
-      endOfWeek.setHours(23, 59, 59, 999); // Đặt thời gian là cuối ngày
-  
-      // Lọc dữ liệu doanh thu theo ngày trong khoảng từ thứ 2 đến chủ nhật
-      const filteredData = thongKeDoanhThu.doanhThuTheoNgay.filter((item) => {
-        const itemDate = new Date(item._id.ngay);
-        return itemDate >= startOfWeek && itemDate <= endOfWeek;
+      // Tạo danh sách tất cả ngày trong tháng hiện tại
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate(); // số ngày trong tháng
+      const fullMonthDates = Array.from({ length: daysInMonth }, (_, i) => {
+        const date = new Date(currentYear, currentMonth, i + 1);
+        return date.toISOString().split("T")[0]; // yyyy-mm-dd
       });
   
-      // Lấy nhãn và dữ liệu cho biểu đồ
-      const labels = filteredData.map((item) => item._id.ngay);
-      const data = filteredData.map((item) => item.tongDoanhThu);
+      // Tạo map từ dữ liệu doanh thu để tra nhanh
+      const doanhThuMap = new Map(
+        thongKeDoanhThu.doanhThuTheoNgay.map((item) => [item._id.ngay, item.tongDoanhThu])
+      );
   
+      // Tạo data cho biểu đồ
+      const labels = fullMonthDates;
+      const data = fullMonthDates.map((date) => doanhThuMap.get(date) || 0);
+  
+      // Tạo biểu đồ
       chartRef.current = new Chart(canvasRef.current, {
         type: "bar",
         data: {
@@ -81,7 +83,33 @@ const ThongKe = () => {
               beginAtZero: true,
             },
           },
-        },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                title: (tooltipItems) => {
+                  const date = tooltipItems[0].label;
+                  return `Ngày: ${date}`;
+                },
+                label: (tooltipItem) => {
+                  const date = tooltipItem.label;
+                  const doanhThuItem = thongKeDoanhThu.doanhThuTheoNgay.find(
+                    (item) => item._id.ngay === date
+                  );
+        
+                  if (!doanhThuItem || !doanhThuItem.sanPhamDaBan || doanhThuItem.sanPhamDaBan.length === 0) {
+                    return "Không có chi tiết sản phẩm.";
+                  }
+        
+                  return doanhThuItem.sanPhamDaBan.map(
+                    (sp) =>
+                      `${sp.thoiGianBan} | ${sp.TenSP} (${sp.memory}) x${sp.quantity}`
+                  ).join("\n");
+                },
+              },
+            },
+          },
+        }
+        
       });
     }
   
@@ -91,6 +119,7 @@ const ThongKe = () => {
       }
     };
   }, [thongKeDoanhThu.doanhThuTheoNgay]);
+  
 
   return (
     <div style={{ width: "100%", padding: "20px", fontFamily: "Arial" }}>
@@ -155,3 +184,7 @@ const ThongKe = () => {
 };
 
 export default ThongKe;
+
+
+
+

@@ -13,7 +13,7 @@ const TopProducts = () => {
   const [productStats, setProductStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ year: "", month: "", day: "" });
-  const [availableYears, setAvailableYears] = useState(new Set()); // Sử dụng Set để lưu các năm có sẵn
+  const [availableYears, setAvailableYears] = useState(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,13 +21,17 @@ const TopProducts = () => {
         const { data } = await axios.get(`${API_URL}/hoadons`);
         setHoaDons(data.data);
 
-        // Trích xuất các năm từ dữ liệu hóa đơn
         const years = new Set();
         data.data.forEach((hoaDon) => {
           const year = new Date(hoaDon.createdAt).getFullYear();
           years.add(year);
         });
-        setAvailableYears(years); // Cập nhật danh sách năm
+        setAvailableYears(years);
+
+        const currentYear = new Date().getFullYear();
+        if (!filter.year && years.has(currentYear)) {
+          setFilter((prev) => ({ ...prev, year: currentYear.toString() }));
+        }
       } catch (error) {
         console.error("Lỗi khi lấy danh sách hóa đơn:", error);
       } finally {
@@ -48,7 +52,6 @@ const TopProducts = () => {
           const month = date.getMonth() + 1;
           const day = date.getDate();
 
-          // Kiểm tra xem hóa đơn có phù hợp với bộ lọc không
           if (
             (filter.year === "" || year === parseInt(filter.year)) &&
             (filter.month === "" || month === parseInt(filter.month)) &&
@@ -81,7 +84,6 @@ const TopProducts = () => {
     const labels = Object.keys(productStats).sort();
     const datasets = [];
 
-    // Lấy danh sách tất cả sản phẩm
     const productNames = new Set();
     Object.values(productStats).forEach((dailyStats) => {
       Object.keys(dailyStats).forEach((productName) => {
@@ -137,13 +139,13 @@ const TopProducts = () => {
             onChange={handleFilterChange}
             className="p-2 border border-blue-200 rounded"
           >
-            <option value="">Chọn năm</option>
             {Array.from(availableYears).map((year) => (
               <option key={year} value={year}>
                 {year}
               </option>
             ))}
           </select>
+
           <select
             name="month"
             value={filter.month}
@@ -157,6 +159,7 @@ const TopProducts = () => {
               </option>
             ))}
           </select>
+
           <select
             name="day"
             value={filter.day}

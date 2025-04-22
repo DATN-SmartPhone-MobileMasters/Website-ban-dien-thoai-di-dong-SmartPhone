@@ -588,11 +588,13 @@ const Checkcart = () => {
                 <Descriptions.Item label="Tổng tiền">
                   <Text>{formatCurrency(total)}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Giảm giá">
-                  <Text type="success">
-                    -{formatCurrency(discount + additionalDiscount)}
-                  </Text>
-                </Descriptions.Item>
+                {(discount > 0 || additionalDiscount > 0) && (
+                  <Descriptions.Item label="Giảm giá">
+                    <Text type="success">
+                      -{formatCurrency(discount + additionalDiscount)}
+                    </Text>
+                  </Descriptions.Item>
+                )}
                 <Divider />
                 <Descriptions.Item label="Tổng thanh toán">
                   <Title level={4} type="success">

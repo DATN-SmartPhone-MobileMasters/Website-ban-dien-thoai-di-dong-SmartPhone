@@ -511,6 +511,21 @@ const ProductsEdit = () => {
             </Col>
             <Col xs={24} md={12}>
               <Form.Item
+                label="Thương Hiệu"
+                name="TenTH"
+                rules={[{ required: true, message: 'Vui lòng chọn thương hiệu!' }]}
+              >
+                <Select placeholder="Chọn thương hiệu">
+                  {brands.map((brand) => (
+                    <Option key={brand._id} value={brand.TenTH}>
+                      {brand.TenTH}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
                 label="Trạng Thái"
                 name="TrangThai"
                 rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
@@ -643,7 +658,7 @@ const ProductsEdit = () => {
                   onClick={() => removeVersion(version)}
                   disabled={visibleVersions.length === 1}
                 >
-                  Ẩn
+                  Xóa
                 </Button>
               </Col>
             </Row>
@@ -709,6 +724,110 @@ const ProductsEdit = () => {
           >
             <Input.TextArea rows={4} placeholder="Nhập mô tả sản phẩm" />
           </Form.Item>
+        </Card>
+
+        <Card
+          title={<Text strong>Thông Tin Chi Tiết</Text>}
+          style={{ marginBottom: 24 }}
+          headStyle={{ background: "#722ed1", color: "#fff" }}
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Hệ Điều Hành"
+                name="HDH"
+                rules={[{ required: true, message: "Vui lòng chọn hệ điều hành!" }]}
+              >
+                <Select placeholder="Chọn hệ điều hành">
+                  <Option value="IOS">IOS</Option>
+                  <Option value="ANDROID">ANDROID</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Camera Trước"
+                name="CamTruoc"
+                rules={[{ required: true, message: "Vui lòng chọn độ phân giải camera trước!" }]}
+              >
+                <Select placeholder="Chọn độ phân giải">
+                  <Option value="8px">8 PX</Option>
+                  <Option value="12px">12 PX</Option>
+                  <Option value="32px">32 PX</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Camera Sau"
+                name="CamSau"
+                rules={[{ required: true, message: "Vui lòng chọn độ phân giải camera sau!" }]}
+              >
+                <Select placeholder="Chọn độ phân giải">
+                  <Option value="12px">12 PX</Option>
+                  <Option value="48px">48 PX</Option>
+                  <Option value="50px">50 PX</Option>
+                  <Option value="64px">64 PX</Option>
+                  <Option value="108px">108 PX</Option>
+                  <Option value="200px">200 PX</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="CPU"
+                name="CPU"
+                rules={[{ required: true, message: "Vui lòng chọn loại CPU!" }]}
+              >
+                <Select placeholder="Chọn loại CPU">
+                  <Option value="APPLE CHIPSET">APPLE CHIPSET</Option>
+                  <Option value="ANDROID CHIPSET">ANDROID CHIPSET</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Màn Hình"
+                name="ManHinh"
+                rules={[{ required: true, message: "Vui lòng chọn kích thước màn hình!" }]}
+              >
+                <Select placeholder="Chọn kích thước màn hình">
+                  <Option value="4.7inch">4.7 inch</Option>
+                  <Option value="5.1inch">5.1 inch</Option>
+                  <Option value="5.5inch">5.5 inch</Option>
+                  <Option value="6inch">6 inch</Option>
+                  <Option value="6.5inch">6.5 inch</Option>
+                  <Option value="6.7inch">6.7 inch</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Cáp Sạc"
+                name="CapSac"
+                rules={[{ required: true, message: "Vui lòng chọn loại cáp sạc!" }]}
+              >
+                <Select placeholder="Chọn loại cáp sạc">
+                  <Option value="Type-C">Type-C</Option>
+                  <Option value="Lightning">Lightning</Option>
+                  <Option value="USB">USB</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                label="Loại Pin"
+                name="LoaiPin"
+                rules={[{ required: true, message: "Vui lòng chọn loại pin!" }]}
+              >
+                <Select placeholder="Chọn loại pin">
+                  <Option value="PISEN">PISEN</Option>
+                  <Option value="Energizer">Energizer</Option>
+                  <Option value="Duracell">Duracell</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
         </Card>
 
         <Form.Item>

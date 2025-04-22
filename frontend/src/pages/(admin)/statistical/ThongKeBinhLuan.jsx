@@ -10,14 +10,6 @@ Chart.register(...registerables);
 const { Title } = Typography;
 const { Option } = Select;
 
-const COLORS = [
-  'rgba(255, 82, 82, 0.6)',    
-  'rgba(255, 152, 0, 0.6)',  
-  'rgba(255, 235, 59, 0.6)',  
-  'rgba(139, 195, 74, 0.6)',  
-  'rgba(33, 150, 243, 0.6)',  
-];
-
 const ThongKeBinhLuan = () => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,31 +40,33 @@ const ThongKeBinhLuan = () => {
 
   const getChartData = () => {
     const stats = {};
+
     comments.forEach((comment) => {
       const date = moment(comment.NgayBL);
-      const formattedDate = date.format('YYYY-MM-DD');
-      const star = Number(comment.DanhGia);
 
       if ((year && date.year() !== year) || (month && date.month() + 1 !== month)) {
         return;
       }
 
-      if (!stats[formattedDate]) {
-        stats[formattedDate] = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-      }
-      stats[formattedDate][star]++;
+      const formattedDate = date.format('YYYY-MM-DD');
+      stats[formattedDate] = (stats[formattedDate] || 0) + 1;
     });
 
     const labels = Object.keys(stats).sort();
-    const datasets = [1, 2, 3, 4, 5].map((star, index) => ({
-      label: `${star} Sao`,
-      data: labels.map((label) => stats[label][star] || 0),
-      backgroundColor: COLORS[index],
-      borderColor: COLORS[index].replace('0.6', '1'),
-      borderWidth: 1,
-    }));
+    const data = labels.map(label => stats[label]);
 
-    return { labels, datasets };
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Số lượng bình luận',
+          data,
+          backgroundColor: 'rgba(33, 150, 243, 0.6)',
+          borderColor: 'rgba(33, 150, 243, 1)',
+          borderWidth: 1,
+        },
+      ],
+    };
   };
 
   if (loading) {
@@ -93,7 +87,7 @@ const ThongKeBinhLuan = () => {
       }}
     >
       <Title level={3} style={{ textAlign: 'center', marginBottom: '24px', color: '#1890ff' }}>
-        Thống Kê Bình Luận 
+        Thống Kê Số Lượng Bình Luận Theo Ngày
       </Title>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px' }}>
@@ -129,7 +123,7 @@ const ThongKeBinhLuan = () => {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'top' },
+              legend: { display: true, position: 'top' },
               tooltip: { enabled: true },
             },
             scales: {
