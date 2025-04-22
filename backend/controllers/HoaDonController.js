@@ -315,7 +315,8 @@ class HoaDonController {
         $match: {
           $or: [
             { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Giao Hàng Thành Công" },
-            { paymentMethod: "vnpay", paymentStatus: "Đã hoàn thành" },
+            { paymentMethod: "vnpay", paymentStatus: { $in: ["Đã hoàn thành", "Hoàn thành"] } },
+            { paymentStatus: "Hoàn thành" }, // Thêm trạng thái Hoàn thành
           ],
         },
       };
