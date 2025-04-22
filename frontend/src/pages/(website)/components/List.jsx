@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { fetchProducts } from "../../../service/api"; // Đảm bảo đường dẫn đúng
-import { Spin, Card, Typography, Input } from "antd";
-import { FireOutlined, SearchOutlined, MobileOutlined } from "@ant-design/icons";
-import Socket from "../socket/Socket"; // Đảm bảo đường dẫn đúng
+import { fetchProducts } from "../../../service/api";
+import { Spin, Card, Typography, Input, message } from "antd";
+import { SearchOutlined, MobileOutlined } from "@ant-design/icons";
+import Socket from "../socket/Socket";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -16,8 +16,8 @@ const List = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false); // Trạng thái focus của input
-  const searchRef = useRef(null); // Ref để kiểm tra nhấp ra ngoài
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
 
   const getProducts = async () => {
     setLoading(true);
@@ -59,7 +59,6 @@ const List = () => {
     };
   }, []);
 
-  // Xử lý nhấp ra ngoài để ẩn gợi ý
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -100,13 +99,88 @@ const List = () => {
     slidesPerView: Math.min(filteredProducts.length || 1, 4),
     slidesPerGroup: 1,
     spaceBetween: 20,
-    navigation: true,
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
     loop: filteredProducts.length >= 5,
-    modules: [Navigation],
+    autoplay: { delay: 2500, disableOnInteraction: false },
+    modules: [Navigation, Autoplay],
+    breakpoints: {
+      640: { slidesPerView: Math.min(filteredProducts.length || 1, 2) },
+      768: { slidesPerView: Math.min(filteredProducts.length || 1, 3) },
+      1024: { slidesPerView: Math.min(filteredProducts.length || 1, 4) },
+    },
   };
 
   return (
     <div className="bg-gray-50 py-12">
+      <style jsx>{`
+        .custom-swiper-button {
+          width: 40px;
+          height: 40px;
+          background-color: #2563eb;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+          opacity: 0.9;
+          z-index: 10;
+        }
+
+        .custom-swiper-button:hover {
+          background-color: #1e40af;
+          opacity: 1;
+          transform: scale(1.1);
+        }
+
+        .custom-swiper-button::after {
+          font-size: 20px;
+          font-weight: bold;
+        }
+
+        .swiper-button-prev.custom-swiper-button {
+          left: 10px;
+        }
+
+        .swiper-button-next.custom-swiper-button {
+          right: 10px;
+        }
+
+        .swiper-container-custom {
+          position: relative;
+          padding-left: 60px;
+          padding-right: 60px;
+        }
+
+        @media (max-width: 768px) {
+          .custom-swiper-button {
+            width: 32px;
+            height: 32px;
+          }
+
+          .custom-swiper-button::after {
+            font-size: 16px;
+          }
+
+          .swiper-button-prev.custom-swiper-button {
+            left: 5px;
+          }
+
+          .swiper-button-next.custom-swiper-button {
+            right: 5px;
+          }
+
+          .swiper-container-custom {
+            padding-left: 40px;
+            padding-right: 40px;
+          }
+        }
+      `}</style>
+
       <div className="max-w-7xl mx-auto px-4">
         {/* Thanh tìm kiếm và gợi ý */}
         <div className="mb-6 flex justify-center relative" ref={searchRef}>
@@ -138,7 +212,7 @@ const List = () => {
                     to={`/products/product_detail/${product._id}`}
                     key={product._id}
                     className="flex items-center p-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
-                    onClick={() => setIsSearchFocused(false)} // Ẩn gợi ý khi nhấp vào sản phẩm
+                    onClick={() => setIsSearchFocused(false)}
                   >
                     <img
                       src={product.HinhAnh1}
@@ -187,75 +261,80 @@ const List = () => {
             <Spin size="large" tip="Đang tải sản phẩm..." />
           </div>
         ) : filteredProducts.length > 0 ? (
-          <Swiper {...swiperConfig}>
-            {filteredProducts.map((product) => {
-              const { memory, price } = getFirstValidMemoryAndPrice(product);
-              const isOutOfStock =
-                product.SoLuong1 === 0 &&
-                product.SoLuong2 === 0 &&
-                product.SoLuong3 === 0 &&
-                product.SoLuong4 === 0 &&
-                product.SoLuong5 === 0 &&
-                product.SoLuong6 === 0;
+          <div className="swiper-container-custom">
+            <Swiper {...swiperConfig}>
+              {filteredProducts.map((product) => {
+                const { memory, price } = getFirstValidMemoryAndPrice(product);
+                const isOutOfStock =
+                  product.SoLuong1 === 0 &&
+                  product.SoLuong2 === 0 &&
+                  product.SoLuong3 === 0 &&
+                  product.SoLuong4 === 0 &&
+                  product.SoLuong5 === 0 &&
+                  product.SoLuong6 === 0;
 
-              return (
-                <SwiperSlide key={product._id}>
-                  <Link to={`/products/product_detail/${product._id}`} className="block h-full">
-                    <Card
-                      hoverable
-                      cover={
-                        <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
-                          <img
-                            alt={product.TenSP}
-                            src={product.HinhAnh1}
-                            className="max-h-full max-w-full object-contain"
-                          />
-                        </div>
-                      }
-                      className="h-full border border-gray-200 hover:border-blue-300 transition-all"
-                    >
-                      <Meta
-                        title={
-                          <div className="text-center">
-                            <Text
-                              ellipsis={{ tooltip: product.TenSP }}
-                              className="font-semibold text-blue-600"
-                            >
-                              {product.TenSP}
-                            </Text>
+                return (
+                  <SwiperSlide key={product._id}>
+                    <Link to={`/products/product_detail/${product._id}`} className="block h-full">
+                      <Card
+                        hoverable
+                        cover={
+                          <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
+                            <img
+                              alt={product.TenSP}
+                              src={product.HinhAnh1}
+                              className="max-h-full max-w-full object-contain"
+                            />
                           </div>
                         }
-                        description={
-                          <div className="text-center">
-                            <div className="mb-2">
-                              <Text type="secondary" className="text-gray-600">
-                                {memory}
+                        className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                      >
+                        <Meta
+                          title={
+                            <div className="text-center">
+                              <Text
+                                ellipsis={{ tooltip: product.TenSP }}
+                                className="font-semibold text-blue-600"
+                              >
+                                {product.TenSP}
                               </Text>
                             </div>
-                            <Text
-                              strong
-                              className={`text-lg ${
-                                isOutOfStock ? "text-gray-500" : "text-blue-600"
-                              }`}
-                            >
-                              {isOutOfStock
-                                ? "Liên hệ"
-                                : price
-                                ? new Intl.NumberFormat("vi-VN", {
-                                    style: "currency",
-                                    currency: "VND",
-                                  }).format(price)
-                                : "Chưa có giá"}
-                            </Text>
-                          </div>
-                        }
-                      />
-                    </Card>
-                  </Link>
-                </SwiperSlide>
-              );
-            })}
-          </Swiper>
+                          }
+                          description={
+                            <div className="text-center">
+                              <div className="mb-2">
+                                <Text type="secondary" className="text-gray-600">
+                                  {memory}
+                                </Text>
+                              </div>
+                              <Text
+                                strong
+                                className={`text-lg ${
+                                  isOutOfStock ? "text-gray-500" : "text-blue-600"
+                                }`}
+                              >
+                                {isOutOfStock
+                                  ? "Liên hệ"
+                                  : price
+                                  ? new Intl.NumberFormat("vi-VN", {
+                                      style: "currency",
+                                      currency: "VND",
+                                    }).format(price)
+                                  : "Chưa có giá"}
+                              </Text>
+                            </div>
+                          }
+                        />
+                      </Card>
+                    </Link>
+                  </SwiperSlide>
+                );
+              })}
+              {/* Nút điều hướng tùy chỉnh */}
+              <div className="swiper-button-prev custom-swiper-button"></div>
+              <div className="swiper-button-next custom-swiper-button"></div>
+            </Swiper>
+          </div>
         ) : (
           <div className="text-center py-8">
             <Text type="secondary">
