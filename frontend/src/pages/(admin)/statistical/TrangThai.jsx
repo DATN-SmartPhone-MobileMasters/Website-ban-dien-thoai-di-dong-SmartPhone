@@ -67,22 +67,6 @@ const TrangThai = () => {
           </p>
         </div>
 
-        {/* Thống kê đơn hàng giao hàng thành công */}
-        <div className="bg-green-50 p-6 rounded-lg border border-green-100">
-          <h2 className="text-xl font-semibold mb-2 text-green-800">Giao Hàng Thành Công</h2>
-          <p className="text-4xl font-bold text-green-800">
-            {countOrdersByStatus("Giao Hàng Thành Công")}
-          </p>
-        </div>
-
-        {/* Thống kê đơn hàng bị huỷ */}
-        <div className="bg-red-50 p-6 rounded-lg border border-red-100">
-          <h2 className="text-xl font-semibold mb-2 text-red-800">Huỷ Đơn</h2>
-          <p className="text-4xl font-bold text-red-800">
-            {countOrdersByStatus("Huỷ Đơn")}
-          </p>
-        </div>
-
         {/* Thống kê đơn hàng giao hàng thất bại */}
         <div className="bg-orange-50 p-6 rounded-lg border border-orange-100">
           <h2 className="text-xl font-semibold mb-2 text-orange-800">Giao Hàng Thất Bại</h2>
@@ -96,6 +80,30 @@ const TrangThai = () => {
           <h2 className="text-xl font-semibold mb-2 text-pink-800">Giao Hàng Lại</h2>
           <p className="text-4xl font-bold text-pink-800">
             {countOrdersByStatus("Giao Hàng Lại")}
+          </p>
+        </div>
+
+        {/* Thống kê đơn hàng giao hàng thành công */}
+        <div className="bg-green-50 p-6 rounded-lg border border-green-100">
+          <h2 className="text-xl font-semibold mb-2 text-green-800">Giao Hàng Thành Công</h2>
+          <p className="text-4xl font-bold text-green-800">
+            {countOrdersByStatus("Giao Hàng Thành Công")}
+          </p>
+        </div>
+
+        {/* Thống kê đơn hàng hoàn thành */}
+        <div className="bg-teal-50 p-6 rounded-lg border border-teal-100">
+          <h2 className="text-xl font-semibold mb-2 text-teal-800">Hoàn Thành</h2>
+          <p className="text-4xl font-bold text-teal-800">
+            {countOrdersByStatus("Hoàn thành")}
+          </p>
+        </div>
+
+        {/* Thống kê đơn hàng bị huỷ */}
+        <div className="bg-red-50 p-6 rounded-lg border border-red-100">
+          <h2 className="text-xl font-semibold mb-2 text-red-800">Huỷ Đơn</h2>
+          <p className="text-4xl font-bold text-red-800">
+            {countOrdersByStatus("Huỷ Đơn")}
           </p>
         </div>
       </div>

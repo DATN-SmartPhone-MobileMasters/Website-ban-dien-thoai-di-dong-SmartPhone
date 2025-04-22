@@ -5,7 +5,7 @@ import { Spin, message, Card, Typography, Empty } from "antd";
 import { FireOutlined } from "@ant-design/icons";
 import Socket from "../socket/Socket";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -118,9 +118,18 @@ const LatestProducts = ({ onProductClick }) => {
     slidesPerView: Math.min(products.length || 1, 4),
     slidesPerGroup: 1,
     spaceBetween: 20,
-    navigation: true,
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
     loop: products.length >= 5,
-    modules: [Navigation],
+    autoplay: { delay: 2500, disableOnInteraction: false },
+    modules: [Navigation, Autoplay],
+    breakpoints: {
+      640: { slidesPerView: Math.min(products.length || 1, 2) },
+      768: { slidesPerView: Math.min(products.length || 1, 3) },
+      1024: { slidesPerView: Math.min(products.length || 1, 4) },
+    },
   };
 
   const getFirstValidMemoryAndPrice = (product) => {
@@ -151,6 +160,72 @@ const LatestProducts = ({ onProductClick }) => {
 
   return (
     <div className="w-full py-12 bg-gradient-to-b from-gray-50 to-gray-100">
+      <style jsx>{`
+        .custom-swiper-button {
+          width: 40px;
+          height: 40px;
+          background-color: #2563eb;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+          opacity: 0.9;
+          z-index: 10;
+        }
+
+        .custom-swiper-button:hover {
+          background-color: #1e40af;
+          opacity: 1;
+          transform: scale(1.1);
+        }
+
+        .custom-swiper-button::after {
+          font-size: 20px;
+          font-weight: bold;
+        }
+
+        .swiper-button-prev.custom-swiper-button {
+          left: 10px;
+        }
+
+        .swiper-button-next.custom-swiper-button {
+          right: 10px;
+        }
+
+        .swiper-container-custom {
+          position: relative;
+          padding-left: 60px;
+          padding-right: 60px;
+        }
+
+        @media (max-width: 768px) {
+          .custom-swiper-button {
+            width: 32px;
+            height: 32px;
+          }
+
+          .custom-swiper-button::after {
+            font-size: 16px;
+          }
+
+          .swiper-button-prev.custom-swiper-button {
+            left: 5px;
+          }
+
+          .swiper-button-next.custom-swiper-button {
+            right: 5px;
+          }
+
+          .swiper-container-custom {
+            padding-left: 40px;
+            padding-right: 40px;
+          }
+        }
+      `}</style>
+
       <div className="max-w-7xl mx-auto px-4">
         <Title level={2} className="text-center mb-8 text-blue-600">
           <FireOutlined className="text-red-500 mr-2" />
@@ -163,61 +238,13 @@ const LatestProducts = ({ onProductClick }) => {
             <Spin size="large" tip="Đang tải sản phẩm..." />
           </div>
         ) : products.length > 0 ? (
-          <Swiper {...swiperConfig}>
-            {products.map((product) => {
-              const { memory, price } = getFirstValidMemoryAndPrice(product);
-              return (
-                <SwiperSlide key={product._id}>
-                  {onProductClick ? (
-                    <Card
-                      hoverable
-                      cover={
-                        <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
-                          <img
-                            alt={product.TenSP}
-                            src={product.HinhAnh1}
-                            className="max-h-full max-w-full object-contain"
-                          />
-                        </div>
-                      }
-                      className="h-full border border-gray-200 hover:border-blue-300 transition-all"
-                      onClick={() => onProductClick(product._id)}
-                    >
-                      <Meta
-                        title={
-                          <div className="text-center">
-                            <Text
-                              ellipsis={{ tooltip: product.TenSP }}
-                              className="font-semibold text-blue-600"
-                            >
-                              {product.TenSP}
-                            </Text>
-                          </div>
-                        }
-                        description={
-                          <div className="text-center">
-                            <div className="mb-2">
-                              <Text type="secondary" className="text-gray-600">
-                                {memory}
-                              </Text>
-                            </div>
-                            <Text strong className="text-blue-600 text-lg">
-                              {price
-                                ? new Intl.NumberFormat("vi-VN", {
-                                    style: "currency",
-                                    currency: "VND",
-                                  }).format(price)
-                                : "Liên hệ"}
-                            </Text>
-                          </div>
-                        }
-                      />
-                    </Card>
-                  ) : (
-                    <Link
-                      to={`/products/product_detail/${product._id}`}
-                      className="block h-full"
-                    >
+          <div className="swiper-container-custom">
+            <Swiper {...swiperConfig}>
+              {products.map((product) => {
+                const { memory, price } = getFirstValidMemoryAndPrice(product);
+                return (
+                  <SwiperSlide key={product._id}>
+                    {onProductClick ? (
                       <Card
                         hoverable
                         cover={
@@ -230,6 +257,7 @@ const LatestProducts = ({ onProductClick }) => {
                           </div>
                         }
                         className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                        onClick={() => onProductClick(product._id)}
                       >
                         <Meta
                           title={
@@ -245,10 +273,7 @@ const LatestProducts = ({ onProductClick }) => {
                           description={
                             <div className="text-center">
                               <div className="mb-2">
-                                <Text
-                                  type="secondary"
-                                  className="text-gray-600"
-                                >
+                                <Text type="secondary" className="text-gray-600">
                                   {memory}
                                 </Text>
                               </div>
@@ -264,12 +289,67 @@ const LatestProducts = ({ onProductClick }) => {
                           }
                         />
                       </Card>
-                    </Link>
-                  )}
-                </SwiperSlide>
-              );
-            })}
-          </Swiper>
+                    ) : (
+                      <Link
+                        to={`/products/product_detail/${product._id}`}
+                        className="block h-full"
+                      >
+                        <Card
+                          hoverable
+                          cover={
+                            <div className="h-48 flex items-center justify-center bg-gray-50 p-4">
+                              <img
+                                alt={product.TenSP}
+                                src={product.HinhAnh1}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </div>
+                          }
+                          className="h-full border border-gray-200 hover:border-blue-300 transition-all"
+                        >
+                          <Meta
+                            title={
+                              <div className="text-center">
+                                <Text
+                                  ellipsis={{ tooltip: product.TenSP }}
+                                  className="font-semibold text-blue-600"
+                                >
+                                  {product.TenSP}
+                                </Text>
+                              </div>
+                            }
+                            description={
+                              <div className="text-center">
+                                <div className="mb-2">
+                                  <Text
+                                    type="secondary"
+                                    className="text-gray-600"
+                                  >
+                                    {memory}
+                                  </Text>
+                                </div>
+                                <Text strong className="text-blue-600 text-lg">
+                                  {price
+                                    ? new Intl.NumberFormat("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                      }).format(price)
+                                    : "Liên hệ"}
+                                </Text>
+                              </div>
+                            }
+                          />
+                        </Card>
+                      </Link>
+                    )}
+                  </SwiperSlide>
+                );
+              })}
+              {/* Nút điều hướng tùy chỉnh */}
+              <div className="swiper-button-prev custom-swiper-button"></div>
+              <div className="swiper-button-next custom-swiper-button"></div>
+            </Swiper>
+          </div>
         ) : (
           <div className="col-span-full py-8">
             <Empty
