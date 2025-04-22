@@ -42,7 +42,7 @@ const TrangThai = () => {
     <div className="bg-white shadow-lg rounded-lg p-6">
       <h1 className="text-2xl font-bold mb-6 text-blue-800">Trạng thái</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Thống kê đơn hàng chờ xử lý */}
         <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-100">
           <h2 className="text-xl font-semibold mb-2 text-yellow-800">Chờ xử lý</h2>
@@ -61,17 +61,17 @@ const TrangThai = () => {
 
         {/* Thống kê đơn hàng đang giao */}
         <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
-          <h2 className="text-xl font-semibold mb-2 text-blue-800">Đang giao</h2>
+          <h2 className="text-xl font-semibold mb-2 text-blue-800">Đang Giao</h2>
           <p className="text-4xl font-bold text-blue-800">
             {countOrdersByStatus("Đang Giao")}
           </p>
         </div>
 
-        {/* Thống kê đơn hàng hoàn thành */}
+        {/* Thống kê đơn hàng giao hàng thành công */}
         <div className="bg-green-50 p-6 rounded-lg border border-green-100">
-          <h2 className="text-xl font-semibold mb-2 text-green-800">Hoàn thành</h2>
+          <h2 className="text-xl font-semibold mb-2 text-green-800">Giao Hàng Thành Công</h2>
           <p className="text-4xl font-bold text-green-800">
-            {countOrdersByStatus("Hoàn thành")}
+            {countOrdersByStatus("Giao Hàng Thành Công")}
           </p>
         </div>
 
@@ -80,6 +80,22 @@ const TrangThai = () => {
           <h2 className="text-xl font-semibold mb-2 text-red-800">Huỷ Đơn</h2>
           <p className="text-4xl font-bold text-red-800">
             {countOrdersByStatus("Huỷ Đơn")}
+          </p>
+        </div>
+
+        {/* Thống kê đơn hàng giao hàng thất bại */}
+        <div className="bg-orange-50 p-6 rounded-lg border border-orange-100">
+          <h2 className="text-xl font-semibold mb-2 text-orange-800">Giao Hàng Thất Bại</h2>
+          <p className="text-4xl font-bold text-orange-800">
+            {countOrdersByStatus("Giao Hàng Thất Bại")}
+          </p>
+        </div>
+
+        {/* Thống kê đơn hàng giao hàng lại */}
+        <div className="bg-pink-50 p-6 rounded-lg border border-pink-100">
+          <h2 className="text-xl font-semibold mb-2 text-pink-800">Giao Hàng Lại</h2>
+          <p className="text-4xl font-bold text-pink-800">
+            {countOrdersByStatus("Giao Hàng Lại")}
           </p>
         </div>
       </div>
