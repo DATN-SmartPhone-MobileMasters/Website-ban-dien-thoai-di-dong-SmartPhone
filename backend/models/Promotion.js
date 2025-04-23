@@ -35,7 +35,7 @@ const PromotionSchema = new mongoose.Schema(
     },
     NgayBD: { type: Date, required: true },
     NgayKT: { type: Date, required: true },
-    TrangThai: { type: Number, default: 0 }, // 0: chưa bắt đầu, 1: đã sử dụng, 2: đang diễn ra
+    TrangThai: { type: Number, default: 2 }, // 1: đã sử dụng, 2: đang diễn ra
   },
   { timestamps: true }
 );
