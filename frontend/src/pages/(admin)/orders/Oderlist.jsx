@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { message, Select, DatePicker } from "antd";
+import { message, Select, DatePicker, Pagination } from "antd";
 import { fetchOrders } from "../../../service/api";
 import Socket from "../../(website)/socket/Socket";
 
@@ -27,6 +27,8 @@ const OrderList = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [sortTotal, setSortTotal] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10); // 10 orders per page
   const location = useLocation();
 
   // Lấy danh sách hóa đơn
@@ -122,6 +124,7 @@ const OrderList = () => {
     }
 
     setHoaDons(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   };
 
   useEffect(() => {
@@ -143,6 +146,12 @@ const OrderList = () => {
     applyFilters(allOrders, updatedHiddenOrders);
     message.success("Đã khôi phục đơn hàng");
   };
+
+  // Calculate paginated data
+  const paginatedOrders = hoaDons.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div>
@@ -220,10 +229,10 @@ const OrderList = () => {
                 </tr>
               </thead>
               <tbody>
-                {hoaDons.length > 0 ? (
-                  hoaDons.map((hoaDon, i) => (
+                {paginatedOrders.length > 0 ? (
+                  paginatedOrders.map((hoaDon, i) => (
                     <tr key={hoaDon._id}>
-                      <td>{i + 1}</td>
+                      <td>{(currentPage - 1) * pageSize + i + 1}</td>
                       <td>{formatDate(hoaDon.createdAt)}</td>
                       <td>{hoaDon.shippingInfo?.name || "Không có"}</td>
                       <td>{hoaDon.shippingInfo?.phone || "Không có"}</td>
@@ -270,6 +279,19 @@ const OrderList = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Component */}
+          {hoaDons.length > 0 && (
+            <div className="mt-4 d-flex justify-content-center">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={hoaDons.length}
+                onChange={(page) => setCurrentPage(page)}
+                showSizeChanger={false}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
