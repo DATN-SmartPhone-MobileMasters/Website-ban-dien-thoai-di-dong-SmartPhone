@@ -205,8 +205,7 @@ const AddPromotion = () => {
           rules={[{ required: true, message: "Trạng thái là trường bắt buộc" }]}
         >
           <Select placeholder="Chọn trạng thái">
-            <Option value={0}>🟡 Chưa bắt đầu</Option>
-            <Option value={1}>🔴 Đã sử dụng</Option>
+            <Option value={1}>🔴Đã sử dụng</Option>
             <Option value={2}>🔵Đang diễn ra</Option>
           </Select>
         </Form.Item>
