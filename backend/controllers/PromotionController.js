@@ -72,18 +72,14 @@ class PromotionController {
         return res.status(404).json({ message: "Voucher không tồn tại" });
       }
 
-      if (promotion.TrangThai === 1) {
-        return res
-          .status(400)
-          .json({ message: "Voucher đã bị khóa sau khi sử dụng" });
-      }
+      // Cập nhật thông tin promotion với dữ liệu từ req.body
+      Object.assign(promotion, req.body);
 
-      // Cập nhật trạng thái voucher sau khi sử dụng
-      promotion.TrangThai = 1;
+      // Lưu lại các thay đổi
       await promotion.save();
 
       res.status(200).json({
-        message: "Voucher đã được sử dụng",
+        message: "Cập nhật voucher thành công",
         data: promotion,
       });
     } catch (error) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchPromotion, getProducts } from "../../../service/api";
 import {
   Table,
@@ -858,7 +858,17 @@ const Cart = () => {
       <Title level={2}>🛒 Giỏ hàng của bạn</Title>
 
       {cart.length === 0 ? (
-        <Alert message="Giỏ hàng trống." type="warning" showIcon />
+        <>
+          <Alert
+            message="Giỏ hàng trống."
+            type="warning"
+            showIcon
+            style={{ marginBottom: "20px" }}
+          />
+          <Link to="/">
+            <Button type="primary">Về trang chủ</Button>
+          </Link>
+        </>
       ) : (
         <>
           <Table
@@ -868,7 +878,6 @@ const Cart = () => {
             pagination={false}
             style={{ marginBottom: 24 }}
           />
-
           <div style={{ maxWidth: 400, marginLeft: "auto" }}>
             <Space direction="vertical" style={{ width: "100%" }}>
               <Title level={4}>

@@ -44,14 +44,14 @@ const TopProducts = () => {
   useEffect(() => {
     const calculateProductStats = () => {
       const stats = {};
-
+  
       hoaDons.forEach((hoaDon) => {
-        if (hoaDon.paymentStatus === "Hoàn thành") {
+        if (hoaDon.paymentStatus === "Hoàn thành" || hoaDon.paymentStatus === "Giao Hàng Thành Công") {
           const date = new Date(hoaDon.createdAt);
           const year = date.getFullYear();
           const month = date.getMonth() + 1;
           const day = date.getDate();
-
+  
           if (
             (filter.year === "" || year === parseInt(filter.year)) &&
             (filter.month === "" || month === parseInt(filter.month)) &&
@@ -59,27 +59,27 @@ const TopProducts = () => {
           ) {
             hoaDon.products.forEach((product) => {
               const key = `${year}-${month}-${day}`;
-
+  
               if (!stats[key]) {
                 stats[key] = {};
               }
-
+  
               if (!stats[key][product.name]) {
                 stats[key][product.name] = 0;
               }
-
+  
               stats[key][product.name] += product.quantity;
             });
           }
         }
       });
-
+  
       setProductStats(stats);
     };
-
+  
     calculateProductStats();
   }, [hoaDons, filter]);
-
+  
   const getChartData = () => {
     const labels = Object.keys(productStats).sort();
     const datasets = [];

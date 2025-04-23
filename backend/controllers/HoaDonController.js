@@ -314,14 +314,14 @@ class HoaDonController {
       const matchCompletedOrders = {
         $match: {
           $or: [
-            { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Hoàn thành" },
-            { paymentMethod: "vnpay", paymentStatus: "Đã hoàn thành" },
+            { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Giao Hàng Thành Công" },
+            { paymentMethod: "vnpay", paymentStatus: { $in: ["Đã hoàn thành", "Hoàn thành"] } },
+            { paymentStatus: "Hoàn thành" }, // Thêm trạng thái Hoàn thành
           ],
         },
       };
 
-
- // chỗ này để sửa ngày tính thời gian thực
+      // chỗ này để sửa ngày tính thời gian thực
       const startOfWeek = new Date(2025, 3, 14); // Thứ 2, ngày 14/4/2025
       const endOfWeek = new Date(2025, 3, 20, 23, 59, 59); // Chủ nhật, ngày 20/4/2025
 
@@ -366,7 +366,6 @@ class HoaDonController {
           },
         },
       ]);
-  
 
       const doanhThuTheoThang = await hoadon.aggregate([
         matchCompletedOrders,

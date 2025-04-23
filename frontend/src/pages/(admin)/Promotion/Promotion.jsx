@@ -155,6 +155,13 @@ const Promotion = forwardRef((props, ref) => {
               Xóa
             </Button>
           </Popconfirm>
+          <Button
+            type="primary"
+            style={{ marginLeft: 10 }}
+            onClick={() => navigate(`/admin/vouchers/edit/${record._id}`)} // Chuyển hướng đến trang chỉnh sửa(record)}
+          >
+            Sửa
+          </Button>
         </div>
       ),
     },
@@ -181,8 +188,7 @@ const Promotion = forwardRef((props, ref) => {
               onChange={handleStatusChange}
               allowClear
             >
-              <Option value={0}>🟡 Chưa bắt đầu</Option>
-              <Option value={1}>🔴 Đã sử dụng</Option>
+              <Option value={1}>🔴Đã sử dụng</Option>
               <Option value={2}>🔵Đang diễn ra</Option>
             </Select>
           </div>

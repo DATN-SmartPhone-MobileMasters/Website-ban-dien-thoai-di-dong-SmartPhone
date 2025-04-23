@@ -264,6 +264,7 @@ const ProfileReceipt = () => {
       message.error("Có lỗi xảy ra khi tạo thanh toán VNPay!");
     }
   };
+
   const handleCompleteOrder = async (orderId) => {
     try {
       await updateOrder(orderId, { paymentStatus: "Hoàn thành" });
@@ -273,6 +274,7 @@ const ProfileReceipt = () => {
       console.error(error);
     }
   };
+
   const columns = [
     {
       title: "Mã đơn hàng",
