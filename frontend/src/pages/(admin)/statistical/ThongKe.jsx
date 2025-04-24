@@ -83,31 +83,41 @@ const ThongKe = () => {
               beginAtZero: true,
             },
           },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                title: (tooltipItems) => {
-                  const date = tooltipItems[0].label;
-                  return `Ngày: ${date}`;
-                },
-                label: (tooltipItem) => {
-                  const date = tooltipItem.label;
-                  const doanhThuItem = thongKeDoanhThu.doanhThuTheoNgay.find(
-                    (item) => item._id.ngay === date
-                  );
-        
-                  if (!doanhThuItem || !doanhThuItem.sanPhamDaBan || doanhThuItem.sanPhamDaBan.length === 0) {
-                    return "Không có chi tiết sản phẩm.";
-                  }
-        
-                  return doanhThuItem.sanPhamDaBan.map(
-                    (sp) =>
-                      `${sp.thoiGianBan} | ${sp.TenSP} (${sp.memory}) x${sp.quantity}`
-                  ).join("\n");
-                },
-              },
-            },
-          },
+          plugins: {  
+            tooltip: {  
+              callbacks: {  
+                title: (tooltipItems) => {  
+                  const date = tooltipItems[0].label; 
+                  const doanhThuItem = thongKeDoanhThu.doanhThuTheoNgay.find(item => item._id.ngay === date);  
+          
+                   
+                  const totalRevenue = doanhThuItem ? doanhThuItem.tongDoanhThu.toLocaleString("vi-VN", {  
+                    style: "currency",  
+                    currency: "VND"  
+                  }) : 0;  
+          
+                  return `Ngày: ${date}\nTổng doanh thu: ${totalRevenue}`;  
+                },  
+                label: (tooltipItem) => {  
+                  const date = tooltipItem.label;  
+                  const doanhThuItem = thongKeDoanhThu.doanhThuTheoNgay.find(  
+                    (item) => item._id.ngay === date  
+                  );  
+          
+                
+                  if (!doanhThuItem || !doanhThuItem.sanPhamDaBan || doanhThuItem.sanPhamDaBan.length === 0) {  
+                    return "Không có chi tiết sản phẩm.";  
+                  }  
+          
+                
+                  return doanhThuItem.sanPhamDaBan.map(  
+                    (sp) =>  
+                      `${sp.thoiGianBan} | ${sp.TenSP} (${sp.memory}) x${sp.quantity}`  
+                  ).join("\n");  
+                },  
+              },  
+            },  
+          },  
         }
         
       });
@@ -130,17 +140,7 @@ const ThongKe = () => {
 
       {/* Cards thống kê */}
       <div className="row">
-        {/* Tổng doanh thu theo tuần */}
-        <div className="col-xl-4 col-md-6 mb-4">
-          <div className="card border-left-primary shadow h-100 py-2">
-            <div className="card-body">
-              <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng Tuần</div>
-              <div className="h5 mb-0 font-weight-bold text-gray-800">
-                {thongKeDoanhThu.tongDoanhThuTheoTuan?.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
-              </div>
-            </div>
-          </div>
-        </div>
+       
 
         {/* Chọn tháng */}
         <div className="col-xl-4 col-md-6 mb-4">
