@@ -103,18 +103,27 @@ const ThongKe = () => {
                   const doanhThuItem = thongKeDoanhThu.doanhThuTheoNgay.find(  
                     (item) => item._id.ngay === date  
                   );  
-          
                 
                   if (!doanhThuItem || !doanhThuItem.sanPhamDaBan || doanhThuItem.sanPhamDaBan.length === 0) {  
                     return "Không có chi tiết sản phẩm.";  
                   }  
-          
                 
-                  return doanhThuItem.sanPhamDaBan.map(  
-                    (sp) =>  
-                      `${sp.thoiGianBan} | ${sp.TenSP} (${sp.memory}) x${sp.quantity}`  
-                  ).join("\n");  
-                },  
+                  // Gộp số lượng sản phẩm trùng nhau
+                  const productMap = new Map();
+                  doanhThuItem.sanPhamDaBan.forEach((sp) => {
+                    const key = `${sp.TenSP} (${sp.memory})`;
+                    if (productMap.has(key)) {
+                      productMap.set(key, productMap.get(key) + sp.quantity);
+                    } else {
+                      productMap.set(key, sp.quantity);
+                    }
+                  });
+                
+                  // Tạo chuỗi hiển thị, mỗi sản phẩm mới xuống dòng
+                  return Array.from(productMap.entries())
+                  .map(([key, quantity]) => `${key} x${quantity}`);
+                
+                },   
               },  
             },  
           },  
