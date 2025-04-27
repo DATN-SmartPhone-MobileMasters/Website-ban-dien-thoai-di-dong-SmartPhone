@@ -11,62 +11,90 @@ const { Title } = Typography;
 const { Option } = Select;
 
 const ThongKeBinhLuan = () => {
-  const [comments, setComments] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(null);
   const [month, setMonth] = useState(null);
   const [availableYears, setAvailableYears] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const getData = async () => {
       try {
         setLoading(true);
         const response = await fetchComments();
-        const commentData = response.data || [];
+        const comments = response.data || [];
 
-        const yearsSet = new Set(commentData.map(cmt => moment(cmt.NgayBL).year()));
-        setAvailableYears([...yearsSet].sort((a, b) => b - a));
-        setComments(commentData);
+        // Lấy danh sách các năm từ dữ liệu
+        const yearsSet = new Set();
+        comments.forEach((cmt) => yearsSet.add(moment(cmt.NgayBL).year()));
+
+        const currentYear = moment().year();
+        const sortedYears = [...yearsSet].sort((a, b) => b - a); // Sắp xếp giảm dần
+
+        // Thêm năm hiện tại nếu chưa có
+        if (!yearsSet.has(currentYear)) {
+          sortedYears.unshift(currentYear);
+        }
+
+        setAvailableYears(sortedYears);
+
+        // Đặt năm mặc định là năm hiện tại
+        if (year === null) {
+          setYear(currentYear);
+        }
+
+        // Lọc bình luận theo năm và tháng (nếu có)
+        const filteredComments = comments.filter((cmt) => {
+          const date = moment(cmt.NgayBL);
+          return (!year || date.year() === year) && (!month || date.month() + 1 === month);
+        });
+
+        // Thống kê theo ngày
+        let stats = {};
+        filteredComments.forEach((cmt) => {
+          const date = moment(cmt.NgayBL);
+          const dayLabel = date.format('DD/MM/YYYY');
+
+          if (!stats[dayLabel]) {
+            stats[dayLabel] = {
+              label: dayLabel,
+              total: 0,
+            };
+          }
+          stats[dayLabel].total++;
+        });
+
+        // Sắp xếp theo ngày và lấy tối đa 30 ngày gần nhất
+        const sortedStats = Object.values(stats)
+          .sort((a, b) => moment(a.label, 'DD/MM/YYYY').valueOf() - moment(b.label, 'DD/MM/YYYY').valueOf())
+          .slice(-30); // Chỉ lấy 30 ngày mới nhất
+
+        setData(sortedStats);
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu bình luận:', error);
         message.error('Lỗi khi tải dữ liệu bình luận');
+        setData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    getData();
+  }, [year, month]);
 
   const getChartData = () => {
-    const stats = {};
+    const labels = data.map((item) => item.label);
+    const datasets = [
+      {
+        label: 'Số lượng bình luận',
+        data: data.map((item) => item.total),
+        backgroundColor: 'rgba(33, 150, 243, 0.6)',
+        borderColor: 'rgba(33, 150, 243, 1)',
+        borderWidth: 1,
+      },
+    ];
 
-    comments.forEach((comment) => {
-      const date = moment(comment.NgayBL);
-
-      if ((year && date.year() !== year) || (month && date.month() + 1 !== month)) {
-        return;
-      }
-
-      const formattedDate = date.format('YYYY-MM-DD');
-      stats[formattedDate] = (stats[formattedDate] || 0) + 1;
-    });
-
-    const labels = Object.keys(stats).sort();
-    const data = labels.map(label => stats[label]);
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: 'Số lượng bình luận',
-          data,
-          backgroundColor: 'rgba(33, 150, 243, 0.6)',
-          borderColor: 'rgba(33, 150, 243, 1)',
-          borderWidth: 1,
-        },
-      ],
-    };
+    return { labels, datasets };
   };
 
   if (loading) {
@@ -90,16 +118,21 @@ const ThongKeBinhLuan = () => {
         Thống Kê Số Lượng Bình Luận Theo Ngày
       </Title>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <Select
           value={year}
-          onChange={setYear}
+          onChange={(value) => {
+            setYear(value);
+            setMonth(null); // Reset tháng khi đổi năm
+          }}
           style={{ width: 140 }}
           placeholder="Chọn năm"
           allowClear
         >
           {availableYears.map((y) => (
-            <Option key={y} value={y}>{y}</Option>
+            <Option key={y} value={y}>
+              {y}
+            </Option>
           ))}
         </Select>
 
@@ -111,7 +144,9 @@ const ThongKeBinhLuan = () => {
           allowClear
         >
           {Array.from({ length: 12 }, (_, i) => (
-            <Option key={i + 1} value={i + 1}>Tháng {i + 1}</Option>
+            <Option key={i + 1} value={i + 1}>
+              Tháng {i + 1}
+            </Option>
           ))}
         </Select>
       </div>
@@ -123,8 +158,17 @@ const ThongKeBinhLuan = () => {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { display: true, position: 'top' },
-              tooltip: { enabled: true },
+              legend: { position: 'top' },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: (context) => {
+                    const index = context.dataIndex;
+                    const dayData = data[index];
+                    return `Tổng bình luận: ${dayData.total}`;
+                  },
+                },
+              },
             },
             scales: {
               x: {
