@@ -89,8 +89,15 @@ const Header = () => {
     getProducts();
   }, []);
 
-  // Lắng nghe sự kiện productUpdated từ Socket.IO
+  // Lắng nghe sự kiện từ Socket.IO
   useEffect(() => {
+    // Cập nhật sản phẩm khi có sản phẩm mới được tạo
+    socket.on("productCreated", (newProduct) => {
+      console.log("Sản phẩm mới được thêm:", newProduct);
+      setProducts((prevProducts) => [newProduct, ...prevProducts]);
+    });
+
+    // Cập nhật sản phẩm khi có sản phẩm được chỉnh sửa
     socket.on("productUpdated", (updatedProduct) => {
       console.log("Sản phẩm được cập nhật:", updatedProduct);
       setProducts((prevProducts) =>
@@ -102,6 +109,7 @@ const Header = () => {
 
     // Dọn dẹp listener khi component unmount
     return () => {
+      socket.off("productCreated");
       socket.off("productUpdated");
     };
   }, []);
@@ -144,6 +152,7 @@ const Header = () => {
     }
   };
 
+  // Kiểm tra trạng thái đăng nhập và tự động đăng xuất nếu người dùng không tồn tại
   useEffect(() => {
     const authToken = localStorage.getItem("authToken");
     const storedUserData = localStorage.getItem("userData");
