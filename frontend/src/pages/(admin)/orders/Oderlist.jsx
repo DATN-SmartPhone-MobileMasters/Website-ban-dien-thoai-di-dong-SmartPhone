@@ -28,7 +28,7 @@ const OrderList = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [sortTotal, setSortTotal] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10); // 10 orders per page
+  const [pageSize] = useState(10);
   const location = useLocation();
 
   // Lấy danh sách hóa đơn
@@ -124,7 +124,7 @@ const OrderList = () => {
     }
 
     setHoaDons(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -147,7 +147,6 @@ const OrderList = () => {
     message.success("Đã khôi phục đơn hàng");
   };
 
-  // Calculate paginated data
   const paginatedOrders = hoaDons.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -184,6 +183,9 @@ const OrderList = () => {
                 <Option value="Đang giao">Đang giao</Option>
                 <Option value="Hoàn thành">Hoàn thành</Option>
                 <Option value="Huỷ Đơn">Huỷ Đơn</Option>
+                <Option value="Giao Hàng Thành Công">Giao Hàng Thành Công</Option>
+                <Option value="Giao Hàng Thất Bại">Giao Hàng Thất Bại</Option>
+                <Option value="Giao Hàng Lại">Giao Hàng Lại</Option>
               </Select>
             </div>
 
@@ -280,7 +282,6 @@ const OrderList = () => {
             </table>
           </div>
 
-          {/* Pagination Component */}
           {hoaDons.length > 0 && (
             <div className="mt-4 d-flex justify-content-center">
               <Pagination

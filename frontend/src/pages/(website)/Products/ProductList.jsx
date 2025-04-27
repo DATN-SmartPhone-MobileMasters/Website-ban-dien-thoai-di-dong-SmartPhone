@@ -50,26 +50,22 @@ const ProductList = () => {
   }, [selectedBrand, selectedStorage, searchQuery, sortOrder, priceRange]);
 
   const normalizeBrandName = (name) => {
-    // Loại bỏ khoảng trắng thừa, chuyển về chữ thường và chuẩn hóa
     const cleanName = name
       .trim()
       .toLowerCase()
-      .replace(/\s+/g, " ") // Chuẩn hóa khoảng trắng
-      .replace(/điện thoại/gi, "") // Loại bỏ "điện thoại"
-      .replace(/[^a-z0-9\s]/g, "") // Loại bỏ ký tự đặc biệt
+      .replace(/\s+/g, " ")
+      .replace(/điện thoại/gi, "")
+      .replace(/[^a-z0-9\s]/g, "")
       .trim();
 
-    // Danh sách các thương hiệu cần nhận diện
     const knownBrands = ["iphone", "samsung", "xiaomi", "oppo", "vivo", "realme", "huawei", "nokia"];
     
-    // Tìm thương hiệu khớp trong tên sản phẩm
     for (const brand of knownBrands) {
       if (cleanName.includes(brand)) {
-        return brand.charAt(0).toUpperCase() + brand.slice(1); // Viết hoa chữ cái đầu
+        return brand.charAt(0).toUpperCase() + brand.slice(1);
       }
     }
 
-    // Nếu không tìm thấy thương hiệu nào, trả về phần đầu tiên của tên
     return cleanName.split(" ")[0].charAt(0).toUpperCase() + cleanName.split(" ")[0].slice(1) || "Unknown";
   };
 
@@ -80,11 +76,10 @@ const ProductList = () => {
       const data = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProducts(data);
 
-      // Tạo danh sách thương hiệu duy nhất
       const uniqueBrands = [...new Set(data.map((product) => {
         const nameParts = product.TenSP.split("|")[0].trim();
         return normalizeBrandName(nameParts);
-      }))].sort(); // Sắp xếp danh sách thương hiệu
+      }))].sort();
       setBrands(uniqueBrands);
     } catch (error) {
       message.error("Lỗi khi tải danh sách sản phẩm!");
@@ -120,6 +115,8 @@ const ProductList = () => {
   };
 
   const sortedProducts = [...products]
+    // Lưu trữ thứ tự gốc để ưu tiên sản phẩm mới
+    .map((product, index) => ({ ...product, originalIndex: index }))
     .filter((product) => selectedStorage ? product.BoNhoTrong1 === selectedStorage : true)
     .filter((product) => {
       if (!selectedBrand) return true;
@@ -133,13 +130,18 @@ const ProductList = () => {
       return priceValue >= priceRange[0] && priceValue <= priceRange[1];
     })
     .sort((a, b) => {
+      // Ưu tiên sản phẩm mới (originalIndex nhỏ hơn)
+      if (!sortOrder) {
+        return a.originalIndex - b.originalIndex;
+      }
+      // Nếu có sortOrder, ưu tiên sắp xếp theo giá
       const { price: priceA } = getFirstValidMemoryAndPrice(a);
       const { price: priceB } = getFirstValidMemoryAndPrice(b);
       const priceAValue = Number(priceA) || 0;
       const priceBValue = Number(priceB) || 0;
       if (sortOrder === "asc") return priceAValue - priceBValue;
       if (sortOrder === "desc") return priceBValue - priceAValue;
-      return 0;
+      return a.originalIndex - b.originalIndex;
     });
 
   const indexOfLastProduct = currentPage * pageSize;
@@ -170,7 +172,7 @@ const ProductList = () => {
                 placeholder="Tất cả thương hiệu"
                 value={selectedBrand || undefined}
                 onChange={(value) => setSelectedBrand(value)}
-                allowClear
+ PREDICTED:                allowClear
                 size="large"
                 style={{ width: "100%" }}
               >
