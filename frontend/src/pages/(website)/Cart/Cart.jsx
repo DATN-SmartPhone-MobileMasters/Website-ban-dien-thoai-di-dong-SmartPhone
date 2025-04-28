@@ -965,7 +965,7 @@ const Cart = () => {
                 visible={isVoucherModalVisible}
                 onOk={handleVoucherModalOk}
                 onCancel={handleVoucherModalCancel}
-                okText="OK"
+                okText="Áp dụng"
                 cancelText="Trở lại"
                 bodyStyle={{ maxHeight: "400px", overflowY: "auto" }}
               >
@@ -976,7 +976,17 @@ const Cart = () => {
                     onChange={handleVoucherChange}
                     style={{ marginBottom: 16 }}
                   />
-                  <Title level={2}>Giảm Giá</Title>
+                  <Title level={2}>Giảm Giá </Title>
+                  <Text
+                    style={{
+                      fontSize: "10px",
+                      color: "red",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    <b>Lưu ý: </b> Mã giảm giá chỉ sử dụng 1 lần duy nhất khi
+                    thanh toán, không thể hoàn lại kể cả khi hủy đơn.
+                  </Text>
                   <b style={{ fontSize: "10px", color: "gray" }}>
                     Có thể chọn 1 Voucher
                   </b>

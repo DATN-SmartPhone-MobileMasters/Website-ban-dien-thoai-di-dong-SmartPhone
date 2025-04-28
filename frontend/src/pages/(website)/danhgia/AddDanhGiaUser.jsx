@@ -15,10 +15,6 @@ const AddDanhGiaUser = () => {
   const [form] = Form.useForm();
   const { id: orderId } = useParams();
 
-  const bannedWords = ["lừa đảo", "chiếm đoạt", "ăn cắp", "bốc phét"];
-  const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const containsBannedWords = (text) => bannedWords.some(word => normalizeText(text).includes(normalizeText(word)));
-
   useEffect(() => {
     const fetchOrderData = async () => {
       try {
@@ -53,6 +49,18 @@ const AddDanhGiaUser = () => {
   const handleImageUpload = async (file, setHinhAnh) => {
     if (!file) return false;
 
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      message.error('Bạn chỉ có thể tải lên file ảnh!');
+      return false;
+    }
+
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error('Ảnh phải nhỏ hơn 2MB!');
+      return false;
+    }
+
     const formData = new FormData();
     formData.append('image', file);
 
@@ -70,11 +78,6 @@ const AddDanhGiaUser = () => {
   };
 
   const onFinish = async (values) => {
-    if (containsBannedWords(values.NoiDung)) {
-      message.error("Nội dung chứa từ ngữ không hợp lệ, vui lòng nhập lại!");
-      return;
-    }
-
     const token = localStorage.getItem('authToken');
     if (!token) {
       confirmAlert({
@@ -93,7 +96,7 @@ const AddDanhGiaUser = () => {
       const danhGiaData = {
         Ten: values.Ten,
         SanPham: order.products.map(p => p.name).join(', '),
-        NoiDung: values.NoiDung,
+        NoiDung: values.NoiDung || '', // Cho phép nội dung rỗng
         DanhGia: values.DanhGia,
         orderId,
         HinhAnh1: hinhAnh1,
@@ -103,11 +106,7 @@ const AddDanhGiaUser = () => {
 
       await createDanhGia(danhGiaData);
       message.success("Đánh giá của bạn đã được gửi thành công!");
-      form.resetFields();
-      setHinhAnh1(null);
-      setHinhAnh2(null);
-      setHinhAnh3(null);
-
+      
       const reviewedOrders = JSON.parse(localStorage.getItem('reviewedOrders') || '{}');
       reviewedOrders[orderId] = true;
       localStorage.setItem('reviewedOrders', JSON.stringify(reviewedOrders));
@@ -158,11 +157,11 @@ const AddDanhGiaUser = () => {
           <Form.Item
             label="Nội dung đánh giá"
             name="NoiDung"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
+            // Đã bỏ rule required để cho phép bỏ trống
           >
             <Input.TextArea
               size="large"
-              placeholder="Nhập nội dung đánh giá"
+              placeholder="Nhập nội dung đánh giá (không bắt buộc)"
               rows={4}
               showCount
               maxLength={500}
@@ -178,58 +177,42 @@ const AddDanhGiaUser = () => {
           </Form.Item>
 
           <Space direction="vertical" style={{ width: '100%' }}>
-  {[1, 2, 3].map((index) => (
-    <Form.Item key={index} label={`Hình ảnh ${index}`}>
-      <Upload
-        beforeUpload={(file) => handleImageUpload(file, index === 1 ? setHinhAnh1 : index === 2 ? setHinhAnh2 : setHinhAnh3)}
-        showUploadList={false}
-      >
-        <Button size="large" icon={<UploadOutlined />}>
-          Chọn hình ảnh
-        </Button>
-      </Upload>
-      {index === 1 && hinhAnh1 && (
-        <div style={{ marginTop: 10 }}>
-          <img src={hinhAnh1} alt="Hình ảnh 1" style={{ maxWidth: '150px', borderRadius: '4px' }} />
-          <Button
-            type="link"
-            icon={<DeleteOutlined />}
-            onClick={() => setHinhAnh1(null)}
-            style={{ color: '#ff4d4f', marginLeft: '10px' }}
-          >
-            Xóa
-          </Button>
-        </div>
-      )}
-      {index === 2 && hinhAnh2 && (
-        <div style={{ marginTop: 10 }}>
-          <img src={hinhAnh2} alt="Hình ảnh 2" style={{ maxWidth: '150px', borderRadius: '4px' }} />
-          <Button
-            type="link"
-            icon={<DeleteOutlined />}
-            onClick={() => setHinhAnh2(null)}
-            style={{ color: '#ff4d4f', marginLeft: '10px' }}
-          >
-            Xóa
-          </Button>
-        </div>
-      )}
-      {index === 3 && hinhAnh3 && (
-        <div style={{ marginTop: 10 }}>
-          <img src={hinhAnh3} alt="Hình ảnh 3" style={{ maxWidth: '150px', borderRadius: '4px' }} />
-          <Button
-            type="link"
-            icon={<DeleteOutlined />}
-            onClick={() => setHinhAnh3(null)}
-            style={{ color: '#ff4d4f', marginLeft: '10px' }}
-          >
-            Xóa
-          </Button>
-        </div>
-      )}
-    </Form.Item>
-  ))}
-</Space>
+            {[1, 2, 3].map((index) => {
+              const currentImage = index === 1 ? hinhAnh1 : index === 2 ? hinhAnh2 : hinhAnh3;
+              const setImage = index === 1 ? setHinhAnh1 : index === 2 ? setHinhAnh2 : setHinhAnh3;
+              
+              return (
+                <Form.Item key={index} label={`Hình ảnh ${index}`}>
+                  <Upload
+                    beforeUpload={(file) => handleImageUpload(file, setImage)}
+                    showUploadList={false}
+                    accept="image/*"
+                  >
+                    <Button size="large" icon={<UploadOutlined />}>
+                      Chọn hình ảnh
+                    </Button>
+                  </Upload>
+                  {currentImage && (
+                    <div style={{ marginTop: 10 }}>
+                      <img 
+                        src={currentImage} 
+                        alt={`Hình ảnh ${index}`} 
+                        style={{ maxWidth: '150px', borderRadius: '4px' }} 
+                      />
+                      <Button
+                        type="link"
+                        icon={<DeleteOutlined />}
+                        onClick={() => setImage(null)}
+                        style={{ color: '#ff4d4f', marginLeft: '10px' }}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  )}
+                </Form.Item>
+              );
+            })}
+          </Space>
 
           <Form.Item>
             <Button

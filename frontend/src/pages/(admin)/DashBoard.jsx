@@ -25,7 +25,7 @@ const DashBoard = () => {
 
         {/* Danh sách sản phẩm top */}
         <div className="bg-white shadow-lg rounded-lg p-6">
-          <h6 className="text-lg font-bold text-blue-800 mb-4">Thống kê sản phẩm bán chạy của cửa hàng</h6>
+          <h6 className="text-lg font-bold text-blue-800 mb-4">Thống kê sản phẩm bán ra của cửa hàng</h6>
           <TopProducts />
         </div>
 

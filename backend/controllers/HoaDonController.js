@@ -195,7 +195,12 @@ class HoaDonController {
         const { products } = hoaDon;
         if (products && Array.isArray(products)) {
           for (const product of products) {
-            console.log("Processing product:", product.productId, "memory:", product.memory);
+            console.log(
+              "Processing product:",
+              product.productId,
+              "memory:",
+              product.memory
+            );
             const { productId, memory, quantity } = product;
 
             const sanPham = await SanPham.findById(productId);
@@ -220,7 +225,12 @@ class HoaDonController {
             } else if (memory === sanPham.BoNhoTrong6) {
               quantityField = "SoLuong6";
             } else {
-              console.log("Invalid memory variant:", memory, "for product:", sanPham.TenSP);
+              console.log(
+                "Invalid memory variant:",
+                memory,
+                "for product:",
+                sanPham.TenSP
+              );
               return res.status(400).json({
                 message: `Biến thể bộ nhớ ${memory} không hợp lệ cho sản phẩm ${sanPham.TenSP}`,
               });
@@ -260,7 +270,10 @@ class HoaDonController {
       });
 
       // Phát sự kiện Socket.IO
-      console.log("Emitting orderStatusUpdated event for order:", updatedHoaDon._id);
+      console.log(
+        "Emitting orderStatusUpdated event for order:",
+        updatedHoaDon._id
+      );
       io.emit("orderStatusUpdated", {
         orderId: updatedHoaDon._id,
         paymentStatus: updatedHoaDon.paymentStatus,
@@ -314,8 +327,14 @@ class HoaDonController {
       const matchCompletedOrders = {
         $match: {
           $or: [
-            { paymentMethod: { $ne: "vnpay" }, paymentStatus: "Giao Hàng Thành Công" },
-            { paymentMethod: "vnpay", paymentStatus: { $in: ["Đã hoàn thành", "Hoàn thành"] } },
+            {
+              paymentMethod: { $ne: "vnpay" },
+              paymentStatus: "Giao Hàng Thành Công",
+            },
+            {
+              paymentMethod: "vnpay",
+              paymentStatus: { $in: ["Đã hoàn thành", "Hoàn thành"] },
+            },
             { paymentStatus: "Hoàn thành" }, // Thêm trạng thái Hoàn thành
           ],
         },
@@ -331,7 +350,9 @@ class HoaDonController {
         {
           $group: {
             _id: {
-              ngay: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+              ngay: {
+                $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+              },
               gio: { $hour: "$createdAt" },
             },
             tongDoanhThu: { $sum: "$total" },
@@ -341,7 +362,9 @@ class HoaDonController {
                 memory: "$products.memory",
                 quantity: "$products.quantity",
                 image: "$products.image",
-                thoiGianBan: { $dateToString: { format: "%H:%M:%S", date: "$createdAt" } },
+                thoiGianBan: {
+                  $dateToString: { format: "%H:%M:%S", date: "$createdAt" },
+                },
               },
             },
           },
@@ -393,7 +416,8 @@ class HoaDonController {
         (acc, item) => acc + item.tongDoanhThu,
         0
       );
-      const tongDoanhThuTheoTuan = doanhThuTheoTuan.length > 0 ? doanhThuTheoTuan[0].tongDoanhThu : 0;
+      const tongDoanhThuTheoTuan =
+        doanhThuTheoTuan.length > 0 ? doanhThuTheoTuan[0].tongDoanhThu : 0;
 
       res.status(200).json({
         doanhThuTheoNgay,
@@ -499,7 +523,8 @@ class HoaDonController {
         vnp_TxnRef,
         {
           paymentStatus: "Chờ xử lý",
-          checkPayment: vnp_ResponseCode === "00" ? "Đã Thanh Toán" : "Chưa Thanh Toán",
+          checkPayment:
+            vnp_ResponseCode === "00" ? "Đã Thanh Toán" : "Chưa Thanh Toán",
           transactionDate: vnp_ResponseCode === "00" ? new Date() : "0",
           vnp_TransactionNo,
           vnp_ResponseCode,
@@ -516,7 +541,10 @@ class HoaDonController {
       }
 
       // Phát sự kiện Socket.IO
-      console.log("Emitting orderStatusUpdated event for VNPay return:", order._id);
+      console.log(
+        "Emitting orderStatusUpdated event for VNPay return:",
+        order._id
+      );
       io.emit("orderStatusUpdated", {
         orderId: order._id,
         paymentStatus: order.paymentStatus,

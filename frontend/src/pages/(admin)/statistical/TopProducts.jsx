@@ -10,9 +10,14 @@ const API_URL = "http://localhost:5000/api";
 
 const TopProducts = () => {
   const [hoaDons, setHoaDons] = useState([]);
-  const [productStats, setProductStats] = useState({});
+  const [dailySummary, setDailySummary] = useState({});
+  const [productSummary, setProductSummary] = useState({});
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ year: "", month: "", day: "" });
+  const [filter, setFilter] = useState({ 
+    year: "", 
+    month: "", 
+    viewMode: "daily" // 'daily' hoặc 'product'
+  });
   const [availableYears, setAvailableYears] = useState(new Set());
 
   useEffect(() => {
@@ -42,70 +47,94 @@ const TopProducts = () => {
   }, []);
 
   useEffect(() => {
-    const calculateProductStats = () => {
-      const stats = {};
-  
-      hoaDons.forEach((hoaDon) => {
-        if (hoaDon.paymentStatus === "Hoàn thành" || hoaDon.paymentStatus === "Giao Hàng Thành Công") {
-          const date = new Date(hoaDon.createdAt);
-          const year = date.getFullYear();
-          const month = date.getMonth() + 1;
-          const day = date.getDate();
-  
-          if (
-            (filter.year === "" || year === parseInt(filter.year)) &&
-            (filter.month === "" || month === parseInt(filter.month)) &&
-            (filter.day === "" || day === parseInt(filter.day))
-          ) {
-            hoaDon.products.forEach((product) => {
-              const key = `${year}-${month}-${day}`;
-  
-              if (!stats[key]) {
-                stats[key] = {};
-              }
-  
-              if (!stats[key][product.name]) {
-                stats[key][product.name] = 0;
-              }
-  
-              stats[key][product.name] += product.quantity;
-            });
-          }
+    const dailySum = {};
+    const productSum = {};
+
+    hoaDons.forEach((hoaDon) => {
+      if (
+        hoaDon.paymentStatus === "Hoàn thành" ||
+        hoaDon.paymentStatus === "Giao Hàng Thành Công"
+      ) {
+        const dateObj = new Date(hoaDon.createdAt);
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth() + 1;
+        const day = dateObj.getDate();
+
+        if (
+          (filter.year === "" || year === parseInt(filter.year)) &&
+          (filter.month === "" || month === parseInt(filter.month))
+        ) {
+          // Tính tổng theo ngày
+          const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          if (!dailySum[dateKey]) dailySum[dateKey] = {};
+
+          // Tính tổng theo sản phẩm
+          hoaDon.products.forEach((product) => {
+            // Thêm vào tổng ngày
+            if (!dailySum[dateKey][product.name]) {
+              dailySum[dateKey][product.name] = 0;
+            }
+            dailySum[dateKey][product.name] += product.quantity;
+
+            // Thêm vào tổng sản phẩm
+            if (!productSum[product.name]) {
+              productSum[product.name] = 0;
+            }
+            productSum[product.name] += product.quantity;
+          });
         }
-      });
-  
-      setProductStats(stats);
-    };
-  
-    calculateProductStats();
-  }, [hoaDons, filter]);
-  
+      }
+    });
+
+    setDailySummary(dailySum);
+    setProductSummary(productSum);
+  }, [hoaDons, filter.year, filter.month]);
+
   const getChartData = () => {
-    const labels = Object.keys(productStats).sort();
-    const datasets = [];
-
-    const productNames = new Set();
-    Object.values(productStats).forEach((dailyStats) => {
-      Object.keys(dailyStats).forEach((productName) => {
-        productNames.add(productName);
+    if (filter.viewMode === "daily") {
+      const labels = Object.keys(dailySummary)
+        .sort((a, b) => new Date(a) - new Date(b))
+        .slice(-30);
+      
+      const data = labels.map((label) => {
+        const products = dailySummary[label];
+        return Object.values(products).reduce((acc, qty) => acc + qty, 0);
       });
-    });
 
-    productNames.forEach((productName) => {
-      const data = labels.map((label) => productStats[label][productName] || 0);
-      datasets.push({
-        label: productName,
-        data,
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      });
-    });
+      return {
+        labels,
+        datasets: [
+          {
+            label: "Tổng sản phẩm bán ra",
+            data,
+            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1,
+          },
+        ],
+      };
+    } else {
+      // Chế độ xem theo sản phẩm
+      const sortedProducts = Object.entries(productSummary)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Lấy top 10 sản phẩm bán chạy
 
-    return {
-      labels,
-      datasets,
-    };
+      const labels = sortedProducts.map(([name]) => name);
+      const data = sortedProducts.map(([_, qty]) => qty);
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: "Số lượng bán ra",
+            data,
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
+      };
+    }
   };
 
   const handleFilterChange = (e) => {
@@ -118,7 +147,7 @@ const TopProducts = () => {
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-50 to-gray-50">
         <div className="text-center">
           <div className="spinner-border text-blue-600" role="status">
-            <span className="sr-only">Loading...</span>
+            <span className="sr-only">Đang tải...</span>
           </div>
           <p className="mt-2 text-blue-800">Đang tải thông tin thống kê...</p>
         </div>
@@ -129,16 +158,20 @@ const TopProducts = () => {
   return (
     <div className="w-full">
       <div className="bg-white shadow-lg rounded-lg p-6">
-        <h6 className="text-lg font-bold text-blue-800 mb-4">Sản phẩm bán chạy</h6>
+        <h6 className="text-lg font-bold text-blue-800 mb-4">
+          {filter.viewMode === "daily" 
+            ? "Sản phẩm bán ra theo ngày" 
+            : "Top sản phẩm bán chạy"}
+        </h6>
 
-        {/* Bộ lọc theo ngày, tháng, năm */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-4 mb-6">
           <select
             name="year"
             value={filter.year}
             onChange={handleFilterChange}
             className="p-2 border border-blue-200 rounded"
           >
+            <option value="">Chọn năm</option>
             {Array.from(availableYears).map((year) => (
               <option key={year} value={year}>
                 {year}
@@ -161,21 +194,16 @@ const TopProducts = () => {
           </select>
 
           <select
-            name="day"
-            value={filter.day}
+            name="viewMode"
+            value={filter.viewMode}
             onChange={handleFilterChange}
             className="p-2 border border-blue-200 rounded"
           >
-            <option value="">Chọn ngày</option>
-            {Array.from({ length: 31 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Ngày {i + 1}
-              </option>
-            ))}
+            <option value="daily">Xem theo ngày</option>
+            <option value="product">Xem theo sản phẩm</option>
           </select>
         </div>
 
-        {/* Biểu đồ */}
         <div className="w-full h-[500px]">
           <Bar
             data={getChartData()}
@@ -183,15 +211,43 @@ const TopProducts = () => {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
+                tooltip: {
+                  callbacks: {
+                    title: (context) => 
+                      filter.viewMode === "daily" 
+                        ? `Ngày: ${context[0].label}` 
+                        : `Sản phẩm: ${context[0].label}`,
+                    label: (context) => {
+                      if (filter.viewMode === "daily") {
+                        const date = context.label;
+                        const products = dailySummary[date] || {};
+                        return Object.entries(products).map(
+                          ([name, qty]) => `${name}: ${qty} sản phẩm`
+                        );
+                      } else {
+                        return `Số lượng: ${context.raw}`;
+                      }
+                    },
+                  },
+                },
                 legend: { display: false },
-                tooltip: { enabled: true },
               },
               scales: {
                 x: {
-                  ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 },
+                  ticks: { 
+                    autoSkip: false, 
+                    maxRotation: 45, 
+                    minRotation: 45 
+                  },
                 },
                 y: {
                   beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: filter.viewMode === "daily" 
+                      ? "Tổng số sản phẩm" 
+                      : "Số lượng bán ra",
+                  },
                 },
               },
             }}

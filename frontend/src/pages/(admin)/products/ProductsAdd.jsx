@@ -96,6 +96,14 @@ const ProductsAdd = () => {
       if (!hasSelectedMemory) {
         throw new Error(`Phải chọn ít nhất một bộ nhớ!`);
       }
+      if (product.TrangThai === 'Còn hàng') {
+        const hasValidQuantity = product.memoryData.some(
+          (data) => data.SoLuong && Number(data.SoLuong) > 0
+        );
+        if (!hasValidQuantity) {
+          throw new Error(`Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!`);
+        }
+      }
       return true;
     } catch (error) {
       if (error.message) {
@@ -112,6 +120,56 @@ const ProductsAdd = () => {
       // Không làm gì, lỗi sẽ tự hiển thị tại Form.Item
     }
   }, 500);
+
+  const resetProductForm = () => {
+    const initialProductState = {
+      MaSP: '',
+      Mau1: '',
+      TrangThai: '',
+      HinhAnh1: null,
+      HinhAnh2: null,
+      HinhAnh3: null,
+      HinhAnh4: null,
+      HinhAnh5: null,
+      HinhAnh6: null,
+      memoryData: [
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: true },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+        { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
+      ],
+      hiddenIndices: [],
+    };
+    setProduct(initialProductState);
+
+    const fieldsToReset = [
+      'MaSP',
+      'Mau1',
+      'TrangThai',
+      'HinhAnh1',
+      'HinhAnh2',
+      'HinhAnh3',
+      'HinhAnh4',
+      'HinhAnh5',
+      'HinhAnh6',
+    ];
+    for (let i = 0; i < 6; i++) {
+      fieldsToReset.push(`BoNhoTrong_${i}`, `GiaSP_${i}`, `SoLuong_${i}`);
+    }
+    form.resetFields(fieldsToReset);
+
+    const defaultMemoryValues = {};
+    for (let i = 0; i < 6; i++) {
+      defaultMemoryValues[`BoNhoTrong_${i}`] = 'Vui lòng chọn bộ nhớ';
+      defaultMemoryValues[`GiaSP_${i}`] = '0';
+      defaultMemoryValues[`SoLuong_${i}`] = '0';
+    }
+    form.setFieldsValue(defaultMemoryValues);
+
+    setErrors({ global: '', imageError: '' });
+  };
 
   const handleAddProduct = async () => {
     setLoading(true);
@@ -154,44 +212,7 @@ const ProductsAdd = () => {
 
       await createProducts(productToAdd);
       message.success('Thêm sản phẩm thành công!');
-
-      setProduct({
-        MaSP: '',
-        Mau1: '',
-        TrangThai: '',
-        HinhAnh1: null,
-        HinhAnh2: null,
-        HinhAnh3: null,
-        HinhAnh4: null,
-        HinhAnh5: null,
-        HinhAnh6: null,
-        memoryData: [
-          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: true },
-          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-          { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-        ],
-        hiddenIndices: [],
-      });
-
-      form.resetFields([
-        'MaSP',
-        'Mau1',
-        'TrangThai',
-        'BoNhoTrong_0',
-        'GiaSP_0',
-        'SoLuong_0',
-        'HinhAnh1',
-        'HinhAnh2',
-        'HinhAnh3',
-        'HinhAnh4',
-        'HinhAnh5',
-        'HinhAnh6',
-      ]);
-
-      setErrors({ global: '', imageError: '' });
+      resetProductForm();
     } catch (error) {
       console.error('Lỗi khi thêm sản phẩm:', error.response?.data || error);
       const errorMsg = error.response?.data?.message || error.message || 'Không thể thêm sản phẩm.';
@@ -202,10 +223,21 @@ const ProductsAdd = () => {
   };
 
   const handleProductChange = (field, value) => {
-    setProduct((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setProduct((prev) => {
+      const updatedProduct = { ...prev, [field]: value };
+      if (field === 'TrangThai' && value === 'Hết hàng') {
+        updatedProduct.memoryData = updatedProduct.memoryData.map((data) => ({
+          ...data,
+          SoLuong: '0',
+        }));
+        const memoryFields = {};
+        updatedProduct.memoryData.forEach((data, index) => {
+          memoryFields[`SoLuong_${index}`] = '0';
+        });
+        form.setFieldsValue(memoryFields);
+      }
+      return updatedProduct;
+    });
     debouncedValidateFields(['MaSP', 'TrangThai']);
   };
 
@@ -283,10 +315,12 @@ const ProductsAdd = () => {
       }
       if (field === 'BoNhoTrong' && value !== 'Vui lòng chọn bộ nhớ') {
         updatedProduct.memoryData[memoryIndex].GiaSP = '';
-        updatedProduct.memoryData[memoryIndex].SoLuong = '';
+        if (updatedProduct.TrangThai !== 'Hết hàng') {
+          updatedProduct.memoryData[memoryIndex].SoLuong = '';
+        }
         form.setFieldsValue({
           [`GiaSP_${memoryIndex}`]: '',
-          [`SoLuong_${memoryIndex}`]: '',
+          ...(updatedProduct.TrangThai !== 'Hết hàng' && { [`SoLuong_${memoryIndex}`]: '' }),
         });
       }
       return updatedProduct;
@@ -335,19 +369,6 @@ const ProductsAdd = () => {
     }
     return Promise.resolve();
   };
-
-  const atLeastOneQuantityGreaterThanZero = () => ({
-    validator(_, value) {
-      const values = form.getFieldsValue();
-      if (values.TrangThai === "Còn hàng") {
-        const quantities = product.memoryData.map((data) => data.SoLuong);
-        if (quantities.every((q) => !q || Number(q) === 0)) {
-          return Promise.reject("Khi còn hàng, ít nhất một số lượng phải lớn hơn 0!");
-        }
-      }
-      return Promise.resolve();
-    },
-  });
 
   const getSelectedMemories = (currentMemoryIndex) => {
     return product.memoryData
@@ -541,41 +562,7 @@ const ProductsAdd = () => {
                 type="primary"
                 danger
                 onClick={() => {
-                  setProduct({
-                    MaSP: '',
-                    Mau1: '',
-                    TrangThai: '',
-                    HinhAnh1: null,
-                    HinhAnh2: null,
-                    HinhAnh3: null,
-                    HinhAnh4: null,
-                    HinhAnh5: null,
-                    HinhAnh6: null,
-                    memoryData: [
-                      { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: true },
-                      { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-                      { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-                      { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-                      { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-                      { BoNhoTrong: 'Vui lòng chọn bộ nhớ', GiaSP: '0', SoLuong: '0', isVisible: false },
-                    ],
-                    hiddenIndices: [],
-                  });
-                  form.resetFields([
-                    'MaSP',
-                    'Mau1',
-                    'TrangThai',
-                    'BoNhoTrong_0',
-                    'GiaSP_0',
-                    'SoLuong_0',
-                    'HinhAnh1',
-                    'HinhAnh2',
-                    'HinhAnh3',
-                    'HinhAnh4',
-                    'HinhAnh5',
-                    'HinhAnh6',
-                  ]);
-                  setErrors({ global: '', imageError: '' });
+                  resetProductForm();
                   message.success('Form sản phẩm đã được reset!');
                 }}
                 style={{ fontSize: '14px' }}
@@ -723,7 +710,6 @@ const ProductsAdd = () => {
                               message: 'Vui lòng nhập số lượng!',
                             },
                             { validator: noNegativeNumber },
-                            atLeastOneQuantityGreaterThanZero(),
                           ]}
                           initialValue={data.SoLuong}
                         >
@@ -731,8 +717,12 @@ const ProductsAdd = () => {
                             type="number"
                             placeholder="Nhập số lượng"
                             size="large"
-                            disabled={data.BoNhoTrong === 'Vui lòng chọn bộ nhớ'}
+                            disabled={
+                              data.BoNhoTrong === 'Vui lòng chọn bộ nhớ' ||
+                              product.TrangThai === 'Hết hàng'
+                            }
                             onChange={(e) => handleMemoryDataChange(memoryIndex, 'SoLuong', e.target.value)}
+                            value={product.TrangThai === 'Hết hàng' ? '0' : undefined}
                           />
                         </Form.Item>
                       </Col>
