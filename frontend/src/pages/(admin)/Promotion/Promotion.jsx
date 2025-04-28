@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 const { Option } = Select;
 
 const statusMap = {
-  0: "🟡 Chưa bắt đầu",
   1: "🔴 Đã sử dụng",
   2: "🔵 Đang diễn ra",
 };
@@ -145,20 +144,21 @@ const Promotion = forwardRef((props, ref) => {
       align: "center",
       render: (record) => (
         <div>
-          <Popconfirm
-            title="Bạn có chắc muốn xóa khuyến mãi này?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Có"
-            cancelText="Hủy"
-          >
-            <Button type="primary" danger>
-              Xóa
-            </Button>
-          </Popconfirm>
+          {record.TrangThai === 1 ? (
+            <Popconfirm
+              title="Bạn có chắc muốn xóa khuyến mãi này?"
+              onConfirm={() => handleDelete(record._id)}
+              okText="Có"
+              cancelText="Hủy"
+            >
+              <Button type="primary" danger>
+                Xóa
+              </Button>
+            </Popconfirm>
+          ) : null}
           <Button
             type="primary"
-            style={{ marginLeft: 10 }}
-            onClick={() => navigate(`/admin/vouchers/edit/${record._id}`)} // Chuyển hướng đến trang chỉnh sửa(record)}
+            onClick={() => navigate(`/admin/vouchers/edit/${record._id}`)}
           >
             Sửa
           </Button>
