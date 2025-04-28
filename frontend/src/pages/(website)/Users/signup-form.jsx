@@ -76,11 +76,19 @@ const SignupForm = () => {
             label="Mật khẩu"
             rules={[
               { required: true, message: 'Vui lòng nhập mật khẩu!' },
-              { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+              { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
+              { 
+                pattern: /^[A-Z]/,
+                message: 'Mật khẩu phải bắt đầu bằng chữ hoa!'
+              },
+              {
+                pattern: /^[a-zA-Z0-9]*$/,
+                message: 'Mật khẩu không được chứa ký tự đặc biệt!'
+              }
             ]}
           >
             <Input.Password placeholder="Nhập mật khẩu" />
-          </Form.Item>
+        </Form.Item>
 
           <Form.Item
             name="confirmPassword"

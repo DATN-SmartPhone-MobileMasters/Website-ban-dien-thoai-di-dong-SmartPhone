@@ -65,18 +65,12 @@ class UsersController {
 
       const existingFields = await Users.findOne({
         $or: [
-          { HoVaTen: req.body.HoVaTen },
-          { SDT: req.body.SDT },
           { Email: req.body.Email },
-          { DiaChi: req.body.DiaChi },
         ]
       });
-  
       if (existingFields) {
         let message = '';
-         if (existingFields.SDT === req.body.SDT) {
-          message = 'Số điện thoại đã tồn tại';
-        } else if (existingFields.Email === req.body.Email) {
+        if (existingFields.Email === req.body.Email) {
           message = 'Email đã tồn tại';
         }
         return res.status(400).json({ message });
