@@ -31,6 +31,7 @@ import {
   Tag,
 } from "antd";
 import io from "socket.io-client";
+//ddddddddddddd
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -65,7 +66,7 @@ const ProductDetail = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const userData = JSON.parse(localStorage.getItem("userData"));
   const email = userData?.Email;
-  const checkvar = ["vc", "vl", "lồn", "cặc", "cc", "độc hại"];
+  const checkvar = ["dốt", "nát", "ngu", "si", "đần", "độc hại"];
   const [displayedComments, setDisplayedComments] = useState(5);
   const timeoutRef = useRef(null);
 
