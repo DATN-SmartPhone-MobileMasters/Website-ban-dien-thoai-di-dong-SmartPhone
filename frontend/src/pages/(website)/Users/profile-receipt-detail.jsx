@@ -202,10 +202,6 @@ const ProfileReceiptDetails = () => {
                   <p className="font-medium">{order.checkPayment}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Phí vận chuyển:</p>
-                  <p className="font-medium">20,000đ</p>
-                </div>
-                <div>
                   <p className="text-sm text-gray-600">
                     Ngày hoàn thành giao hàng:
                   </p>
