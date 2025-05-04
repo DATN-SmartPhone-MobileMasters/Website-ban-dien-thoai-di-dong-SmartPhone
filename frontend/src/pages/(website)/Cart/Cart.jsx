@@ -41,6 +41,7 @@ const Cart = () => {
   const [tempVoucher, setTempVoucher] = useState("");
   const [tempDiscount, setTempDiscount] = useState(0);
   const [isVoucherModalVisible, setIsVoucherModalVisible] = useState(false);
+  const [isVoucherApplied, setIsVoucherApplied] = useState(false); // Trạng thái mới để kiểm soát vô hiệu hóa
   const navigate = useNavigate();
 
   const formatCurrency = (value) => {
@@ -110,7 +111,7 @@ const Cart = () => {
             const memoryIndex = memoryKey.slice(-1);
 
             if (isDiscontinued) {
-              newPrice = 0; // Giá bằng 0 nếu ngừng kinh doanh
+              newPrice = 0;
               newMaxQuantity = 0;
             } else {
               newPrice = productData[`GiaSP${memoryIndex}`];
@@ -175,6 +176,7 @@ const Cart = () => {
       if (storedVoucher && storedVoucher.code) {
         setVoucher(storedVoucher.code);
         setDiscount(storedVoucher.discount);
+        setIsVoucherApplied(true); // Đặt trạng thái voucher đã áp dụng
       }
     }
   };
@@ -197,6 +199,7 @@ const Cart = () => {
           localStorage.removeItem(`voucher_${userId}`);
           setVoucher("");
           setDiscount(0);
+          setIsVoucherApplied(false); // Hủy trạng thái voucher khi giỏ hàng rỗng
         }
 
         const newSelectedItems = {};
@@ -449,6 +452,7 @@ const Cart = () => {
         localStorage.removeItem(`voucher_${userId}`);
         setVoucher("");
         setDiscount(0);
+        setIsVoucherApplied(false); // Hủy trạng thái voucher khi giỏ hàng rỗng
       }
     }
 
@@ -503,9 +507,8 @@ const Cart = () => {
       return;
     }
 
-    const total = calculateTotal(); // Tính toán tổng giá trị đơn hàng
+    const total = calculateTotal();
 
-    // Kiểm tra giá trị đơn hàng tối thiểu
     if (total < promotion.GiaTriToiThieu) {
       message.error(
         `Đơn hàng cần có giá trị tối thiểu là ${promotion.GiaTriToiThieu} VND để áp dụng mã giảm giá.`
@@ -515,12 +518,8 @@ const Cart = () => {
 
     let discountAmount = 0;
 
-    // Xử lý giảm giá theo loại khuyến mãi
     if (promotion.LoaiKM === "percentage") {
-      // Tính giảm giá theo phần trăm
       discountAmount = (total * promotion.GiaTriKM) / 100;
-
-      // Kiểm tra giới hạn giảm tối đa nếu có
       if (promotion.GiamToiDa && discountAmount > promotion.GiamToiDa) {
         discountAmount = promotion.GiamToiDa;
         message.warning(
@@ -528,10 +527,7 @@ const Cart = () => {
         );
       }
     } else if (promotion.LoaiKM === "fixed") {
-      // Tính giảm giá cố định
       discountAmount = promotion.GiaTriKM;
-
-      // Kiểm tra giới hạn giảm tối đa nếu có
       if (promotion.GiamToiDa && discountAmount > promotion.GiamToiDa) {
         discountAmount = promotion.GiamToiDa;
         message.warning(
@@ -542,9 +538,9 @@ const Cart = () => {
 
     setDiscount(discountAmount);
     setVoucher(tempVoucher);
+    setIsVoucherApplied(true); // Đặt trạng thái voucher đã áp dụng
     message.success("Áp dụng mã giảm giá thành công!");
 
-    // Lưu voucher vào localStorage
     const userData = JSON.parse(localStorage.getItem("userData"));
     const userId = userData?.id;
     if (userId) {
@@ -647,6 +643,7 @@ const Cart = () => {
             Object.keys(selectedItems).length > 0 &&
             Object.values(selectedItems).every((val) => val)
           }
+          disabled={isVoucherApplied}
           onChange={(e) => {
             const newSelectedItems = {};
             cart.forEach((_, index) => {
@@ -665,7 +662,9 @@ const Cart = () => {
         <Checkbox
           checked={selectedItems[index] || false}
           onChange={() => handleSelectItem(index)}
-          disabled={record.maxQuantity === 0 || record.isDiscontinued}
+          disabled={record.maxQuantity === 0 || record.isDiscontinued ||isVoucherApplied}
+          
+
         />
       ),
       width: 50,
@@ -800,14 +799,25 @@ const Cart = () => {
               disabled={
                 quantity <= 1 ||
                 record.maxQuantity === 0 ||
-                record.isDiscontinued
+                record.isDiscontinued ||
+                isVoucherApplied
               }
+              style={{
+                opacity: isVoucherApplied ? 0.5 : 1,
+              }}
             />
             <Text>{quantity}</Text>
             <Button
               icon={<PlusOutlined />}
               onClick={() => increaseQuantity(index)}
-              disabled={record.maxQuantity <= 0 || record.isDiscontinued}
+              disabled={
+                record.maxQuantity <= 0 ||
+                record.isDiscontinued ||
+                isVoucherApplied
+              }
+              style={{
+                opacity: isVoucherApplied ? 0.5 : 1,
+              }}
             />
           </Space>
           <Text type="secondary">Còn lại: {record.maxQuantity}</Text>
@@ -843,8 +853,17 @@ const Cart = () => {
           onConfirm={() => removeItemFromCart(index)}
           okText="Có"
           cancelText="Không"
+          disabled={isVoucherApplied}
         >
-          <Button type="link" danger icon={<DeleteOutlined />}>
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            disabled={isVoucherApplied}
+            style={{
+              opacity: isVoucherApplied ? 0.5 : 1,
+            }}
+          >
             Xóa
           </Button>
         </Popconfirm>
@@ -919,6 +938,7 @@ const Cart = () => {
                       onClick={() => {
                         setVoucher("");
                         setDiscount(0);
+                        setIsVoucherApplied(false); // Hủy trạng thái voucher
                         const userData = JSON.parse(
                           localStorage.getItem("userData")
                         );
@@ -1057,14 +1077,6 @@ const Cart = () => {
                                   </Text>
                                 </Space>
                               </Radio>
-                              {tempVoucher === promo.MaKM &&
-                                tempDiscount > 0 && (
-                                  <Text
-                                    style={{ color: "#ff4d4f", marginLeft: 5 }}
-                                  >
-                                    Bạn được giảm {formatCurrency(tempDiscount)}
-                                  </Text>
-                                )}
                             </div>
                           ))}
                       </Space>
